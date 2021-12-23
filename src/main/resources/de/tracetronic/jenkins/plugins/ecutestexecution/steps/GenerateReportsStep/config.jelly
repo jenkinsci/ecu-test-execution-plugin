@@ -1,0 +1,12 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="${%generatorName.title}" description="${%generatorName.description}" field="generatorName">
+        <f:select default="ATX"/>
+    </f:entry>
+    <f:advanced title="${%additionalSettings.title}">
+        <f:entry title="${%additionalSettings.title}" description="${%additionalSettings.description}"
+                 field="additionalSettings">
+            <f:repeatableProperty field="additionalSettings" add="${%additionalSettings.add}" minimum="0"/>
+        </f:entry>
+    </f:advanced>
+</j:jelly>

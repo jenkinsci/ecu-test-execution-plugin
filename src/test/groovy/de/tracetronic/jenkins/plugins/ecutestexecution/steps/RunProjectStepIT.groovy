@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2021 TraceTronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+package de.tracetronic.jenkins.plugins.ecutestexecution.steps
+
+import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
+import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import hudson.model.Result
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
+import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jenkinsci.plugins.workflow.job.WorkflowRun
+import org.jenkinsci.plugins.workflow.steps.StepConfigTester
+import org.jvnet.hudson.test.JenkinsRule
+
+class RunProjectStepIT extends IntegrationTestBase {
+
+    def setup() {
+        ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
+                .getDescriptorByType(ETInstallation.DescriptorImpl.class)
+        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', 'C:\\ECU-TEST', JenkinsRule.NO_PROPERTIES))
+    }
+
+    def 'Default config round trip'() {
+        given:
+            RunProjectStep before = new RunProjectStep('test.prj')
+        when:
+            RunProjectStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+        then:
+            jenkins.assertEqualDataBoundBeans(before, after)
+    }
+
+    def 'Config round trip'() {
+        given:
+            RunProjectStep before = new RunProjectStep('test.prj')
+
+            TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('test.tbc')
+            testConfig.setTcfPath('test.tcf')
+            testConfig.setForceConfigurationReload(true)
+            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            before.setTestConfig(testConfig)
+
+            ExecutionConfig executionConfig = new ExecutionConfig()
+            executionConfig.setStopOnError(false)
+            executionConfig.setTimeout(60)
+            before.setExecutionConfig(executionConfig)
+        when:
+            RunProjectStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+        then:
+            jenkins.assertEqualDataBoundBeans(before, after)
+    }
+
+    def 'Snippet generator'() {
+        given:
+            SnippetizerTester st = new SnippetizerTester(jenkins)
+        when:
+            RunProjectStep step = new RunProjectStep('test.prj')
+        then:
+            st.assertRoundTrip(step, "ttRunProject 'test.prj'")
+        when:
+            TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('test.tbc')
+            testConfig.setTcfPath('test.tcf')
+            testConfig.setForceConfigurationReload(true)
+            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            step.setTestConfig(testConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +
+                    "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+        when:
+            ExecutionConfig executionConfig = new ExecutionConfig()
+            executionConfig.setStopOnError(false)
+            executionConfig.setTimeout(0)
+            step.setExecutionConfig(executionConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunProject executionConfig: [stopOnError: false, timeout: 0], " +
+                    "testCasePath: 'test.prj', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+    }
+
+    def 'Run pipeline'() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject 'test.prj' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Executing project test.prj...', run)
+    }
+}

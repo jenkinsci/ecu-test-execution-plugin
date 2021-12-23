@@ -1,0 +1,21 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="${%path.title}" description="${%path.description}" field="path">
+        <f:textbox clazz="required"/>
+    </f:entry>
+    <f:entry title="${%recordingGroup.title}" description="${%recordingGroup.description}" field="recordingGroup">
+        <f:textbox/>
+    </f:entry>
+    <!-- TODO: mappingNames -->
+    <f:entry title="${%deviceName.title}" description="${%deviceName.description}" field="deviceName">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%formatDetails.title}" description="${%formatDetails.description}" field="formatDetails">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="">
+        <div align="right">
+            <f:repeatableDeleteButton value="${%recording.delete}"/>
+        </div>
+    </f:entry>
+</j:jelly>

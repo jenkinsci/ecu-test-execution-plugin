@@ -1,0 +1,20 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%configSection.title}">
+        <f:entry title="${%tbcPath.title}" description="${%tbcPath.description}" field="tbcPath">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%tcfPath.title}" description="${%tcfPath.description}" field="tcfPath">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%forceConfigurationReload.title}" description="${%forceConfigurationReload.description}"
+                 field="forceConfigurationReload">
+            <f:checkbox/>
+        </f:entry>
+        <f:advanced title="${%constants.title}">
+            <f:entry title="${%constants.title}" description="${%constants.description}" field="constants">
+                <f:repeatableProperty field="constants" add="${%constants.add}" minimum="0"/>
+            </f:entry>
+        </f:advanced>
+    </f:section>
+</j:jelly>

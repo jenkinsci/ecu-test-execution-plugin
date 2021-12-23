@@ -1,0 +1,11 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%configSection.title}">
+        <f:advanced title="${%packageParameters.title}">
+            <f:entry title="${%packageParameters.title}" description="${%packageParameters.description}"
+                     field="packageParameters">
+                <f:repeatableProperty field="packageParameters" add="${%packageParameters.add}" minimum="0"/>
+            </f:entry>
+        </f:advanced>
+    </f:section>
+</j:jelly>

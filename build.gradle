@@ -1,0 +1,172 @@
+/*
+ * Copyright (c) 2021 TraceTronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+
+plugins {
+    id 'idea'
+    id 'groovy'
+    id 'jacoco'
+    id 'codenarc'
+    id 'maven'
+    id 'maven-publish'
+    id 'org.jenkins-ci.jpi' version "$jpiVersion"
+}
+
+group 'de.tracetronic.jenkins.plugins'
+version project.properties['version']
+description 'This plugin enables a platform-independent test execution. Due to the reduced complexity and ' +
+        'communication via REST API, ' +
+        'it provides an easy and reliable entry into continuous testing. It integrates ' +
+        'ECU-TEST with Jenkins and allows report generation and its upload of ' +
+        'automated test execution.\n'
+
+jenkinsPlugin {
+    coreVersion = project.properties['jenkinsVersion']
+    shortName = 'ecu-test-execution'
+    displayName = 'TraceTronic ECU-TEST-Execution Plugin'
+
+    url = 'https://plugins.jenkins.io/ecu-test-execution/'
+    gitHubUrl = 'https://github.com/tracetronic/ecu-test-execution-plugin'
+
+    disabledTestInjection = false
+    configurePublishing = false
+    fileExtension = 'hpi'
+
+    developers {
+        developer {
+            id 'TT-S3-D1'
+            name 'Sebastian Dietze'
+            email 'sebastian.dietze@tracetronic.de'
+        }
+        developer {
+            id 'cpoenisch'
+            name 'Christian Pönisch'
+            email 'christian.poenisch@tracetronic.de'
+        }
+        developer {
+            id 'MartinGroscheTT'
+            name 'Martin Grosche'
+            email 'martin.grosche@tracetronic.de'
+        }
+        developer {
+            id 'thardtke-tt'
+            name 'Thomas Hardtke'
+            email 'thomas.hardtke@tracetronic.de'
+        }
+    }
+
+    licenses {
+        license {
+            name 'BSD-3-Clause'
+            url 'https://opensource.org/licenses/BSD-3-Clause'
+            distribution 'repo'
+            comments 'All source code is under the BSD license.'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/tracetronic/ecu-test-rest-java-client")
+        credentials {
+            username = project.findProperty("privateGithubPackage.user")
+            password = project.findProperty("privateGithubPackage.password")
+        }
+    }
+}
+
+dependencies {
+    implementation 'de.tracetronic.cxs:ecu-test-rest-java-client:2021.1.0'
+    implementation 'org.jenkins-ci.plugins:credentials:2.5'
+    implementation 'org.jenkins-ci.plugins:script-security:1.76'
+    implementation 'org.jenkins-ci.plugins:structs:1.22'
+    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.23'
+
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.21'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2.90'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2.90:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.35'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:2.40'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.23:tests'
+    testImplementation('org.testcontainers:spock:1.15.3') {
+        exclude group: 'org.spockframework', module: 'spock-core'
+    }
+    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.4'
+    testImplementation('com.google.guava:guava') {
+        version {
+            strictly '11.0.1'
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            def path = project.version.toString().endsWith('-SNAPSHOT') ? 'snapshots' : 'releases'
+            name 'Jenkins'
+            url "https://repo.jenkins-ci.org/${path}"
+            credentials {
+                username = project.findProperty('jenkinsUser')
+                password = project.findProperty('jenkinsPwd')
+            }
+        }
+    }
+}
+
+task cleanJenkins(type: Delete) {
+    delete 'work'
+}
+
+tasks.named('server').configure {
+    it.port.set('8082')
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+codenarc {
+    toolVersion = '1.6.1'
+    configFile = file('config/codenarc/rules.groovy')
+    ignoreFailures = true
+}
+
+/*codenarcTest {
+    configFile = file('config/codenarc/rules-test.groovy')
+    ignoreFailures = true
+}*/
+
+idea {
+    project {
+        vcs = 'Git'
+        jdkName = '1.8'
+        languageLevel = '8'
+    }
+    module {
+        jdkName = '1.8'
+        languageLevel = new IdeaLanguageLevel('8')
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+wrapper {
+    gradleVersion = "$gradleVersion"
+}
