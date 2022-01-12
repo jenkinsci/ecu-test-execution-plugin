@@ -1,6 +1,6 @@
 # TraceTronic ECU-TEST-Execution Plugin
 
-[![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2021.1-orange?style=flat-square)](https://tracetronic.com/products/ecu-test) [![pipeline status](https://hq-vcs-3.ad.tracetronic.de/cxs/ecu-test-plugin/badges/master/pipeline.svg?style=flat-square)](https://hq-vcs-3.ad.tracetronic.de/cxs/ecu-test-plugin/-/commits/master) [![coverage report](https://hq-vcs-3.ad.tracetronic.de/cxs/ecu-test-plugin/badges/master/coverage.svg?style=flat-square)](https://hq-vcs-3.ad.tracetronic.de/cxs/ecu-test-plugin/-/commits/master)
+[![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2021.4-orange?style=flat-square)](https://tracetronic.com/products/ecu-test)
 
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
 it provides an easy and reliable entry into continuous testing. It integrates 
@@ -35,7 +35,6 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 - [Configuration](#configuration)
     - [ECU-TEST configuration](#ecu-test-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
-- [Migration](#migration)
 - [Contribution](#contribution)
 - [Support](#support)
 - [Compatibility](#compatibility)
@@ -86,11 +85,6 @@ node('windows') {
 }
 ```
 
-## Migration
-
-See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x
-using the new pipeline syntax.
-
 ## Contribution
 
 To report a bug or request an enhancement to this plugin please raise a
@@ -102,10 +96,10 @@ If you have any further questions, please contact us at [support@tracetronic.com
 
 ## Compatibility
 
-- Jenkins LTS 2.235.1 or higher
+- Jenkins LTS 2.235.5 or higher
 - Java SE Runtime Environment 8 or higher
-- [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2021.1
-- optional: [TEST-GUIDE](https://www.tracetronic.com/products/test-guide) 1.93.0 or higher
+- [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2021.4
+- optional: [TEST-GUIDE](https://www.tracetronic.com/products/test-guide) 1.114.3 or higher
 
 ## License
 

@@ -43,6 +43,11 @@ jenkinsPlugin {
             email 'sebastian.dietze@tracetronic.de'
         }
         developer {
+            id 'cpoenisch'
+            name 'Christian Pönisch'
+            email 'christian.poenisch@tracetronic.de'
+        }
+        developer {
             id 'MartinGroscheTT'
             name 'Martin Grosche'
             email 'martin.grosche@tracetronic.de'
@@ -154,7 +159,7 @@ openApiGenerate {
     inputSpec = "$rootDir/specs/openapi.yml".toString()
     generatorName = "java"
     id = 'ecu-test-rest-java-client'
-    version = '2021.1.0'
+    version = '2021.4.0'
     groupId = 'de.tracetronic.cxs'
     outputDir = "$rootDir/generated".toString()
     packageName = "de.tracetronic.cxs.generated.et.client"
