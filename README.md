@@ -1,6 +1,6 @@
 # TraceTronic ECU-TEST-Execution Plugin
 
-[![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2021.4-orange?style=flat-square)](https://tracetronic.com/products/ecu-test)
+[![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2021.4-orange?style=flat-square)](https://tracetronic.com/products/ecu-test) [![GitHub CI](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml)
 
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
 it provides an easy and reliable entry into continuous testing. It integrates 
@@ -103,4 +103,6 @@ If you have any further questions, please contact us at [support@tracetronic.com
 
 ## License
 
-This plugin is licensed under the terms of the [3-Clause BSD license](LICENSE).
+This plugin is licensed under the terms of the [3-Clause BSD license](LICENSES/BSD-3-Clause.txt).
+
+Using the [REUSE helper tool](https://github.com/fsfe/reuse-tool), you can run `reuse spdx` to get a bill of materials.

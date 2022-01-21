@@ -1,5 +1,5 @@
 # Copyright (c) 2021 TraceTronic GmbH
-# SPDX short identifier: MIT
+# SPDX-License-Identifier: MIT
 openapi: 3.0.3
 info:
   title: ECU-TEST REST-API
