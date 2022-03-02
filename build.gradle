@@ -93,6 +93,7 @@ dependencies {
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.35'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:2.40'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.23:tests'
+    testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
     testImplementation('org.testcontainers:spock:1.15.3') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
@@ -127,12 +128,38 @@ task cleanJenkins(type: Delete) {
     delete 'work'
 }
 
+task cleanApi(type: Delete) {
+    delete 'generated'
+}
+clean.dependsOn cleanApi
+
 tasks.named('server').configure {
     it.port.set('8082')
 }
 
 test {
+    filter {
+        excludeTestsMatching '*ContainerTest'
+    }
     finalizedBy jacocoTestReport
+}
+
+task containerTest(type: Test) {
+    doFirst {
+        def propFile = "src/test/resources/containerTest.properties"
+        assert file(propFile).exists() : "No property file '$propFile' for container test found"
+
+        def containerProps = new Properties()
+        file(propFile).withInputStream {
+            containerProps.load(it) }
+        containerProps.each {
+            environment it.key, it.value
+        }
+    }
+
+    filter {
+        includeTestsMatching('*ContainerTest')
+    }
 }
 
 jacocoTestReport {

@@ -1,0 +1,52 @@
+#!groovy
+
+/*
+=============
+Prerequisites
+=============
+* Global environment variables set:
+- EMAIL_RECIPIENTS
+- TG_AUTH_KEY
+- ET_VERSION
+- TG_VERSION
+* Jenkins plugins installed:
+- https://plugins.jenkins.io/timestamper
+- https://plugins.jenkins.io/gradle/
+*/
+
+pipeline {
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timestamps()
+    }
+
+    agent {
+        node {
+            label 'ecutest && windows && docker'
+        }
+    }
+
+    stages {
+        stage ('Prepare Resources') {
+            steps {
+                copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
+            }
+        }
+        stage ('ContainerTest') {
+            steps {
+                withGradle {
+                    bat './gradlew clean containerTest'
+                }
+            }
+        }
+    }
+    post {
+        unsuccessful {
+            mail to: "${env.EMAIL_RECIPIENTS}",
+                subject: "${JOB_NAME} - Build #${BUILD_NUMBER} - ${currentBuild.currentResult}",
+                body: "Check console output at ${BUILD_URL} to view the results."
+        }
+    }
+
+
+}

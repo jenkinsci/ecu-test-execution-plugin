@@ -21,6 +21,7 @@ work/
 *.ipr
 *.iws
 .shelf
+.run
 
 .settings/
 .classpath
@@ -69,3 +70,9 @@ bin/
 
 # OpenApiGenerator
 generated/
+
+# ContainerTest resources
+src/test/resources/workspace
+src/test/resources/autoConfig.prop
+src/test/resources/containerTest.properties
+
