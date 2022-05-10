@@ -1,0 +1,24 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry>
+        <div class="warning"> ${%testFolder.warningDescription} </div>
+    </f:entry>
+    <f:entry title="${%testFolder.title}" description="${%testFolder.description}" field="testCasePath">
+        <f:textbox clazz="required"/>
+    </f:entry>
+    <f:entry title="${%scanMode.title}" description="${%scanMode.description}" field="scanMode">
+        <f:select default="${descriptor.defaultScanMode}"/>
+    </f:entry>
+    <f:entry title="${%recursiveScan.title}" description="${%recursiveScan.description}" field="recursiveScan">
+        <f:checkbox default="false"/>
+    </f:entry>
+    <f:entry title="${%failFast.title}" description="${%failFast.description}" field="failFast">
+        <f:checkbox default="true"/>
+    </f:entry>
+    <f:property field="testConfig"/>
+    <f:advanced>
+        <f:property field="packageConfig"/>
+        <f:property field="analysisConfig"/>
+        <f:property field="executionConfig"/>
+    </f:advanced>
+</j:jelly>

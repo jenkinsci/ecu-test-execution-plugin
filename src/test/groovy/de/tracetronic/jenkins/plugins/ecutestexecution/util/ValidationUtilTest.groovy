@@ -6,7 +6,10 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import hudson.util.FormValidation
+import org.apache.http.client.fluent.Form
 import spock.lang.Specification
+
+import java.nio.file.Paths
 
 class ValidationUtilTest extends Specification {
 
@@ -21,6 +24,20 @@ class ValidationUtilTest extends Specification {
             '${SETTING}' | true     | FormValidation.Kind.WARNING
             null         | false    | FormValidation.Kind.OK
             null         | true     | FormValidation.Kind.ERROR
+    }
+
+    def 'Validate absolute path values'(String value, FormValidation.Kind expectedKind) {
+        given:
+            FormValidation validation = ValidationUtil.validateAbsolutePath(value)
+            ValidationUtil validationUtil = Mock()
+            validationUtil.validateParameterizedValue(value, true) >> FormValidation.ok()
+        expect:
+            validation.kind == expectedKind
+        where:
+            value << ['..\\TestFolder',
+                       Paths.get('src', 'test', 'resources', 'workspace', 'TestFolder')
+                               .toFile().getAbsolutePath()]
+            expectedKind << [FormValidation.Kind.ERROR, FormValidation.Kind.OK]
     }
 
     def 'Validate timeout values'(int value, FormValidation.Kind expectedKind) {

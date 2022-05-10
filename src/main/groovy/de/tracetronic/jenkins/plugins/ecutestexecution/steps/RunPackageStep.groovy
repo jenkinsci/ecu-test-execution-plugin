@@ -6,20 +6,12 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.model.AdditionalSettings
-import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
-import de.tracetronic.cxs.generated.et.client.model.LabeledValue
-import de.tracetronic.cxs.generated.et.client.model.Recording
-import de.tracetronic.cxs.generated.et.client.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.actions.RunPackageAction
+import de.tracetronic.jenkins.plugins.ecutestexecution.builder.TestPackageBuilder
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -29,7 +21,6 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.FormValidation
 import hudson.util.IOUtils
-import jenkins.security.MasterToSlaveCallable
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.jenkinsci.plugins.workflow.steps.StepExecution
@@ -40,6 +31,9 @@ import org.kohsuke.stapler.QueryParameter
 
 import javax.annotation.Nonnull
 
+/**
+ * Step providing the execution of ECU-TEST packages.
+ */
 class RunPackageStep extends RunTestStep {
 
     @Nonnull
@@ -99,10 +93,9 @@ class RunPackageStep extends RunTestStep {
 
             checkPackage(expTestCasePath)
 
-            TestResult result = getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(expTestCasePath, expTestConfig, expPackageConfig,
-                            expAnalysisConfig, step.executionConfig,
-                            context.get(EnvVars.class), context.get(TaskListener.class)))
+            TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
+                    step.executionConfig, context, expPackageConfig, expAnalysisConfig)
+            TestResult result = testPackage.runTest()
 
             addBuildAction(context.get(Run.class), expTestCasePath, expTestConfig, expPackageConfig, expAnalysisConfig,
                     result)
@@ -128,101 +121,9 @@ class RunPackageStep extends RunTestStep {
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<TestResult, IOException> {
-
-        private final String testCasePath
-        private final TestConfig testConfig
-        private final PackageConfig packageConfig
-        private final AnalysisConfig analysisConfig
-        private final ExecutionConfig executionConfig
-        private final EnvVars envVars
-        private final TaskListener listener
-
-        ExecutionCallable(String testCasePath, TestConfig testConfig, PackageConfig packageConfig,
-                          AnalysisConfig analysisConfig, ExecutionConfig executionConfig,
-                          EnvVars envVars, TaskListener listener) {
-            super()
-            this.testCasePath = testCasePath
-            this.testConfig = testConfig.expand(envVars)
-            this.packageConfig = packageConfig.expand(envVars)
-            this.analysisConfig = analysisConfig.expand(envVars)
-            this.executionConfig = executionConfig
-            this.envVars = envVars
-            this.listener = listener
-        }
-
-        @Override
-        TestResult call() throws IOException {
-            RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-
-            AdditionalSettings settings = new AdditionalSettings()
-                    .forceConfigurationReload(testConfig.forceConfigurationReload)
-                    .packageParameters(packageConfig.packageParameters as List<LabeledValue>)
-                    .analysisName(analysisConfig.analysisName)
-                    .mapping(analysisConfig.mapping)
-                    .recordings(analysisConfig.recordings as List<Recording>)
-            ExecutionOrder executionOrder = new ExecutionOrder()
-                    .testCasePath(testCasePath)
-                    .tbcPath(testConfig.tbcPath)
-                    .tcfPath(testConfig.tcfPath)
-                    .constants(testConfig.constants as List<LabeledValue>)
-                    .additionalSettings(settings)
-
-            listener.logger.println("Executing package ${this.testCasePath}...")
-            logConfigs()
-
-            de.tracetronic.cxs.generated.et.client.model.Execution execution = apiClient.runTest(
-                    executionOrder, executionConfig.timeout)
-
-            TestResult result
-            ReportInfo reportInfo = execution.result
-            if (reportInfo) {
-                result = new TestResult(reportInfo.testReportId, reportInfo.result, reportInfo.reportDir)
-                listener.logger.println('Package executed successfully.')
-            } else {
-                result = new TestResult(null, 'ERROR', null)
-                listener.logger.println('Executing Package failed!')
-                if (executionConfig.stopOnError) {
-                    stopToolInstances()
-                }
-            }
-
-            listener.logger.println(result.toString())
-
-            return result
-        }
-
-        private stopToolInstances() {
-            listener.logger.println('- Stopping running ECU-TEST instances...')
-            ProcessUtil.killProcess(ETInstallation.getExeFileName())
-            listener.logger.println('-> ECU-TEST stopped successfully.')
-        }
-
-        private void logConfigs() {
-            if (testConfig.tbcPath) {
-                listener.logger.println("-> With TBC=${this.testConfig.tbcPath}")
-            }
-            if (testConfig.tcfPath) {
-                listener.logger.println("-> With TCF=${this.testConfig.tcfPath}")
-            }
-            if (testConfig.constants) {
-                listener.logger.println("-> With global constants=[${this.testConfig.constants.each { it.toString() }}]")
-            }
-            if (packageConfig.packageParameters) {
-                listener.logger.println("-> With package parameters=[${this.packageConfig.packageParameters.each { it.toString() }}]")
-            }
-            if (analysisConfig.analysisName) {
-                listener.logger.println("-> With analysis=${this.analysisConfig.analysisName}")
-            }
-            if (analysisConfig.mapping) {
-                listener.logger.println("-> With mapping=${this.analysisConfig.mapping}")
-            }
-            if (analysisConfig.recordings) {
-                listener.logger.println("-> With analysis recordings=[${this.analysisConfig.recordings.each { it.toString() }}]")
-            }
-        }
-    }
-
+    /**
+     * DescriptorImpl for {@link RunPackageStep}
+     */
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 
@@ -241,6 +142,12 @@ class RunPackageStep extends RunTestStep {
             return ImmutableSet.of(Launcher.class, Run.class, EnvVars.class, TaskListener.class)
         }
 
+        /**
+         * Validates the test case path.
+         *
+         * @param value the test case path
+         * @return the form validation
+         */
         FormValidation doCheckTestCasePath(@QueryParameter String value) {
             return ValidationUtil.validateParameterizedValue(value, true)
         }

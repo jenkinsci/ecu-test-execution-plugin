@@ -98,6 +98,8 @@ dependencies {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
     testImplementation 'org.spockframework:spock-core:1.3-groovy-2.4'
+    testImplementation 'cglib:cglib-nodep:3.3.0'
+    testImplementation 'org.objenesis:objenesis:3.0.1'
     testImplementation('com.google.guava:guava') {
         version {
             strictly '11.0.1'

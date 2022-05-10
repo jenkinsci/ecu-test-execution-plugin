@@ -8,12 +8,13 @@ example pipeline.
 Existing pipeline jobs can be migrated using the pipeline syntax given in the following table.
 
 Step Name v2.x | Step Name v3.x
------------------- | ------------------
-*testPackage* | **ttRunPackage**
-*testProject* | **ttRunProject**
-*startET* | **ttStartTool**
-*stopET* | **ttStopTool**
-*publishATX* | **ttUploadReports**
+-------------- | ------------------
+*testFolder*   | **ttRunTestFolder**
+*testPackage*  | **ttRunPackage**
+*testProject*  | **ttRunProject**
+*startET*      | **ttStartTool**
+*stopET*       | **ttStopTool**
+*publishATX*   | **ttUploadReports**
 
 Remaining steps which are available in the [current plugin version](https://github.com/jenkinsci/ecutest-plugin) are in
 development and will be available in the future.
@@ -30,6 +31,8 @@ node('windows') {
         startET toolName: 'ECU-TEST', workspaceDir: 'workspace', settingsDir: 'settings'
     }
     stage('Test Execution') {
+        // execute ECU-TEST test folder
+        testFolder failFast: false, recursiveScan: true, scanMode: 'PROJECTS_ONLY', testFile: 'S:\\ample\\Path'
         // execute ECU-TEST project (e.g. multiple test packages)
         testProject testConfig: [constants: [[name: 'sample', value: '123']], tbcFile: 'sample.tbc', tcfFile: 'sample.tcf'], testFile: 'sample.prj'
         // execute single ECU-TEST package
@@ -59,6 +62,8 @@ node('windows') {
         ttStartTool toolName: 'ECU-TEST', workspaceDir: 'workspace', settingsDir: 'settings'
     }
     stage('Test Execution') {
+        // execute ECU-TEST test folder
+        ttRunTestFolder failFast: false, recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: 'S:\\ample\\Path'
         // execute ECU-TEST project (e.g. multiple test packages)
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
         // execute single ECU-TEST package

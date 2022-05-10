@@ -36,8 +36,9 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
     - [ECU-TEST configuration](#ecu-test-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
 - [Contribution](#contribution)
-- [Support](#support)
+- [Known Issues](#known-issues)
 - [Compatibility](#compatibility)
+- [Support](#support)
 - [License](#license)
 
 ## Features
@@ -90,9 +91,18 @@ node('windows') {
 To report a bug or request an enhancement to this plugin please raise a
 new [GitHub issue](https://github.com/tracetronic/ecu-test-plugin/issues/new/choose).
 
-## Support
+## Known Issues
 
-If you have any further questions, please contact us at [support@tracetronic.com](mailto:support@tracetronic.com).
+When encountering problems or error messages, please check the installed plugin version at first and update to the most recent version, if any.
+If the problem still exists search the following list of issues for possible solutions, otherwise you are asked to create an [issue](#contribution).
+
+<details>
+    <summary>When executing ttRunTestFolders, an error "IllegalArgumentException" with the messages that the path does not exist occurs.</summary>
+
+> This is an issue related to the path resolution. In order to resolve paths correctly, ECU-TEST needs to be run either
+> on the server, or on a machine together with the step-executing Jenkins agent. This means in particular, that, when
+> using a containerized version of ECU-TEST, the executing Jenkins agent needs to be within the same container.
+</details>
 
 ## Compatibility
 
@@ -100,6 +110,10 @@ If you have any further questions, please contact us at [support@tracetronic.com
 - Java SE Runtime Environment 8 or higher
 - [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2021.4
 - optional: [TEST-GUIDE](https://www.tracetronic.com/products/test-guide) 1.114.3 or higher
+
+## Support
+
+If you have any further questions, please contact us at [support@tracetronic.com](mailto:support@tracetronic.com).
 
 ## License
 

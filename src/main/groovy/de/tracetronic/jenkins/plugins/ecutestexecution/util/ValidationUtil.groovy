@@ -6,7 +6,10 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import hudson.util.FormValidation
+import hudson.util.IOUtils
 import org.apache.commons.lang.StringUtils
+
+import java.text.Normalizer
 
 class ValidationUtil {
 
@@ -28,6 +31,19 @@ class ValidationUtil {
             returnValue = FormValidation.warning(
                     'Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
         }
+        return returnValue
+    }
+
+    static FormValidation validateAbsolutePath(String value) {
+        FormValidation returnValue = FormValidation.ok()
+        FormValidation paramFormValidation = ValidationUtil.validateParameterizedValue(value, true)
+        if (paramFormValidation != returnValue) {
+            return paramFormValidation
+        }
+        if (!IOUtils.isAbsolute(value)) {
+            return FormValidation.error("Relative path value '${value}' are not supported at this field.")
+        }
+
         return returnValue
     }
 
