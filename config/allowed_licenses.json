@@ -6,279 +6,34 @@
       "moduleName": "com.fasterxml.jackson.core:jackson-annotations"
     },
     {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.13.2",
-      "moduleName": "com.fasterxml.jackson.core:jackson-annotations"
-    },
-    {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.13.2",
-      "moduleName": "com.fasterxml.jackson.core:jackson-annotations"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.13.2",
+      "moduleVersion": "2.10.1",
       "moduleName": "com.fasterxml.jackson.core:jackson-core"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.13.2",
-      "moduleName": "com.fasterxml.jackson.core:jackson-core"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.13.2.2",
+      "moduleVersion": "2.10.1",
       "moduleName": "com.fasterxml.jackson.core:jackson-databind"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.13.2.2",
-      "moduleName": "com.fasterxml.jackson.core:jackson-databind"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.13.2",
-      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.13.2",
+      "moduleVersion": "2.10.1",
       "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
     },
     {
       "moduleLicense": null,
-      "moduleVersion": "2.13.2",
-      "moduleName": "com.fasterxml.jackson:jackson-bom"
-    },
-    {
-      "moduleLicense": null,
-      "moduleVersion": "2.9.2",
+      "moduleVersion": "2.8.8",
       "moduleName": "com.github.ben-manes.caffeine:caffeine"
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.9.2",
+      "moduleVersion": "2.8.8",
       "moduleName": "com.github.ben-manes.caffeine:caffeine"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
       "moduleVersion": "3.0.2",
       "moduleName": "com.google.code.findbugs:jsr305"
-    },
-    {
-      "moduleLicense": "\"Apache-2.0\";link=\"https://www.apache.org/licenses/LICENSE-2.0.txt\"",
-      "moduleVersion": "2.9.0",
-      "moduleName": "com.google.code.gson:gson"
-    },
-    {
-      "moduleLicense": "Apache-2.0",
-      "moduleVersion": "2.9.0",
-      "moduleName": "com.google.code.gson:gson"
-    },
-    {
-      "moduleLicense": "Apache 2.0",
-      "moduleVersion": "2.7.1",
-      "moduleName": "com.google.errorprone:error_prone_annotations"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "1.0.1",
-      "moduleName": "com.google.guava:failureaccess"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "31.0.1-android",
-      "moduleName": "com.google.guava:guava"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "9999.0-empty-to-avoid-conflict-with-guava",
-      "moduleName": "com.google.guava:listenablefuture"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "1.3",
-      "moduleName": "com.google.j2objc:j2objc-annotations"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.9.3",
-      "moduleName": "com.squareup.okhttp3:logging-interceptor"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.9.3",
-      "moduleName": "com.squareup.okhttp3:okhttp"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.8.0",
-      "moduleName": "com.squareup.okio:okio"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.11.0",
-      "moduleName": "commons-io:commons-io"
-    },
-    {
-      "moduleLicense": "Apache-2.0",
-      "moduleVersion": "1.8.5",
-      "moduleName": "io.gsonfire:gson-fire"
-    },
-    {
-      "moduleLicense": "Apache License v2",
-      "moduleVersion": "2.9.2-29.v717aac953ff3",
-      "moduleName": "io.jenkins.plugins:caffeine-api"
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
-      "moduleName": "io.swagger:swagger-annotations"
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
-      "moduleName": "io.swagger:swagger-core"
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
-      "moduleName": "io.swagger:swagger-models"
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.0.59",
-      "moduleName": "io.swagger:swagger-parser"
-    },
-    {
-      "moduleLicense": "CDDL + GPLv2 with classpath exception",
-      "moduleVersion": "1.3.2",
-      "moduleName": "javax.annotation:javax.annotation-api"
-    },
-    {
-      "moduleLicense": "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0",
-      "moduleVersion": "1.3.2",
-      "moduleName": "javax.annotation:javax.annotation-api"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "1.1.0.Final",
-      "moduleName": "javax.validation:validation-api"
-    },
-    {
-      "moduleLicense": "The BSD License",
-      "moduleVersion": "4.9.3",
-      "moduleName": "org.antlr:antlr4-runtime"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "3.12.0",
-      "moduleName": "org.apache.commons:commons-lang3"
-    },
-    {
-      "moduleLicense": "GNU General Public License, version 2 (GPL2), with the classpath exception",
-      "moduleVersion": "2.5.5",
-      "moduleName": "org.checkerframework:checker-compat-qual"
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "moduleVersion": "2.5.5",
-      "moduleName": "org.checkerframework:checker-compat-qual"
-    },
-    {
-      "moduleLicense": "MIT",
-      "moduleVersion": "3.12.0",
-      "moduleName": "org.checkerframework:checker-qual"
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "moduleVersion": "3.12.0",
-      "moduleName": "org.checkerframework:checker-qual"
-    },
-    {
-      "moduleLicense": "The MIT license",
-      "moduleVersion": "1087.v16065d268466",
-      "moduleName": "org.jenkins-ci.plugins:credentials"
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.4.10",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib"
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.4.10",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common"
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.4.10",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.4.10",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "13.0",
-      "moduleName": "org.jetbrains:annotations"
-    },
-    {
-      "moduleLicense": "MIT license",
-      "moduleVersion": "1.27",
-      "moduleName": "org.kohsuke:groovy-sandbox"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "1.30",
-      "moduleName": "org.yaml:snakeyaml"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "625.vd896b_f445a_f8",
-      "moduleName": "org.jenkins-ci.plugins.workflow:workflow-step-api"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "1158.v7c1b_73a_69a_08",
-      "moduleName": "org.jenkins-ci.plugins:script-security"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "318.va_f3ccb_729b_71",
-      "moduleName": "org.jenkins-ci.plugins:structs"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "1.7.22",
-      "moduleName": "org.slf4j:slf4j-api"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
-      "moduleName": "com.fasterxml.jackson.core:jackson-core"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
-      "moduleName": "com.fasterxml.jackson.core:jackson-databind"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
-      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-    },
-    {
-      "moduleLicense": null,
-      "moduleVersion": "2.8.8",
-      "moduleName": "com.github.ben-manes.caffeine:caffeine"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.8.8",
-      "moduleName": "com.github.ben-manes.caffeine:caffeine"
     },
     {
       "moduleLicense": "Apache 2.0",
@@ -292,8 +47,18 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "1.0.1",
+      "moduleName": "com.google.guava:failureaccess"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
       "moduleVersion": "27.0.1-android",
       "moduleName": "com.google.guava:guava"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "9999.0-empty-to-avoid-conflict-with-guava",
+      "moduleName": "com.google.guava:listenablefuture"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
@@ -311,6 +76,11 @@
       "moduleName": "com.squareup.okhttp3:okhttp"
     },
     {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "2.8.0",
+      "moduleName": "com.squareup.okio:okio"
+    },
+    {
       "moduleLicense": "Apache License, Version 2.0",
       "moduleVersion": "2.4",
       "moduleName": "commons-io:commons-io"
@@ -319,6 +89,16 @@
       "moduleLicense": "The Apache Software License, Version 2.0",
       "moduleVersion": "2.4",
       "moduleName": "commons-io:commons-io"
+    },
+    {
+      "moduleLicense": "\"Apache-2.0\";link=\"https://www.apache.org/licenses/LICENSE-2.0.txt\"",
+      "moduleVersion": "1.8.5",
+      "moduleName": "io.gsonfire:gson-fire"
+    },
+    {
+      "moduleLicense": "Apache-2.0",
+      "moduleVersion": "1.8.5",
+      "moduleName": "io.gsonfire:gson-fire"
     },
     {
       "moduleLicense": "Apache License 2.0",
@@ -341,9 +121,29 @@
       "moduleName": "io.swagger:swagger-parser"
     },
     {
+      "moduleLicense": "CDDL + GPLv2 with classpath exception",
+      "moduleVersion": "1.3.2",
+      "moduleName": "javax.annotation:javax.annotation-api"
+    },
+    {
+      "moduleLicense": "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0",
+      "moduleVersion": "1.3.2",
+      "moduleName": "javax.annotation:javax.annotation-api"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "1.1.0.Final",
+      "moduleName": "javax.validation:validation-api"
+    },
+    {
       "moduleLicense": "The BSD License",
       "moduleVersion": "4.9.2",
       "moduleName": "org.antlr:antlr4-runtime"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "3.12.0",
+      "moduleName": "org.apache.commons:commons-lang3"
     },
     {
       "moduleLicense": "GNU General Public License, version 2 (GPL2), with the classpath exception",
@@ -399,6 +199,36 @@
       "moduleLicense": "MIT License",
       "moduleVersion": "1.23",
       "moduleName": "org.jenkins-ci:symbol-annotation"
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib"
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common"
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "13.0",
+      "moduleName": "org.jetbrains:annotations"
+    },
+    {
+      "moduleLicense": "MIT license",
+      "moduleVersion": "1.27",
+      "moduleName": "org.kohsuke:groovy-sandbox"
     },
     {
       "moduleLicense": "MIT License",
