@@ -14,9 +14,9 @@ plugins {
     id "org.openapi.generator" version "5.3.0"
 }
 
-group 'io.jenkins.plugins'
-version project.properties['version']
-description 'This plugin enables a platform-independent test execution. Due to the reduced complexity and ' +
+group = 'de.tracetronic.jenkins.plugins'
+version = project.properties['version']
+description = 'This plugin enables a platform-independent test execution. Due to the reduced complexity and ' +
         'communication via REST API, ' +
         'it provides an easy and reliable entry into continuous testing. It integrates ' +
         'ECU-TEST with Jenkins and allows report generation and its upload of ' +
