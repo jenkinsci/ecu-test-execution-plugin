@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 
 plugins {
     id 'idea'
@@ -220,12 +219,11 @@ tasks.compileJava.dependsOn tasks.openApiGenerate
 idea {
     project {
         vcs = 'Git'
-        jdkName = '11'
-        languageLevel = '11'
+        jdkName = '1.8'
+        languageLevel = '8'
     }
     module {
-        jdkName = '11'
-        languageLevel = new IdeaLanguageLevel('11')
+        jdkName = '1.8'
         downloadJavadoc = true
         downloadSources = true
     }
