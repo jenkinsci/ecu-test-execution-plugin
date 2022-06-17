@@ -24,6 +24,6 @@ jobs:
         with:
           gradle-version: 7.3
           arguments: checkLicense
-      - if: always()
-        name: print without licenses file
+      - name: Print Without Licenses File
+        if: always()
         run: cat ./build/licenses/dependencies-without-allowed-license.json
