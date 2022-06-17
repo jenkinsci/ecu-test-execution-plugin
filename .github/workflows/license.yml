@@ -27,7 +27,7 @@ jobs:
           arguments: checkLicense
       - name: Print Allowed Licenses File
         if: always()
-        run: cat ./config/allowed-licenses.json
+        run: cat ./config/allowed_licenses.json
       - name: Print Without Licenses File
         if: always()
         run: cat ./build/licenses/dependencies-without-allowed-license.json
