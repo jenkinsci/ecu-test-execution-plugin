@@ -11,6 +11,7 @@ on:
 jobs:
   licenses:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -23,3 +24,6 @@ jobs:
         with:
           gradle-version: 7.3
           arguments: checkLicense
+      - if: always()
+        name: print without licenses file
+        run: cat ./build/licenses/dependencies-without-allowed-license.json
