@@ -26,8 +26,8 @@ jobs:
           cache-disabled: true
           arguments: checkLicense
       - name: Print Allowed Licenses File
-          if: always()
-          run: cat ./config/allowed-licenses.json
+        if: always()
+        run: cat ./config/allowed-licenses.json
       - name: Print Without Licenses File
         if: always()
         run: cat ./build/licenses/dependencies-without-allowed-license.json
