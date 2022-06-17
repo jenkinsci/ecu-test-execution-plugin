@@ -19,15 +19,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Clean
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.3
-          arguments: clean
       - name: Check Third Party Licenses
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 7.3
+          cache-disabled: false
           arguments: checkLicense
       - name: Print Without Licenses File
         if: always()
