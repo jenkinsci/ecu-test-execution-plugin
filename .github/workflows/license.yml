@@ -23,7 +23,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 7.3
-          cache-disabled: false
+          cache-disabled: true
           arguments: checkLicense
       - name: Print Without Licenses File
         if: always()
