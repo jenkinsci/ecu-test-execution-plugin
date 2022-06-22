@@ -1,33 +1,58 @@
 {
   "allowedLicenses": [
     {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-annotations"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson.core:jackson-annotations"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-core"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson.core:jackson-core"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-databind"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.10.1",
+      "moduleVersion": "2.13.2.2",
+      "moduleName": "com.fasterxml.jackson.core:jackson-databind"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
     },
     {
       "moduleLicense": null,
-      "moduleVersion": "2.8.8",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson:jackson-bom"
+    },
+    {
+      "moduleLicense": null,
+      "moduleVersion": "2.9.2",
       "moduleName": "com.github.ben-manes.caffeine:caffeine"
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.8.8",
+      "moduleVersion": "2.9.2",
       "moduleName": "com.github.ben-manes.caffeine:caffeine"
     },
     {
@@ -36,13 +61,18 @@
       "moduleName": "com.google.code.findbugs:jsr305"
     },
     {
-      "moduleLicense": "Apache 2.0",
-      "moduleVersion": "2.8.6",
+      "moduleLicense": "\"Apache-2.0\";link=\"https://www.apache.org/licenses/LICENSE-2.0.txt\"",
+      "moduleVersion": "2.9.0",
+      "moduleName": "com.google.code.gson:gson"
+    },
+    {
+      "moduleLicense": "Apache-2.0",
+      "moduleVersion": "2.9.0",
       "moduleName": "com.google.code.gson:gson"
     },
     {
       "moduleLicense": "Apache 2.0",
-      "moduleVersion": "2.4.0",
+      "moduleVersion": "2.7.1",
       "moduleName": "com.google.errorprone:error_prone_annotations"
     },
     {
@@ -51,8 +81,8 @@
       "moduleName": "com.google.guava:failureaccess"
     },
     {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "27.0.1-android",
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "31.0.1-android",
       "moduleName": "com.google.guava:guava"
     },
     {
@@ -62,17 +92,17 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "1.1",
+      "moduleVersion": "1.3",
       "moduleName": "com.google.j2objc:j2objc-annotations"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.9.1",
+      "moduleVersion": "4.9.3",
       "moduleName": "com.squareup.okhttp3:logging-interceptor"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.9.1",
+      "moduleVersion": "4.9.3",
       "moduleName": "com.squareup.okhttp3:okhttp"
     },
     {
@@ -82,12 +112,7 @@
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.4",
-      "moduleName": "commons-io:commons-io"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "2.4",
+      "moduleVersion": "2.11.0",
       "moduleName": "commons-io:commons-io"
     },
     {
@@ -101,23 +126,28 @@
       "moduleName": "io.gsonfire:gson-fire"
     },
     {
+      "moduleLicense": "Apache License v2",
+      "moduleVersion": "2.9.2-29.v717aac953ff3",
+      "moduleName": "io.jenkins.plugins:caffeine-api"
+    },
+    {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.2",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-annotations"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.1",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-core"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.1",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-models"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.0.51",
+      "moduleVersion": "1.0.59",
       "moduleName": "io.swagger:swagger-parser"
     },
     {
@@ -137,7 +167,7 @@
     },
     {
       "moduleLicense": "The BSD License",
-      "moduleVersion": "4.9.2",
+      "moduleVersion": "4.9.3",
       "moduleName": "org.antlr:antlr4-runtime"
     },
     {
@@ -147,58 +177,43 @@
     },
     {
       "moduleLicense": "GNU General Public License, version 2 (GPL2), with the classpath exception",
-      "moduleVersion": "2.5.2",
+      "moduleVersion": "2.5.5",
       "moduleName": "org.checkerframework:checker-compat-qual"
     },
     {
       "moduleLicense": "The MIT License",
-      "moduleVersion": "2.5.2",
+      "moduleVersion": "2.5.5",
       "moduleName": "org.checkerframework:checker-compat-qual"
     },
     {
       "moduleLicense": "MIT",
-      "moduleVersion": "3.8.0",
+      "moduleVersion": "3.12.0",
       "moduleName": "org.checkerframework:checker-qual"
     },
     {
       "moduleLicense": "The MIT License",
-      "moduleVersion": "3.8.0",
+      "moduleVersion": "3.12.0",
       "moduleName": "org.checkerframework:checker-qual"
     },
     {
-      "moduleLicense": "MIT license",
-      "moduleVersion": "1.17",
-      "moduleName": "org.codehaus.mojo:animal-sniffer-annotations"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "1.17",
-      "moduleName": "org.codehaus.mojo:animal-sniffer-annotations"
-    },
-    {
       "moduleLicense": "MIT License",
-      "moduleVersion": "2.23",
+      "moduleVersion": "625.vd896b_f445a_f8",
       "moduleName": "org.jenkins-ci.plugins.workflow:workflow-step-api"
     },
     {
       "moduleLicense": "The MIT license",
-      "moduleVersion": "2.5",
+      "moduleVersion": "1087.v16065d268466",
       "moduleName": "org.jenkins-ci.plugins:credentials"
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "1.76",
+      "moduleVersion": "1158.v7c1b_73a_69a_08",
       "moduleName": "org.jenkins-ci.plugins:script-security"
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "1.23",
+      "moduleVersion": "318.va_f3ccb_729b_71",
       "moduleName": "org.jenkins-ci.plugins:structs"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "1.23",
-      "moduleName": "org.jenkins-ci:symbol-annotation"
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
@@ -232,17 +247,12 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "1.7.28",
+      "moduleVersion": "1.7.22",
       "moduleName": "org.slf4j:slf4j-api"
     },
     {
-      "moduleLicense": "MIT License",
-      "moduleVersion": "1.7.28",
-      "moduleName": "org.slf4j:slf4j-ext"
-    },
-    {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "1.24",
+      "moduleVersion": "1.30",
       "moduleName": "org.yaml:snakeyaml"
     }
   ]
