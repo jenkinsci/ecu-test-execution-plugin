@@ -30,33 +30,34 @@ class TestProjectBuilderTest extends Specification {
     def 'Test Default Values'() {
         given:
             final StepContext context = Mock()
-            final String file = 'testFile'
+            final String testCasePath = 'testFile'
             final TestConfig testConfig = new TestConfig()
             final ExecutionConfig executionConfig = new ExecutionConfig()
-            TestProjectBuilder builder = new TestProjectBuilder(file, testConfig,
+            new TestProjectBuilder(testCasePath, testConfig,
                 executionConfig, context)
 
         when:
-            ExecutionOrder order = builder.getExecutionOrder()
+            ExecutionOrderBuilder executionOrderBuilder = new ExecutionOrderBuilder(testCasePath, testConfig)
+            ExecutionOrder order = executionOrderBuilder.build()
 
         then:
             assertBuilder()
             assertExecutionOrder(order)
     }
 
-    def assertBuilder()  {
-        TestProjectBuilder.testCasePath != null
-        TestProjectBuilder.testConfig != null
-        TestProjectBuilder.executionConfig != null
-        TestProjectBuilder.context != null
+    void assertBuilder()  {
+        assert TestProjectBuilder.testCasePath == 'testFile'
+        assert TestProjectBuilder.testConfig != null
+        assert TestProjectBuilder.executionConfig != null
+        assert TestProjectBuilder.context != null
     }
 
-    def assertExecutionOrder(ExecutionOrder order) {
-        order.additionalSettings != null
-        order.getTestCasePath() == 'testFile'
-        order.getTbcPath() == ''
-        order.getTcfPath() == ''
-        order.getConstants() != null
-        order.getExecutionId() == ''
+    void assertExecutionOrder(ExecutionOrder order) {
+        assert order.additionalSettings != null
+        assert order.getTestCasePath() == 'testFile'
+        assert order.getTbcPath() == ''
+        assert order.getTcfPath() == ''
+        assert order.getConstants() != null
+        assert order.getExecutionId() == ''
     }
 }

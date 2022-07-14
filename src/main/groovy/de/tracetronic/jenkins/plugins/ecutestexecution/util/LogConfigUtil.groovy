@@ -8,7 +8,10 @@ import hudson.model.TaskListener
 /**
  * Utility class to log test configuration to jenkins console.
  */
-class LogConfigUtil {
+class LogConfigUtil implements Serializable {
+
+    private static final long serialVersionUID = 1L
+
     private final TaskListener listener
     private final TestConfig testConfig
     private final PackageConfig packageConfig

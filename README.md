@@ -108,7 +108,7 @@ If the problem still exists search the following list of issues for possible sol
 
 - Jenkins LTS 2.332.3 or higher
 - Java SE Runtime Environment 11 or higher
-- [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2021.4
+- [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2022.2
 - optional: [TEST-GUIDE](https://www.tracetronic.com/products/test-guide) 1.114.3 or higher
 
 ## Support

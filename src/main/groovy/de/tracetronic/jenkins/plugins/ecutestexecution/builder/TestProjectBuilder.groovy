@@ -1,8 +1,5 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
-import de.tracetronic.cxs.generated.et.client.model.AdditionalSettings
-import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
-import de.tracetronic.cxs.generated.et.client.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.LogConfigUtil
@@ -29,21 +26,17 @@ class TestProjectBuilder extends AbstractTestBuilder {
     }
 
     @Override
-    protected ExecutionOrder getExecutionOrder() {
-        AdditionalSettings settings = new AdditionalSettings()
-                .forceConfigurationReload(testConfig.forceConfigurationReload)
-        ExecutionOrder executionOrder = new ExecutionOrder()
-                .testCasePath(testCasePath)
-                .tcfPath(testConfig.tbcPath)
-                .tcfPath(testConfig.tcfPath)
-                .constants(testConfig.constants as List<LabeledValue>)
-                .additionalSettings(settings)
-
-        return executionOrder
-    }
-
-    @Override
     protected LogConfigUtil getLogConfig() {
         return new LogConfigUtil(context.get(TaskListener.class), testConfig)
+    }
+
+    /**
+     * This method provides an ExecutionOrderBuilder, such that the ExecutionOrder pertaining to the configurations in
+     * this class can be built on demand.
+     * @return ExecutionOrderBuilder
+     */
+    @Override
+    protected ExecutionOrderBuilder getExecutionOrderBuilder() {
+        return new ExecutionOrderBuilder(testCasePath, testConfig)
     }
 }

@@ -32,35 +32,37 @@ class TestPackageBuilderTest extends Specification {
     def 'Test Default Values'() {
         given:
             final StepContext context = Mock()
-            final String file = 'testFile'
+            final String testCasePath = 'testFile'
             final TestConfig testConfig = new TestConfig()
             final ExecutionConfig executionConfig = new ExecutionConfig()
             final PackageConfig packageConfig = new PackageConfig(null)
             final AnalysisConfig analysisConfig = new AnalysisConfig()
-            TestPackageBuilder builder = new TestPackageBuilder(file, testConfig,
+            new TestPackageBuilder(testCasePath, testConfig,
                     executionConfig, context, packageConfig, analysisConfig)
 
         when:
-            ExecutionOrder order = builder.getExecutionOrder()
+            ExecutionOrderBuilder executionOrderBuilder = new ExecutionOrderBuilder(testCasePath, testConfig,
+                    packageConfig, analysisConfig)
+            ExecutionOrder order = executionOrderBuilder.build()
 
         then:
             assertBuilder()
             assertExecutionOrder(order)
     }
 
-    def assertBuilder()  {
-        TestPackageBuilder.testCasePath != null
-        TestPackageBuilder.testConfig != null
-        TestPackageBuilder.executionConfig != null
-        TestPackageBuilder.context != null
+    void assertBuilder()  {
+        assert TestPackageBuilder.testCasePath == 'testFile'
+        assert TestPackageBuilder.testConfig != null
+        assert TestPackageBuilder.executionConfig != null
+        assert TestPackageBuilder.context != null
     }
 
-    def assertExecutionOrder(ExecutionOrder order) {
-        order.additionalSettings != null
-        order.getTestCasePath() == 'testFile'
-        order.getTbcPath() == ''
-        order.getTcfPath() == ''
-        order.getConstants() != null
-        order.getExecutionId() == ''
+    void assertExecutionOrder(ExecutionOrder order) {
+        assert order.additionalSettings != null
+        assert order.getTestCasePath() == 'testFile'
+        assert order.getTbcPath() == ''
+        assert order.getTcfPath() == ''
+        assert order.getConstants() != null
+        assert order.getExecutionId() == ''
     }
 }
