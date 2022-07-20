@@ -23,7 +23,7 @@ description = 'This plugin enables a platform-independent test execution. Due to
         'automated test execution.\n'
 
 jenkinsPlugin {
-    jenkinsVersion = project.properties['jenkinsVersion']
+    jenkinsVersion = '2.332.3'
     shortName = 'ecu-test-execution'
     group = 'io.jenkins.plugins'
     displayName = 'TraceTronic ECU-TEST-Execution Plugin'
