@@ -89,7 +89,7 @@ node('windows') {
 ## Contribution
 
 To report a bug or request an enhancement to this plugin please raise a
-new [GitHub issue](https://github.com/tracetronic/ecu-test-plugin/issues/new/choose).
+new [GitHub issue](https://github.com/jenkinsci/ecu-test-execution-plugin/issues/new/choose).
 
 ## Known Issues
 
