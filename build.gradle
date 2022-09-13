@@ -20,7 +20,7 @@ description = 'This plugin enables a platform-independent test execution. Due to
         'communication via REST API, ' +
         'it provides an easy and reliable entry into continuous testing. It integrates ' +
         'ECU-TEST with Jenkins and allows report generation and its upload of ' +
-        'automated test execution.\n'
+        'automated test execution.'
 
 jenkinsPlugin {
     jenkinsVersion = '2.332.3'
@@ -34,38 +34,6 @@ jenkinsPlugin {
     generateTests = false
     configurePublishing = false
     fileExtension = 'hpi'
-
-    developers {
-        developer {
-            id 'TT-S3-D1'
-            name 'Sebastian Dietze'
-            email 'sebastian.dietze@tracetronic.de'
-        }
-        developer {
-            id 'cpoenisch'
-            name 'Christian Pönisch'
-            email 'christian.poenisch@tracetronic.de'
-        }
-        developer {
-            id 'MartinGroscheTT'
-            name 'Martin Grosche'
-            email 'martin.grosche@tracetronic.de'
-        }
-        developer {
-            id 'thardtke-tt'
-            name 'Thomas Hardtke'
-            email 'thomas.hardtke@tracetronic.de'
-        }
-    }
-
-    licenses {
-        license {
-            name 'BSD-3-Clause'
-            url 'https://opensource.org/licenses/BSD-3-Clause'
-            distribution 'repo'
-            comments 'All source code is under the BSD license.'
-        }
-    }
 }
 
 repositories {
@@ -109,6 +77,61 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+
+            pom {
+                packaging = "$jenkinsPlugin.fileExtension"
+                name = "$jenkinsPlugin.displayName"
+                description = "$project.description"
+                url = 'https://plugins.jenkins.io/ecu-test-execution/'
+
+                scm {
+                    url =  'https://github.com/jenkinsci/ecu-test-execution-plugin'
+                    connection = 'scm:git:git://github.com/jenkinsci/ecu-test-execution-plugin.git'
+                    developerConnection = 'scm:git:git@github.com:jenkinsci/ecu-test-execution-plugin.git'
+                    tag = "$project.version"
+                }
+
+                developers {
+                    developer {
+                        id = 'TT-S3-D1'
+                        name = 'Sebastian Dietze'
+                        email = 'sebastian.dietze@tracetronic.de'
+                    }
+                    developer {
+                        id = 'MartinGroscheTT'
+                        name = 'Martin Grosche'
+                        email = 'martin.grosche@tracetronic.de'
+                    }
+                    developer {
+                        id = 'cwellmtt'
+                        name = 'Christoph Wellm'
+                        email = 'christoph.wellm@tracetronic.de'
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = 'BSD-3-Clause'
+                        url = 'https://opensource.org/licenses/BSD-3-Clause'
+                        distribution = 'repo'
+                        comments = 'All source code is licensed under the BSD license.'
+                    }
+                }
+
+                contributors {
+                    contributor {
+                        url = 'https://github.com/jenkinsci/ecu-test-execution-plugin/graphs/contributors'
+                    }
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/jenkinsci/ecu-test-execution-plugin/issues'
+                }
+                ciManagement {
+                    system = 'Jenkins'
+                    url = 'https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/'
+                }
+            }
         }
     }
     repositories {
