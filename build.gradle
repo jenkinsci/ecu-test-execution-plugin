@@ -114,7 +114,7 @@ publishing {
                         name = 'BSD-3-Clause'
                         url = 'https://opensource.org/licenses/BSD-3-Clause'
                         distribution = 'repo'
-                        comments = 'All source code is under the BSD license.'
+                        comments = 'All source code is licensed under the BSD license.'
                     }
                 }
 
