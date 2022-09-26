@@ -166,7 +166,7 @@ tasks.named('server').configure {
 test {
     filter {
         excludeTestsMatching '*ContainerTest'
-        excludeTestsMatching '*IT' // TODO fix issue with Jenkins ITs
+//        excludeTestsMatching '*IT' // TODO fix issue with Jenkins ITs
     }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
