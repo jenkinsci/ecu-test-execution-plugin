@@ -35,6 +35,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 - [Configuration](#configuration)
     - [ECU-TEST configuration](#ecu-test-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
+- [Migration](#migration)
 - [Contribution](#contribution)
 - [Known Issues](#known-issues)
 - [Compatibility](#compatibility)
@@ -45,6 +46,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 
 - Provides an easy integration and control of ECU-TEST with Jenkins
 - Enables the execution of ECU-TEST packages and projects with their respective configurations
+- Enable the upload of generated test reports to [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) 
 - Using "pipelines first" approach to improve the automated process and traceability
 
 ## Configuration
@@ -85,6 +87,10 @@ node('windows') {
     }
 }
 ```
+
+## Migration
+
+See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x using the new pipeline syntax.
 
 ## Contribution
 
