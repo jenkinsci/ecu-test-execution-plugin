@@ -198,16 +198,17 @@ jacocoTestReport {
     }
 }
 
-codenarc {
-    toolVersion = '1.6.1'
+codenarcMain {
+    compilationClasspath = sourceSets.main.compileClasspath + sourceSets.main.output
     configFile = file('config/codenarc/rules.groovy')
     ignoreFailures = true
 }
 
-/*codenarcTest {
+codenarcTest {
+    compilationClasspath = codenarcMain.compilationClasspath + sourceSets.test.compileClasspath + sourceSets.test.output
     configFile = file('config/codenarc/rules-test.groovy')
     ignoreFailures = true
-}*/
+}
 
 openApiGenerate {
     inputSpec = "$rootDir/specs/openapi.yml".toString()
