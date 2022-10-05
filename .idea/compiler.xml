@@ -132,9 +132,121 @@
         </processorPath>
         <module name="ecu-test-execution-plugin.main" />
       </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="sezpoz.quiet" value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci.main/jenkins-core/2.332.3/cc338a1f79bf926a95b7e3343c1334fb0c30cce2/jenkins-core-2.332.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.servlet/javax.servlet-api/3.1.0/3cd63d075497751784b2fa84be59432f4905bf7c/javax.servlet-api-3.1.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci.main/remoting/4.13/ab8600d334dd972be63d80679ee815a60c659ec4/remoting-4.13.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci.main/cli/2.332.3/a9b4f9ba53563308cd3df36a738c20623fc01d45/cli-2.332.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/version-number/1.9/cc2c59d5e1d0b9a0014259cc7e5e28ed56dc85dd/version-number-1.9.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/crypto-util/1.7/4fda7b3216569915b5c8ec87d2c85148b5ac14b3/crypto-util-1.7.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.inject/guice/5.0.1/dae7556b441cada2b4f0a2314eb68e1ff423429/guice-5.0.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.connectbot.jbcrypt/jbcrypt/1.0.0/f37bba2b8b78fcc8111bb932318b621dcc6c5194/jbcrypt-1.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-posix/3.1.15/f7d6737adcbd5925d625b8f99166de2cbf13caac/jnr-posix-3.1.15.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-ffi/2.2.11/bcf004ce358c87fc4cd2853b658d336348d0370f/jnr-ffi-2.2.11.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-commons/9.2/f4d7f0fc9054386f2893b602454d48e07d4fbead/asm-commons-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.2/fbc178fc5ba3dab50fd7e8a5317b8b647c8e8946/asm-util-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.2/7487dd756daf96cab9986e44b9d7bcb796a61c10/asm-analysis-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.2/d96c99a30f5e1a19b0e609dbb19a44d8518ac01e/asm-tree-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/stapler-adjunct-timeline/1.5/3fa806cbb94679ceab9c1ecaaf5fea8207390cb7/stapler-adjunct-timeline-1.5.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/stapler-adjunct-codemirror/1.3/fd1d45544400d2a4da6dfee9e60edd4ec3368806/stapler-adjunct-codemirror-1.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/stapler-groovy/1638.v229a_24fa_b_17c/1d545289878f5c7e2219910034539ec0edc13c59/stapler-groovy-1638.v229a_24fa_b_17c.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/stapler-jelly/1638.v229a_24fa_b_17c/5f203fb67bd82c0428f49a10378c2ba5f65ffe81/stapler-jelly-1638.v229a_24fa_b_17c.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/stapler/1638.v229a_24fa_b_17c/ced25bfecdf0979f807f793bd0ee8b15071aec21/stapler-1638.v229a_24fa_b_17c.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.2/81a03f76019c67362299c40e0ba13405f5467bff/asm-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke/windows-package-checker/1.2/86b5d2f9023633808d65dbcfdfd50dc5ad3ca31f/windows-package-checker-1.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.jenkins.stapler/jenkins-stapler-support/1.1/95127e05b589288439684304a75474bb1261a11c/jenkins-stapler-support-1.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.infradna.tool/bridge-method-annotation/1.23/80255ad3ab2d3342ca506620f6e887cd2a3dc95b/bridge-method-annotation-1.23.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.stapler/json-lib/2.4-jenkins-3/83f848493c09c735861a90e91591499fb88d7fbb/json-lib-2.4-jenkins-3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-httpclient/commons-httpclient/3.1-jenkins-3/56110dc7f655c56c4e2ae8ae2bb055bf2282ba99/commons-httpclient-3.1-jenkins-3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/args4j/args4j/2.33/bd87a75374a6d6523de82fef51fc3cfe9baf9fc9/args4j-2.33.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/symbol-annotation/1.1/14fe06e7287a8aff81434a2fe8226744183fe955/symbol-annotation-1.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke/access-modifier-annotation/1.27/283e60e2488e140c4474518c9846b2e94974f753/access-modifier-annotation-1.27.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/annotation-indexer/1.16/505cd402ddcb3c8b2e2689e2d94a524896e3c551/annotation-indexer-1.16.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/task-reactor/1.7/e5350f3d95961b354192a6a8badab1da605dae1e/task-reactor-1.7.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jvnet.localizer/localizer/1.31/aa7560693502015b7747697fa5a4fd1da9a95ccd/localizer-1.31.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/antlr/antlr/2.7.7/83cd2cd674a217ade95a4bb83a8a14f351f48bd0/antlr-2.7.7.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.thoughtworks.xstream/xstream/1.4.19/e0e581d812aa92ae12f07234f3398e06af74b112/xstream-1.4.19.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.dom4j/dom4j/2.1.3/a75914155a9f5808963170ec20653668a2ffd2fd/dom4j-2.1.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/xpp3/xpp3/1.1.4c/9b988ea84b9e4e9f1874e390ce099b8ac12cfff5/xpp3-1.1.4c.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.sf.kxml/kxml2/2.3.0/ccbc77a5fd907ef863c29f3596c6f54ffa4e9442/kxml2-2.3.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jfree/jfreechart/1.0.19/ba9ee7dbb2e4c57a6901c79f614ed2dea9cc0e20/jfreechart-1.0.19.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.ant/ant/1.10.12/be08c4f63e92e03bac761404cf77bc270928b6c5/ant-1.10.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-fileupload/commons-fileupload/1.4/f95188e3d372e20e7328706c37ef366e5d7859b0/commons-fileupload-1.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-io/commons-io/2.11.0/a2503f302b11ebde7ebc3df41daebe0e4eea3689/commons-io-2.11.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.sf.ezmorph/ezmorph/1.0.6/1e55d2a0253ea37745d33062852fd2c90027432/ezmorph-1.0.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-lang/commons-lang/2.6/ce1edb914c94ebc388f086c6827e8bdeec71ac2/commons-lang-2.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-jelly/commons-jelly-tags-xml/1.1/cc0efc2ae0ff81ef7737afc786a0ce16a8540efc/commons-jelly-tags-xml-1.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/commons-jelly/1.1-jenkins-20120928/2720a0d54b7f32479b08970d7738041362e1f410/commons-jelly-1.1-jenkins-20120928.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-beanutils/commons-beanutils/1.9.4/d52b9abcd97f38c81342bb7e7ae1eee9b73cba51/commons-beanutils-1.9.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.21/4ec95b60d4e86b5c95a0e919cb172a0af98011ef/commons-compress-1.21.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jaxen/jaxen/1.2.0/c10535a925bd35129a4329bc75065cc6b5293f2c/jaxen-1.2.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-jelly/commons-jelly-tags-fmt/1.0/2107da38fdd287ab78a4fa65c1300b5ad9999274/commons-jelly-tags-fmt-1.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jvnet.hudson/commons-jelly-tags-define/1.0.1-hudson-20071021/8b952d0e504ee505d234853119e5648441894234/commons-jelly-tags-define-1.0.1-hudson-20071021.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/commons-jexl/1.1-jenkins-20111212/a990a77bea8c5a400d58a6f5d98122236300f7d/commons-jexl-1.1-jenkins-20111212.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-web/5.6.1/7c2a899cfa8c986170721fedf356a73f73ddcb23/spring-security-web-5.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.codehaus.groovy/groovy-all/2.4.21/8e4f4c30dbb9123fbf703f256cd721bbac5c902a/groovy-all-2.4.21.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jline/jline/2.14.6/c3aeac59c022bdc497c8c48ed86fa50450e4896a/jline-2.14.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.fusesource.jansi/jansi/1.11/655c643309c2f45a56a747fda70e3fadf57e9f11/jansi-1.11.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.servlet.jsp.jstl/jakarta.servlet.jsp.jstl-api/1.2.7/34a035507f0270f1c6b7722d728bd7b5a9bbac4c/jakarta.servlet.jsp.jstl-api-1.2.7.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/1.7.33/28c441128bc81b6d95cc2857ae5bb46ae5bf658b/jcl-over-slf4j-1.7.33.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/log4j-over-slf4j/1.7.33/7b1265497dd1537051822c4987ce45ea935fa305/log4j-over-slf4j-1.7.33.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.sun.xml.txw2/txw2/20110809/46afa3f3c468680875adb8f2a26086a126c89902/txw2-20110809.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-collections/commons-collections/3.2.2/8ad72fe39fa8c91eaaf12aadb21e0c3661fe26d5/commons-collections-3.2.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jvnet.winp/winp/1.28/8dcfcc7214e73a906786b80704784d90fb593e75/winp-1.28.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jenkins-ci/memory-monitor/1.11/73e2b12b25cb0f8c94664c697970ee03ffcc2ddd/memory-monitor-1.11.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna/5.10.0/7cf4c87dd802db50721db66947aa237d7ad09418/jna-5.10.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.sun.solaris/embedded_su4j/1.1/9404130cc4e60670429f1ab8dbf94d669012725d/embedded_su4j-1.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.java.sezpoz/sezpoz/1.13/822ac382900587d0a7d6aaec7b1859f1cf5de2fb/sezpoz-1.13.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.jinterop/j-interop/2.0.8-kohsuke-1/7bcd527550b8415ba14c33a8ff00658c43d0c78e/j-interop-2.0.8-kohsuke-1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jvnet.robust-http-client/robust-http-client/1.2/dee9fda92ad39a94a77ec6cf88300d4dd6db8a4d/robust-http-client-1.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.15/49d94806b6e3dc933dacbd8acb0fdbab8ebd1e5d/commons-codec-1.15.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.spotbugs/spotbugs-annotations/4.5.2/c78f70ad512fe4838f58c5adeb65fdcbffea3d99/spotbugs-annotations-4.5.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.jcip/jcip-annotations/1.0/afba4942caaeaf46aab0b976afd57cc7c181467e/jcip-annotations-1.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/31.0.1-jre/119ea2b2bc205b138974d351777b20f02b92704b/guava-31.0.1-jre.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jcraft/jzlib/1.1.3-kohsuke-1/af5d27e1de29df05db95da5d76b546d075bc1bc5/jzlib-1.1.3-kohsuke-1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.inject/javax.inject/1/6975da39a7040257bd51d21a231b76c915872d38/javax.inject-1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-constants/0.10.3/af19ec7359dd72cbc7869c00bf7cdfa4c308e985/jnr-constants-0.10.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-discovery/commons-discovery/0.5/3a8ac816bbe02d2f88523ef22cbf2c4abd71d6a8/commons-discovery-0.5.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.0.0/f3cd84cc45f583a0fdc42a8156d6c5b98d625c1a/jakarta.annotation-api-2.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jvnet/tiger-types/2.2/7ddc6bbc8ca59be8879d3a943bf77517ec190f39/tiger-types-2.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.2/4bfc12adfe4842bf07b657f0369c4cb522955686/commons-logging-1.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.x-stream/mxparser/1.2.2/476fb3b3bb3716cad797cd054ce45f89445794e9/mxparser-1.2.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jfree/jcommon/1.0.23/a316f336ca996e0c6bec4e4fbd49be8f5e1c3968/jcommon-1.0.23.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.ant/ant-launcher/1.10.12/e090b4f9d3ecf45491cc16e759f1e843a1a224c0/ant-launcher-1.10.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-core/5.6.1/f8d2fc6d172264946f909d1b61ce8a18b50d655f/spring-security-core-5.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-context/5.3.14/ce6042492f042131f602bdc83fcb412b142bdac5/spring-context-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/5.3.14/f049146a55991e89c0f04b9624f1f69e1763d80f/spring-aop-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-web/5.3.14/801d96f3914ace2e347ee3f6d29e21073e4f50ed/spring-web-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/5.3.14/24cc27af89edc1581a57bb15bc160d2353f40a0e/spring-beans-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-expression/5.3.14/5cd4c568522b7084afac5d2ac6cb945b797b3f16/spring-expression-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/5.3.14/d87ad19f9d8b9a3f1a143db5a2be34c61751aaa2/spring-core-5.3.14.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.33/d375aa1b98d34d5ddf73a3f19eaad66e98975b12/slf4j-api-1.7.33.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.java.dev.msv/xsdlib/2013.6.1/280f7c45aaec5102cc756d1afdb416b7775f2ef4/xsdlib-2013.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/relaxngDatatype/relaxngDatatype/20020414/de7952cecd05b65e0e4370cc93fc03035175eef5/relaxngDatatype-20020414.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.kohsuke.jinterop/j-interopdeps/2.0.8-kohsuke-1/c6ae17b2cbb5e07e62fddab1cebadaf351a97c0/j-interopdeps-2.0.8-kohsuke-1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/failureaccess/1.0.1/1dcf1de382a0bf95a3d8b0849546c88bac1292c9/failureaccess-1.0.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/b421526c5f297295adef1c886e5246c39d4ac629/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/25ea2e8b0c338a877313bd4672d3fe056ea78f0d/jsr305-3.0.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.checkerframework/checker-qual/3.12.0/d5692f0526415fcc6de94bb5bfbd3afd9dd3b3e5/checker-qual-3.12.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.errorprone/error_prone_annotations/2.7.1/458d9042f7aa6fa9a634df902b37f544e15aacac/error_prone_annotations-2.7.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.3/ba035118bc8bac37d7eff77700720999acd9986d/j2objc-annotations-1.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jffi/1.3.9/b776ea131fa693af2c943368b52acf94131cbd7/jffi-1.3.9.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jffi/1.3.9/163d683f80c06911f3e770c723d6e399e4c59448/jffi-1.3.9-native.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-a64asm/1.0.0/a1cb8dbe71b5a6a0288043c3ba3ca64545be165/jnr-a64asm-1.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-x86asm/1.0.2/6936bbd6c5b235665d87bd450f5e13b52d4b48/jnr-x86asm-1.0.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-crypto/5.6.1/b9dc3cc09643c0451a35bdc9327e80c4f5dfd354/spring-security-crypto-5.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.samba.jcifs/jcifs/1.2.19/333384030132b83c87943b5a03c8b4b307738ffa/jcifs-1.2.19.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.xml.stream/stax-api/1.0-2/d6337b0de8b25e53e81b922352fbea9f9f57ba0b/stax-api-1.0-2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.xml.bind/jaxb-api/2.2.12/4c83805595b15acf41d71d49e3add7c0e85baaed/jaxb-api-2.2.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/pull-parser/pull-parser/2/c2f040085bfcd35963e9504bec11dac57cd0a86e/pull-parser-2.jar" />
+        </processorPath>
+        <module name="ecu-test-execution.main" />
+      </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
-      <module name="ecu-test-execution" target="1.5" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="11" />
   </component>
 </project>
