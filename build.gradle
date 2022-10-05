@@ -11,7 +11,7 @@ plugins {
     id 'codenarc'
     id 'maven-publish'
     id 'org.jenkins-ci.jpi' version "$jpiVersion"
-    id "org.openapi.generator" version '6.1.0'
+    id "org.openapi.generator" version "$openapiVersion"
 }
 
 group = 'de.tracetronic.jenkins.plugins'
@@ -23,7 +23,7 @@ description = 'This plugin enables a platform-independent test execution. Due to
         'automated test execution.'
 
 jenkinsPlugin {
-    jenkinsVersion = '2.332.3'
+    jenkinsVersion = "${project.properties['jenkinsVersion']}"
     shortName = 'ecu-test-execution'
     group = 'io.jenkins.plugins'
     displayName = 'TraceTronic ECU-TEST-Execution Plugin'
