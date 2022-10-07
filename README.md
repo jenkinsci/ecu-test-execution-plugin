@@ -1,6 +1,6 @@
 # TraceTronic ECU-TEST-Execution Plugin
 
-[![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2021.4-orange?style=flat-square)](https://tracetronic.com/products/ecu-test) [![GitHub CI](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml)
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution) [![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2022.3-orange?style=flat)](https://tracetronic.com/products/ecu-test) [![GitHub CI](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml) [![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) [![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue)](https://plugins.jenkins.io/ecu-test-execution) [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
 
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
 it provides an easy and reliable entry into continuous testing. It integrates 
@@ -35,6 +35,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 - [Configuration](#configuration)
     - [ECU-TEST configuration](#ecu-test-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
+- [Migration](#migration)
 - [Contribution](#contribution)
 - [Known Issues](#known-issues)
 - [Compatibility](#compatibility)
@@ -45,6 +46,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 
 - Provides an easy integration and control of ECU-TEST with Jenkins
 - Enables the execution of ECU-TEST packages and projects with their respective configurations
+- Enable the upload of generated test reports to [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) 
 - Using "pipelines first" approach to improve the automated process and traceability
 
 ## Configuration
@@ -86,10 +88,14 @@ node('windows') {
 }
 ```
 
+## Migration
+
+See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x using the new pipeline syntax.
+
 ## Contribution
 
 To report a bug or request an enhancement to this plugin please raise a
-new [GitHub issue](https://github.com/tracetronic/ecu-test-plugin/issues/new/choose).
+new [GitHub issue](https://github.com/jenkinsci/ecu-test-execution-plugin/issues/new/choose).
 
 ## Known Issues
 
@@ -107,7 +113,7 @@ If the problem still exists search the following list of issues for possible sol
 ## Compatibility
 
 - Jenkins LTS 2.332.3 or higher
-- Java SE Runtime Environment 11 or higher
+- Java SE Runtime Environment 8 or higher
 - [ECU-TEST](https://www.tracetronic.com/products/ecu-test) 2022.2
 - optional: [TEST-GUIDE](https://www.tracetronic.com/products/test-guide) 1.114.3 or higher
 
