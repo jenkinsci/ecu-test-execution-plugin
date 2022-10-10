@@ -1,536 +1,452 @@
 {
   "allowedLicenses": [
     {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0-rc1",
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-annotations",
-      "moduleCopyright": "Copyright ©2009-2011 FasterXML, LLC."
+      "licenseUrl": "https://github.com/FasterXML/jackson-annotations/blob/jackson-annotations-2.13.2/LICENSE",
+      "moduleCopyright": null
     },
     {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.9.1",
-      "moduleName": "com.fasterxml.jackson.core:jackson-annotations",
-      "moduleCopyright": "Copyright ©2009-2011 FasterXML, LLC."
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0-rc1",
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-core",
+      "licenseUrl": "https://github.com/FasterXML/jackson-core/blob/jackson-core-2.13.2/LICENSE",
       "moduleCopyright": "Copyright (c) 2007- Tatu Saloranta"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0-rc1",
-      "moduleName": "com.fasterxml.jackson.core:jackson-databind",
-      "moduleCopyright": "Copyright (c) 2007- Tatu Saloranta"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.9.1",
-      "moduleName": "com.fasterxml.jackson.core:jackson-databind",
-      "moduleCopyright": "Copyright (c) 2007- Tatu Saloranta"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0-rc1",
-      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml",
-      "moduleCopyright": "Copyright ©2009-2011 FasterXML, LLC."
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.9.1",
-      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml",
-      "moduleCopyright": "Copyright ©2009-2011 FasterXML, LLC."
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0-rc1",
+      "moduleVersion": "2.13.2.2",
+      "moduleName": "com.fasterxml.jackson.core:jackson-databind",
+      "licenseUrl": "https://github.com/FasterXML/jackson-databind/blob/jackson-databind-2.13.2.2/LICENSE",
+      "moduleCopyright": null
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson.core:jackson-databind",
+      "licenseUrl": "https://github.com/FasterXML/jackson-databind/blob/jackson-databind-2.13.2/LICENSE",
+      "moduleCopyright": null
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.13.2",
+      "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml",
+      "licenseUrl": "https://github.com/FasterXML/jackson-dataformats-text",
+      "moduleCopyright": null
+    },
+    {
+      "moduleLicense": null,
+      "moduleVersion": "2.13.2",
       "moduleName": "com.fasterxml.jackson:jackson-bom",
-      "moduleCopyright": "Copyright ©2009-2011 FasterXML, LLC."
+      "licenseUrl": "https://github.com/FasterXML/jackson-bom/blob/jackson-bom-2.13.2/LICENSE",
+      "moduleCopyright": null
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "3.1.1",
-      "moduleName": "com.github.ben-manes.caffeine:caffeine",
-      "moduleCopyright": "Copyright $L Ben Manes. All Rights Reserved"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.9.3",
-      "moduleName": "com.github.ben-manes.caffeine:caffeine",
-      "moduleCopyright": "Copyright $L Ben Manes. All Rights Reserved"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "2.9.2",
       "moduleName": "com.github.ben-manes.caffeine:caffeine",
-      "moduleCopyright": "Copyright $L Ben Manes. All Rights Reserved"
+      "licenseUrl": "https://github.com/ben-manes/caffeine/blob/v2.9.2/LICENSE",
+      "moduleCopyright": "Copyright 2014 Ben Manes. All Rights Reserved."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "3.0.2",
       "moduleName": "com.google.code.findbugs:jsr305",
-      "moduleCopyright": "Copyright (c) 2007-2009, JSR305 expert group"
+      "licenseUrl": "https://github.com/findbugsproject/findbugs/blob/3.0.2_preview/findbugs/licenses/LICENSE-jsr305.txt",
+      "moduleCopyright": "Copyright (C) 2003-2007 University of Maryland"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "2.9.0",
+      "moduleName": "com.google.code.gson:gson",
+      "licenseUrl": "https://github.com/google/gson/blob/gson-parent-2.9.0/gson/LICENSE",
+      "moduleCopyright": "Copyright 2008-2011 Google Inc."
     },
     {
       "moduleLicense": "Apache-2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "2.9.1",
       "moduleName": "com.google.code.gson:gson",
+      "licenseUrl": "https://github.com/google/gson/blob/gson-parent-2.9.1/gson/LICENSE",
       "moduleCopyright": "Copyright 2008-2011 Google Inc."
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.14.0",
-      "moduleName": "com.google.errorprone:error_prone_annotations",
-      "moduleCopyright": "Google Inc. Two Sigma Open Source"
+      "moduleVersion": "2.8.6",
+      "moduleName": "com.google.code.gson:gson",
+      "licenseUrl": "https://github.com/google/gson/blob/gson-parent-2.8.6/gson/LICENSE",
+      "moduleCopyright": "Copyright 2008-2011 Google Inc."
     },
     {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.11.0",
+      "moduleLicense": "Apache 2.0",
+      "moduleVersion": "2.7.1",
       "moduleName": "com.google.errorprone:error_prone_annotations",
-      "moduleCopyright": "Google Inc. Two Sigma Open Source"
+      "licenseUrl": "https://github.com/google/error-prone/blob/v2.7.1/COPYING",
+      "moduleCopyright": "Copyright 2015 The Error Prone Authors."
     },
     {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.10.0",
-      "moduleName": "com.google.errorprone:error_prone_annotations",
-      "moduleCopyright": "Google Inc. Two Sigma Open Source"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "moduleLicense": "Apache 2.0",
       "moduleVersion": "2.5.1",
       "moduleName": "com.google.errorprone:error_prone_annotations",
-      "moduleCopyright": "Google Inc. Two Sigma Open Source"
+      "licenseUrl": "https://github.com/google/error-prone/blob/v2.5.1/COPYING",
+      "moduleCopyright": "Copyright 2015 The Error Prone Authors."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "1.0.1",
       "moduleName": "com.google.guava:failureaccess",
+      "licenseUrl": "https://github.com/google/guava/blob/v31.0.1/futures/failureaccess/src/com/google/common/util/concurrent/internal/InternalFutureFailureAccess.java",
       "moduleCopyright": "Copyright (C) 2018 The Guava Authors"
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "31.1-jre",
+      "moduleVersion": "31.0.1-android",
       "moduleName": "com.google.guava:guava",
-      "moduleCopyright": "Copyright (C) 2011 The Guava Authors"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "23.0",
-      "moduleName": "com.google.guava:guava",
-      "moduleCopyright": "Copyright (C) 2011 The Guava Authors"
+      "licenseUrl": "https://github.com/google/guava/blob/v31.0.1/COPYING",
+      "moduleCopyright": "Copyright (C) 2008 The Guava Authors"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "9999.0-empty-to-avoid-conflict-with-guava",
       "moduleName": "com.google.guava:listenablefuture",
+      "licenseUrl": "https://github.com/google/guava/blob/master/guava/src/com/google/common/util/concurrent/ListenableFuture.java",
       "moduleCopyright": "Copyright (C) 2007 The Guava Authors"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "1.3",
       "moduleName": "com.google.j2objc:j2objc-annotations",
-      "moduleCopyright": "Copyright 2012 Google Inc. All Rights Reserved."
+      "licenseUrl": "https://github.com/google/j2objc/blob/1.3/LICENSE",
+      "moduleCopyright": "Copyright 2012 Google Inc. All Rights Reserved"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "5.0.0-alpha.10",
+      "moduleVersion": "4.9.3",
       "moduleName": "com.squareup.okhttp3:logging-interceptor",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.9.3/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2015 Square, Inc."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "5.0.0-alpha.10",
+      "moduleVersion": "4.10.0",
+      "moduleName": "com.squareup.okhttp3:logging-interceptor",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.10.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2015 Square, Inc."
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "4.9.3",
       "moduleName": "com.squareup.okhttp3:okhttp",
-      "moduleCopyright": "Copyright 2019 Square, Inc."
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.9.3/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2014 Square, Inc."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "5.0.0-alpha.10",
-      "moduleName": "com.squareup.okhttp3:okhttp-jvm",
-      "moduleCopyright": "Copyright 2019 Square, Inc"
+      "moduleVersion": "4.10.0",
+      "moduleName": "com.squareup.okhttp3:okhttp",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.10.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2014 Square, Inc."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "3.2.0",
-      "moduleName": "com.squareup.okio:okio-jvm",
-      "moduleCopyright": "Copyright 2019 Square, Inc"
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "3.2.0",
+      "moduleVersion": "2.8.0",
       "moduleName": "com.squareup.okio:okio",
-      "moduleCopyright": "Copyright 2013 Square, Inc."
+      "licenseUrl": "https://github.com/square/okio/blob/parent-2.8.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2020 Square, Inc."
+    },
+    {
+      "moduleLicense": null,
+      "moduleVersion": "3.0.0",
+      "moduleName": "com.squareup.okio:okio",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.0.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2020 Square, Inc."
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "2.11.0",
       "moduleName": "commons-io:commons-io",
-      "moduleCopyright": "Copyright © 2002-2021 The Apache Software Foundation. All Rights Reserved."
+      "licenseUrl": "https://github.com/apache/commons-io/blob/rel/commons-io-2.11.0/LICENSE.txt",
+      "moduleCopyright": null
     },
     {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.4",
-      "moduleName": "commons-io:commons-io",
-      "moduleCopyright": "Copyright © 2002-2021 The Apache Software Foundation. All Rights Reserved."
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.9.0-alpha2",
+      "moduleLicense": "Apache-2.0",
+      "moduleVersion": "1.8.5",
       "moduleName": "io.gsonfire:gson-fire",
+      "licenseUrl": "https://github.com/julman99/gson-fire/blob/master/LICENSE",
       "moduleCopyright": "Copyright 2015 Julio Viera"
     },
     {
       "moduleLicense": "Apache License v2",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.9.3-82.va_3505c77d050",
-      "moduleName": "io.jenkins.plugins:caffeine-api",
-      "moduleCopyright": null
-    },
-    {
-      "moduleLicense": "Apache License v2",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "moduleVersion": "2.9.2-29.v717aac953ff3",
       "moduleName": "io.jenkins.plugins:caffeine-api",
+      "licenseUrl": "https://github.com/jenkinsci/caffeine-api-plugin/blob/2.9.2-29.v717aac953ff3/LICENSE",
       "moduleCopyright": null
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.2.2",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-annotations",
-      "moduleCopyright": null
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
+      "moduleCopyright": "Copyright 2016 SmartBear Software"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc2",
-      "moduleName": "io.swagger:swagger-annotations",
-      "moduleCopyright": null
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc2",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-core",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
+      "moduleCopyright": "Copyright 2020 SmartBear Software Inc."
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc2",
+      "moduleVersion": "1.6.6",
       "moduleName": "io.swagger:swagger-models",
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
       "moduleCopyright": null
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc1",
+      "moduleVersion": "1.0.59",
       "moduleName": "io.swagger:swagger-parser",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
+      "licenseUrl": "https://github.com/swagger-api/swagger-parser/blob/v1.0.59/LICENSE",
+      "moduleCopyright": "Copyright 2020 SmartBear Software Inc."
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc1",
-      "moduleName": "io.swagger:swagger-parser-v2-converter",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc1",
-      "moduleName": "io.swagger:swagger-parser-v2",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc1",
-      "moduleName": "io.swagger:swagger-parser-core",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.0-rc1",
-      "moduleName": "io.swagger:swagger-parser-v3",
-      "moduleCopyright": "Copyright (c) 2015. SmartBear Software Inc."
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
-      "moduleVersion": "1.6.3",
-      "moduleName": "org.slf4j:slf4j-ext",
-      "moduleCopyright": "Copyright (c) 2004-2017 QOS.ch"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
-      "moduleVersion": "0.7.4",
-      "moduleName": "ch.qos.cal10n:cal10n-api",
-      "moduleCopyright": "Copyright (c) 2009 QOS.ch"
+      "moduleVersion": "1.0.61",
+      "moduleName": "io.swagger:swagger-parser",
+      "licenseUrl": "https://github.com/swagger-api/swagger-parser/blob/v1.0.61/LICENSE",
+      "moduleCopyright": "Copyright 2020 SmartBear Software Inc."
     },
     {
       "moduleLicense": "CDDL + GPLv2 with classpath exception",
-      "licenseUrl": "https://github.com/javaee/javax.annotation/blob/master/LICENSE",
       "moduleVersion": "1.3.2",
       "moduleName": "javax.annotation:javax.annotation-api",
-      "moduleCopyright": "Copyright (C) 1989, 1991 Free Software Foundation, Inc."
+      "licenseUrl": "https://github.com/javaee/javax.annotation/blob/1.3.2/LICENSE",
+      "moduleCopyright": "Copyright (c) 2005-2018 Oracle and/or its affiliates. All rights reserved."
     },
     {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.0.1.Final",
-      "moduleName": "javax.validation:validation-api",
-      "moduleCopyright": null
-    },
-    {
-      "moduleLicense": "Apache License 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.1.0.Final",
-      "moduleName": "javax.validation:validation-api",
-      "moduleCopyright": null
-    },
-    {
-      "moduleLicense": "BSD-3-Clause",
-      "licenseUrl": "https://www.antlr.org/license.html",
-      "moduleVersion": "4.11.1",
-      "moduleName": "org.antlr:antlr4-runtime",
-      "moduleCopyright": "Copyright (c) 2012 Terence Parr and Sam Harwell"
-    },
-    {
-      "moduleLicense": "BSD-3-Clause",
-      "licenseUrl": "https://www.antlr.org/license.html",
-      "moduleVersion": "4.9.3",
-      "moduleName": "org.antlr:antlr4-runtime",
-      "moduleCopyright": "Copyright (c) 2012 Terence Parr and Sam Harwell"
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "3.12.0",
-      "moduleName": "org.apache.commons:commons-lang3",
-      "moduleCopyright": "Copyright © 2001-2021 The Apache Software Foundation."
-    },
-    {
-      "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "3.6",
-      "moduleName": "org.apache.commons:commons-lang3",
-      "moduleCopyright": "Copyright © 2001-2021 The Apache Software Foundation."
-    },
-    {
-      "moduleLicense": "GNU General Public License, version 2 (GPL2), with the classpath exception",
-      "licenseUrl": "http://www.gnu.org/software/classpath/license.html",
-      "moduleVersion": "2.5.5",
-      "moduleName": "org.checkerframework:checker-compat-qual",
-      "moduleCopyright": "Copyright (C) 1989, 1991 Free Software Foundation, Inc."
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "http://opensource.org/licenses/MIT",
-      "moduleVersion": "2.5.5",
-      "moduleName": "org.checkerframework:checker-compat-qual",
-      "moduleCopyright": "Copyright (C) 1989, 1991 Free Software Foundation, Inc."
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "http://opensource.org/licenses/MIT",
-      "moduleVersion": "3.22.0",
-      "moduleName": "org.checkerframework:checker-qual",
-      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "http://opensource.org/licenses/MIT",
-      "moduleVersion": "3.12.0",
-      "moduleName": "org.checkerframework:checker-qual",
-      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "http://opensource.org/licenses/MIT",
-      "moduleVersion": "3.19.0",
-      "moduleName": "org.checkerframework:checker-qual",
-      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
-    },
-    {
-      "moduleLicense": "The MIT License",
-      "licenseUrl": "http://opensource.org/licenses/MIT",
-      "moduleVersion": "3.10.0",
-      "moduleName": "org.checkerframework:checker-qual",
-      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "640.vfcc3c7eff1d8",
-      "moduleName": "org.jenkins-ci.plugins.workflow:workflow-step-api",
-      "moduleCoypright": "Copyright (c) 2013-2014, CloudBees, Inc"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "308.v852b473a2b8c",
-      "moduleName": "org.jenkins-ci.plugins:structs",
-      "moduleCoypright": null
-    },
-    {
-      "moduleLicense": "The MIT license",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "1142.v58312a_911468",
-      "moduleName": "org.jenkins-ci.plugins:credentials",
-      "moduleCopyright": "Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connoll"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "1178.v82c0f8586608",
-      "moduleName": "org.jenkins-ci.plugins:script-security",
-      "moduleCopyright": "Copyright 2014 CloudBees, Inc."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.7.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.6.21",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.7.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.6.21",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.6.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.7.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.7.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.6.20",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
-    },
-    {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.6.21",
-      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "moduleCopyright": "Copyright 2010-2022 JetBrains s.r.o. and Kotlin Programming Language contributors."
+      "moduleLicense": "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1",
+      "moduleVersion": "1.3.2",
+      "moduleName": "javax.annotation:javax.annotation-api",
+      "licenseUrl": "https://github.com/javaee/javax.annotation/blob/1.3.2/LICENSE",
+      "moduleCopyright": "Copyright (c) 2005-2018 Oracle and/or its affiliates. All rights reserved."
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "moduleVersion": "1.1.0.Final",
+      "moduleName": "javax.validation:validation-api",
+      "licenseUrl": "https://github.com/jakartaee/validation/blob/1.1.0.Final/license.txt",
+      "moduleCopyright": null
+    },
+    {
+      "moduleLicense": "The BSD License",
+      "moduleVersion": "4.9.3",
+      "moduleName": "org.antlr:antlr4-runtime",
+      "licenseUrl": "https://github.com/antlr/antlr4/blob/4.9.3/LICENSE.txt",
+      "moduleCopyright": "Copyright (c) 2012-2017 The ANTLR Project. All rights reserved."
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0",
+      "moduleVersion": "3.12.0",
+      "moduleName": "org.apache.commons:commons-lang3",
+      "licenseUrl": "https://github.com/apache/commons-lang/blob/rel/commons-lang-3.12.0/LICENSE.txt",
+      "moduleCopyright": null
+    },
+    {
+      "moduleLicense": "GNU General Public License, version 2 (GPL2), with the classpath exception",
+      "moduleVersion": "2.5.5",
+      "moduleName": "org.checkerframework:checker-compat-qual",
+      "licenseUrl": "https://github.com/typetools/checker-framework/blob/master/LICENSE.txt",
+      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
+    },
+    {
+      "moduleLicense": "The MIT License",
+      "moduleVersion": "2.5.5",
+      "moduleName": "org.checkerframework:checker-compat-qual",
+      "licenseUrl": "https://github.com/typetools/checker-framework/blob/master/LICENSE.txt",
+      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
+    },
+    {
+      "moduleLicense": "MIT",
+      "moduleVersion": "3.12.0",
+      "moduleName": "org.checkerframework:checker-qual",
+      "licenseUrl": "https://github.com/typetools/checker-framework/blob/checker-framework-3.12.0/checker-qual/LICENSE.txt",
+      "moduleCopyright": "Copyright 2004-present by the Checker Framework developer"
+    },
+    {
+      "moduleLicense": "The MIT License",
+      "moduleVersion": "3.10.0",
+      "moduleName": "org.checkerframework:checker-qual",
+      "licenseUrl": "https://github.com/typetools/checker-framework/blob/checker-framework-3.10.0/checker-qual/LICENSE.txt",
+      "moduleCopyright": "Copyright 2004-present by the Checker Framework developers"
+    },
+    {
+      "moduleLicense": "MIT License",
+      "moduleVersion": "625.vd896b_f445a_f8",
+      "moduleName": "org.jenkins-ci.plugins.workflow:workflow-step-api",
+      "licenseUrl": "https://github.com/jenkinsci/workflow-step-api-plugin/blob/625.vd896b_f445a_f8/src/main/resources/index.jelly",
+      "moduleCopyright": "Copyright (c) 2013-2014, CloudBees, Inc."
+    },
+    {
+      "moduleLicense": "The MIT license",
+      "moduleVersion": "1087.v16065d268466",
+      "moduleName": "org.jenkins-ci.plugins:credentials",
+      "licenseUrl": "https://github.com/jenkinsci/credentials-plugin/blob/1087.v16065d268466/LICENSE.txt",
+      "moduleCopyright": "Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly."
+    },
+    {
+      "moduleLicense": "MIT License",
+      "moduleVersion": "1158.v7c1b_73a_69a_08",
+      "moduleName": "org.jenkins-ci.plugins:script-security",
+      "licenseUrl": "https://github.com/jenkinsci/script-security-plugin/blob/1158.v7c1b_73a_69a_08/src/main/java/org/jenkinsci/plugins/scriptsecurity/scripts/ApprovalContext.java",
+      "moduleCopyright": "Copyright 2014 CloudBees, Inc."
+    },
+    {
+      "moduleLicense": "MIT License",
+      "moduleVersion": "318.va_f3ccb_729b_71",
+      "moduleName": "org.jenkins-ci.plugins:structs",
+      "licenseUrl": "https://github.com/jenkinsci/structs-plugin/blob/318.va_f3ccb_729b_71/src/main/java/org/jenkinsci/plugins/structs/describable/CustomDescribableModel.java",
+      "moduleCopyright": "Copyright 2019 CloudBees, Inc."
+    },
+    {
+      "moduleLicense": "MIT License",
+      "moduleVersion": "308.v852b473a2b8c",
+      "moduleName": "org.jenkins-ci.plugins:structs",
+      "licenseUrl": "https://github.com/jenkinsci/structs-plugin/blob/318.va_f3ccb_729b_71/src/main/java/org/jenkinsci/plugins/structs/describable/CustomDescribableModel.java",
+      "moduleCopyright": "Copyright 2019 CloudBees, Inc."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.6.20",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.5.31",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.5.31/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.0",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.0/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.6.20",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.0",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.0/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.5.31",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.5.31/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.5.31",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.5.31/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.6.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.4.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.4.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.5.31",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.5.31/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache License, Version 2.0",
+      "moduleVersion": "1.6.10",
+      "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
       "moduleVersion": "13.0",
       "moduleName": "org.jetbrains:annotations",
+      "licenseUrl": "https://github.com/JetBrains/java-annotations/blob/master/LICENSE.txt",
       "moduleCopyright": "Copyright 2000-2016 JetBrains s.r.o."
     },
     {
       "moduleLicense": "MIT license",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "1.1.9",
+      "moduleVersion": "1.27",
       "moduleName": "org.kohsuke:groovy-sandbox",
-      "moduleCopyright": "Copyright 2020 CloudBees, Inc."
-    },
-    {
-      "moduleLicense": "MIT license",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "1.28-rc217.ad7bb995c96d",
-      "moduleName": "org.kohsuke:groovy-sandbox",
-      "moduleCopyright": "Copyright 2020 CloudBees, Inc."
-    },
-    {
-      "moduleLicense": "The Apache Software License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "2.4.7",
-      "moduleName": "org.codehaus.groovy:groovy",
-      "moduleCopyright": null
+      "licenseUrl": "https://github.com/jenkinsci/groovy-sandbox/blob/groovy-sandbox-1.27/LICENSE.md",
+      "moduleCopyright": "Copyright (c) 2012-2014 Kohsuke Kawaguchi, CloudBees, Inc., other contributors"
     },
     {
       "moduleLicense": "MIT License",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "2.0.1",
+      "moduleVersion": "1.7.22",
       "moduleName": "org.slf4j:slf4j-api",
-      "moduleCopyright": "Copyright (c) 2004-2017 QOS.ch"
-    },
-    {
-      "moduleLicense": "MIT License",
-      "licenseUrl": "https://opensource.org/licenses/MIT",
-      "moduleVersion": "1.7.25",
-      "moduleName": "org.slf4j:slf4j-api",
-      "moduleCopyright": "Copyright (c) 2004-2017 QOS.ch"
+      "licenseUrl": "https://github.com/qos-ch/slf4j/blob/v_1.7.22/LICENSE.txt",
+      "moduleCopyright": "Copyright (c) 2004-2014 QOS.ch"
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
-      "moduleVersion": "1.32",
+      "moduleVersion": "1.30",
       "moduleName": "org.yaml:snakeyaml",
+      "licenseUrl": "https://github.com/spariev/snakeyaml/blob/master/LICENSE.txt",
       "moduleCopyright": "Copyright (c) 2008-2010 Andrey Somov"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "3.0.0",
+      "moduleName": "com.squareup.okio:okio-jvm",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.0.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2019 Square, Inc."
     }
   ]
 }
