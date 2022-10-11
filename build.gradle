@@ -42,10 +42,9 @@ repositories {
 
 dependencies {
     implementation 'org.jenkins-ci.plugins:credentials:1087.v16065d268466'
-    implementation 'org.jenkins-ci.plugins:script-security:1158.v7c1b_73a_69a_08'
+    implementation 'org.jenkins-ci.plugins:script-security:1183.v774b_0b_0a_a_451'
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
-    implementation 'org.codehaus.groovy:groovy-all:3.0.13'
 
     // ecu-test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
@@ -60,20 +59,28 @@ dependencies {
 
     // test
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:941.vdfe1b_a_132c64'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2802.v5ea_628154b_c2'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2802.v5ea_628154b_c2:tests'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1130.v8fd69d0b_8857'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1180.v04c4e75dce43'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8:tests'
+    testImplementation 'org.jenkins-ci.plugins:display-url-api:2.3.6'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation('org.testcontainers:spock:1.17.3') {
+    testImplementation "org.jenkins-ci.main:jenkins-test-harness:${jenkinsTestHarnessVersion}"
+    testImplementation('org.testcontainers:spock:1.17.4') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
-    testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
+    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'cglib:cglib-nodep:3.3.0'
     testImplementation 'org.objenesis:objenesis:3.3'
     testImplementation 'com.google.guava:guava:31.1-jre'
+}
+
+// remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
+configurations.testRuntimeOnly {
+    exclude group: 'pull-parser', module: 'pull-parser'
 }
 
 publishing {
@@ -164,9 +171,12 @@ tasks.named('server').configure {
 }
 
 test {
+    // exclude code, which can not be intrumented correctly
+    jacoco {
+        excludes = ["com/gargoylesoftware/**"]
+    }
     filter {
         excludeTestsMatching '*ContainerTest'
-//        excludeTestsMatching '*IT' // TODO fix issue with Jenkins ITs
     }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
