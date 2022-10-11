@@ -171,7 +171,7 @@ tasks.named('server').configure {
 }
 
 test {
-    // exclude code, which can not be intrumented correctly
+    // exclude code, which can not be instrumented correctly
     jacoco {
         excludes = ["com/gargoylesoftware/**"]
     }
@@ -198,6 +198,7 @@ task containerTest(type: Test) {
     filter {
         includeTestsMatching('*ContainerTest')
     }
+    useJUnitPlatform()
 }
 
 jacocoTestReport {
