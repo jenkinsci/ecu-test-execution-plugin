@@ -25,6 +25,13 @@ pipeline {
     }
 
     stages {
+        stage ('Test') {
+            steps {
+                withGradle {
+                    bat './gradlew clean test'
+                }
+            }
+        }
         stage ('Prepare Resources') {
             steps {
                 copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
