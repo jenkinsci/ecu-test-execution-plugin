@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 // `buildPluginWithGradle` step provided by: https://github.com/jenkins-infra/pipeline-library
-buildPluginWithGradle(platforms: ["11"])
+buildPluginWithGradle(jdkVersions: ["11"])
