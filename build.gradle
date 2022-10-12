@@ -175,11 +175,21 @@ test {
     jacoco {
         excludes = ["com/gargoylesoftware/**"]
     }
+    // exclude tests which have own test tasks
     filter {
         excludeTestsMatching '*ContainerTest'
+        excludeTestsMatching '*IT'
     }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+}
+
+task integrationTest(type: Test) {
+    filter {
+        includeTestsMatching '*IT'
+    }
+    useJUnitPlatform()
+    dependsOn test
 }
 
 task containerTest(type: Test) {
@@ -199,6 +209,7 @@ task containerTest(type: Test) {
         includeTestsMatching('*ContainerTest')
     }
     useJUnitPlatform()
+    dependsOn integrationTest
 }
 
 jacocoTestReport {
