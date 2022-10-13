@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     implementation 'org.jenkins-ci.plugins:credentials:1087.v16065d268466'
-    implementation 'org.jenkins-ci.plugins:script-security:1183.v774b_0b_0a_a_451'
+    implementation 'org.jenkins-ci.plugins:script-security:1158.v7c1b_73a_69a_08'
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
 
@@ -59,14 +59,12 @@ dependencies {
 
     // test
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:941.vdfe1b_a_132c64'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2802.v5ea_628154b_c2'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2802.v5ea_628154b_c2:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1:tests'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1130.v8fd69d0b_8857'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1180.v04c4e75dce43'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8:tests'
-    testImplementation 'org.jenkins-ci.plugins:display-url-api:2.3.6'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation "org.jenkins-ci.main:jenkins-test-harness:${jenkinsTestHarnessVersion}"
     testImplementation('org.testcontainers:spock:1.17.4') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
@@ -185,6 +183,10 @@ test {
 }
 
 task integrationTest(type: Test) {
+    // exclude code, which can not be instrumented correctly
+    jacoco {
+        excludes = ["com/gargoylesoftware/**"]
+    }
     filter {
         includeTestsMatching '*IT'
     }

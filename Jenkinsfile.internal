@@ -39,9 +39,6 @@ pipeline {
         }
     }
     post {
-        always {
-            archiveArtifacts 'build/reports/tests/containerTests/**'
-        }
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
                 subject: "${JOB_NAME} - Build #${BUILD_NUMBER} - ${currentBuild.currentResult}",
