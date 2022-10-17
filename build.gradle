@@ -176,22 +176,9 @@ test {
     // exclude tests which have own test tasks
     filter {
         excludeTestsMatching '*ContainerTest'
-        excludeTestsMatching '*IT'
     }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
-}
-
-task integrationTest(type: Test) {
-    // exclude code, which can not be instrumented correctly
-    jacoco {
-        excludes = ["com/gargoylesoftware/**"]
-    }
-    filter {
-        includeTestsMatching '*IT'
-    }
-    useJUnitPlatform()
-    dependsOn test
 }
 
 task containerTest(type: Test) {
@@ -211,7 +198,7 @@ task containerTest(type: Test) {
         includeTestsMatching('*ContainerTest')
     }
     useJUnitPlatform()
-    dependsOn integrationTest
+    dependsOn test
 }
 
 jacocoTestReport {
