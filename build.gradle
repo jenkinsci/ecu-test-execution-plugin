@@ -69,8 +69,7 @@ dependencies {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0' // compat layer for junit4
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'cglib:cglib-nodep:3.3.0'
     testImplementation 'org.objenesis:objenesis:3.3'
     testImplementation 'com.google.guava:guava:31.1-jre'
