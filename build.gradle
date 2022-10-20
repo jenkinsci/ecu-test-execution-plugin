@@ -13,6 +13,7 @@ plugins {
     id 'org.jenkins-ci.jpi' version "$jpiVersion"
     id "org.openapi.generator" version "$openapiVersion"
     id "com.github.spotbugs" version "$spotBugsPlugin"
+    id 'org.cyclonedx.bom' version "$cyclondxVersion"
 }
 
 group = 'de.tracetronic.jenkins.plugins'
@@ -255,6 +256,10 @@ openApiGenerate {
             licenseUrl: "https://spdx.org/licenses/MIT.html",
             dateLibrary: "java8"
     ]
+}
+
+cyclonedxBom {
+    outputFormat = "json"
 }
 
 sourceSets {
