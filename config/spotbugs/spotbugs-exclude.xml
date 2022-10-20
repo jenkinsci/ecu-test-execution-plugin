@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Package name="~de\.tracetronic\.cxs\.generated\.et\.client.*" />
+    </Match>
+    <Match>
+        <Source name="~.*\.java" />
+    </Match>
+</FindBugsFilter>
