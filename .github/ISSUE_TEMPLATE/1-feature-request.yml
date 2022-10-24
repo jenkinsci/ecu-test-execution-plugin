@@ -1,6 +1,6 @@
 name: '📝 Feature Request'
-description: 'feature request template for plugin development'
-labels: ['enhancement']
+description: 'Feature request template for plugin development'
+labels: ['feature']
 
 body:
   - type: textarea

@@ -1,4 +1,4 @@
-name: "🐛 Bug Report"
+name: '🐛 Bug Report'
 description: Create a report to help us improve
 labels: ['bug']
 
@@ -29,26 +29,22 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
-  - type: input
-    id: jeninks-version
+  - type: textarea
     attributes:
-      label: Jenkins version
+      label: Versions
+      description: |
+        examples:
+        - Jenkins: LTS 2.332.3
+        - Plugin: 3.0
+        - ECU-TEST: 2022.2
+        - TEST-GUIDE: 1.139.0 (or empty)
+      value: |
+        - Jenkins:
+        - Plugin:
+        - ECU-TEST:
+        - TEST-GUIDE:
     validations:
       required: true
-  - type: input
-    id: plugin-version
-    attributes:
-      label: ECU-TEST-Execution Plugin version
-    validations:
-      required: true
-  - type: input
-    id: et-version
-    attributes:
-      label: ECU-TEST version
-  - type: input
-    id: tg-version
-    attributes:
-      label: TEST-GUIDE version
   - type: textarea
     id: context
     attributes:
