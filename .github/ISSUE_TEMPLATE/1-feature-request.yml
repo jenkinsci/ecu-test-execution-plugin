@@ -1,6 +1,6 @@
-name: '📝 Custom issue'
-description: 'Custom issue template for plugin development'
-labels: 'enhancement'
+name: '📝 Feature Request'
+description: 'Feature request template for plugin development'
+labels: ['feature']
 
 body:
   - type: textarea
