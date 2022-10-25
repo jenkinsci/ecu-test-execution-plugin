@@ -12,6 +12,8 @@ plugins {
     id 'maven-publish'
     id 'org.jenkins-ci.jpi' version "$jpiVersion"
     id "org.openapi.generator" version "$openapiVersion"
+    id "com.github.spotbugs" version "$spotBugsPlugin"
+    id 'org.cyclonedx.bom' version "$cyclondxVersion"
 }
 
 group = 'de.tracetronic.jenkins.plugins'
@@ -45,6 +47,7 @@ dependencies {
     implementation 'org.jenkins-ci.plugins:script-security:1158.v7c1b_73a_69a_08'
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
+    implementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
 
     // ecu-test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
@@ -208,6 +211,20 @@ jacocoTestReport {
     }
 }
 
+spotbugs {
+    ignoreFailures = true
+}
+
+spotbugsMain {
+    projectName = project.name
+    release = version
+    excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
 codenarcMain {
     compilationClasspath = sourceSets.main.compileClasspath + sourceSets.main.output
     configFile = file('config/codenarc/rules.groovy')
@@ -239,6 +256,10 @@ openApiGenerate {
             licenseUrl: "https://spdx.org/licenses/MIT.html",
             dateLibrary: "java8"
     ]
+}
+
+cyclonedxBom {
+    outputFormat = "json"
 }
 
 sourceSets {
