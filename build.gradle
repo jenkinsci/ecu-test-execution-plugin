@@ -49,6 +49,12 @@ dependencies {
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
     implementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
+    implementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.4.0'
+    implementation('com.google.inject:guice') {
+        version {
+            strictly '4.0'
+        }
+    }
 
     // ecu-test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
