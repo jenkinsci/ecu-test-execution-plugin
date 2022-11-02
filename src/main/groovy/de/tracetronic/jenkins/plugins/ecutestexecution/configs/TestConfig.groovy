@@ -5,7 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.configs
 
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -24,7 +24,7 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
     private String tbcPath
     private String tcfPath
     private boolean forceConfigurationReload
-    private List<Constant> constants
+    private List<LabeledValue> constants
 
     @DataBoundConstructor
     TestConfig() {
@@ -61,12 +61,12 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
         this.forceConfigurationReload = forceConfigurationReload
     }
 
-    List<Constant> getConstants() {
+    List<LabeledValue> getConstants() {
         return constants
     }
 
     @DataBoundSetter
-    void setConstants(List<Constant> constants) {
+    void setConstants(List<LabeledValue> constants) {
         this.constants = constants ? removeEmptyConstants(constants) : []
     }
 
@@ -89,7 +89,7 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
         return expConfig
     }
 
-    private static List<Constant> removeEmptyConstants(List<Constant> constants) {
+    private static List<LabeledValue> removeEmptyConstants(List<LabeledValue> constants) {
         return constants.findAll { constant -> StringUtils.isNotBlank(constant.getLabel()) }
     }
 

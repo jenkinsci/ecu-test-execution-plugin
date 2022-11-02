@@ -106,7 +106,7 @@ class Recording extends AbstractDescribableImpl<Recording> implements Expandable
 
         @Override
         String getDisplayName() {
-            'Global Constant'
+            'Global LabeledValue'
         }
 
         FormValidation doCheckPath(@QueryParameter String value) {

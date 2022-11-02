@@ -5,7 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.configs
 
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
 import hudson.EnvVars
@@ -69,7 +69,7 @@ class ExpandableConfigTest extends Specification {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('${TBC_PATH}')
             testConfig.setTcfPath('${TCF_PATH}')
-            testConfig.setConstants(Arrays.asList(new Constant('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
         when:
             TestConfig expTestConfig = testConfig.expand(envVars)
         then:

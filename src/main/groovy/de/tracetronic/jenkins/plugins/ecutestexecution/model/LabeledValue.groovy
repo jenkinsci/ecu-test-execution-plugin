@@ -16,7 +16,7 @@ import org.apache.commons.lang.StringUtils
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.QueryParameter
 
-class Constant extends AbstractDescribableImpl<Constant> implements ExpandableConfig, Serializable {
+class LabeledValue extends AbstractDescribableImpl<LabeledValue> implements ExpandableConfig, Serializable {
 
     private static final long serialVersionUID = 1L
 
@@ -24,7 +24,7 @@ class Constant extends AbstractDescribableImpl<Constant> implements ExpandableCo
     private final String value
 
     @DataBoundConstructor
-    Constant(String label, String value) {
+    LabeledValue(String label, String value) {
         this.label = StringUtils.trimToEmpty(label)
         this.value = StringUtils.trimToEmpty(value)
     }
@@ -43,12 +43,12 @@ class Constant extends AbstractDescribableImpl<Constant> implements ExpandableCo
     }
 
     @Override
-    Constant expand(EnvVars envVars) {
-        return new Constant(envVars.expand(label), envVars.expand(value))
+    LabeledValue expand(EnvVars envVars) {
+        return new LabeledValue(envVars.expand(label), envVars.expand(value))
     }
 
     @Extension
-    static class DescriptorImpl extends Descriptor<Constant> {
+    static class DescriptorImpl extends Descriptor<LabeledValue> {
 
         @Override
         String getDisplayName() {
