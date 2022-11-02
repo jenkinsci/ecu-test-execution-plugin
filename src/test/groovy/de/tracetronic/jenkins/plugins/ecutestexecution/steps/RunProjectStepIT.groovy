@@ -9,7 +9,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
@@ -43,7 +43,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
             before.setTestConfig(testConfig)
 
             ExecutionConfig executionConfig = new ExecutionConfig()
@@ -68,7 +68,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +

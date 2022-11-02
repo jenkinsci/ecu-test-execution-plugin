@@ -6,7 +6,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
 import hudson.model.Result
@@ -55,7 +55,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
             before.setTestConfig(testConfig)
 
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
@@ -101,7 +101,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +

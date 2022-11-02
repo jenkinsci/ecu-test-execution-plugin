@@ -3,7 +3,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.util
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
 import hudson.model.TaskListener
@@ -53,7 +53,7 @@ class LogConfigUtilTest extends Specification {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
             LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig)
         when:
             logConfigUtil.log()
