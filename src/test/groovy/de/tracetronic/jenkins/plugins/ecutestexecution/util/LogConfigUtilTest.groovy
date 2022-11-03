@@ -3,9 +3,9 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.util
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.model.TaskListener
 import spock.lang.Specification
 
@@ -53,7 +53,7 @@ class LogConfigUtilTest extends Specification {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
-            testConfig.setConstants(Arrays.asList(new LabeledValue('constLabel', 'constValue')))
+            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig)
         when:
             logConfigUtil.log()
@@ -86,7 +86,7 @@ class LogConfigUtilTest extends Specification {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
-            Recording recording = new Recording('recording.csv')
+            RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')

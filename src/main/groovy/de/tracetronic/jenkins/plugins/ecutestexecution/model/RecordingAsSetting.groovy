@@ -17,7 +17,7 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
 
-class Recording extends AbstractDescribableImpl<Recording> implements ExpandableConfig, Serializable {
+class RecordingAsSetting extends AbstractDescribableImpl<RecordingAsSetting> implements ExpandableConfig, Serializable {
 
     private static final long serialVersionUID = 1L
 
@@ -29,7 +29,7 @@ class Recording extends AbstractDescribableImpl<Recording> implements Expandable
     private String formatDetails
 
     @DataBoundConstructor
-    Recording(String path) {
+    RecordingAsSetting(String path) {
         this.path = StringUtils.trimToEmpty(path)
         this.recordingGroup = ''
         this.mappingNames = []
@@ -89,8 +89,8 @@ class Recording extends AbstractDescribableImpl<Recording> implements Expandable
     }
 
     @Override
-    Recording expand(EnvVars envVars) {
-        Recording expRecording = new Recording(envVars.expand(path))
+    RecordingAsSetting expand(EnvVars envVars) {
+        RecordingAsSetting expRecording = new RecordingAsSetting(envVars.expand(path))
         expRecording.setRecordingGroup(envVars.expand(recordingGroup))
         expRecording.setDeviceName(envVars.expand(deviceName))
         expRecording.setFormatDetails(envVars.expand(formatDetails))
@@ -102,11 +102,11 @@ class Recording extends AbstractDescribableImpl<Recording> implements Expandable
     }
 
     @Extension
-    static class DescriptorImpl extends Descriptor<Recording> {
+    static class DescriptorImpl extends Descriptor<RecordingAsSetting> {
 
         @Override
         String getDisplayName() {
-            'Global LabeledValue'
+            'Global Constant'
         }
 
         FormValidation doCheckPath(@QueryParameter String value) {

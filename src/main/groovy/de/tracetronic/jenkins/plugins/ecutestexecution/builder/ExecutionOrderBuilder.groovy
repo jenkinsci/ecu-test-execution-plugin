@@ -7,6 +7,7 @@ import de.tracetronic.cxs.generated.et.client.model.Recording
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ConverterUtil
 
 /**
  * This class provides a means to build an ExecutionOrder on demand, depending on the given configurations. Since the
@@ -58,7 +59,7 @@ class ExecutionOrderBuilder implements Serializable {
                 .packageParameters(packageConfig.packageParameters as List<LabeledValue>)
                 .analysisName(analysisConfig.analysisName)
                 .mapping(analysisConfig.mapping)
-                .recordings(analysisConfig.recordings as List<Recording>)
+                .recordings(ConverterUtil.recordingConverter(analysisConfig.recordings))
         }
         else {
             settings = new AdditionalSettings()
@@ -69,7 +70,7 @@ class ExecutionOrderBuilder implements Serializable {
                 .testCasePath(testCasePath)
                 .tbcPath(testConfig.tbcPath)
                 .tcfPath(testConfig.tcfPath)
-                .constants(testConfig.constants as List<LabeledValue>)
+                .constants(ConverterUtil.labeledValueConverter(testConfig.constants))
                 .additionalSettings(settings)
 
         return executionOrder

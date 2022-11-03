@@ -5,9 +5,10 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.configs
 
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.LabeledValue
+
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.EnvVars
 import spock.lang.Specification
 
@@ -26,7 +27,7 @@ class ExpandableConfigTest extends Specification {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('${MAPPING_NAME}')
             analysisConfig.setAnalysisName('${ANALYSIS_NAME}')
-            Recording recording = new Recording('${RECORDING_PATH}')
+        RecordingAsSetting recording = new RecordingAsSetting('${RECORDING_PATH}')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
@@ -69,7 +70,7 @@ class ExpandableConfigTest extends Specification {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('${TBC_PATH}')
             testConfig.setTcfPath('${TCF_PATH}')
-            testConfig.setConstants(Arrays.asList(new LabeledValue('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
+            testConfig.setConstants(Arrays.asList(new Constant('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
         when:
             TestConfig expTestConfig = testConfig.expand(envVars)
         then:
