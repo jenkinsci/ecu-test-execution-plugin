@@ -5,7 +5,8 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.configs
 
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
+
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -23,7 +24,7 @@ class AnalysisConfig extends AbstractDescribableImpl<AnalysisConfig> implements 
 
     private String analysisName
     private String mapping
-    private List<Recording> recordings
+    private List<RecordingAsSetting> recordings
 
     @DataBoundConstructor
     AnalysisConfig() {
@@ -50,12 +51,12 @@ class AnalysisConfig extends AbstractDescribableImpl<AnalysisConfig> implements 
         this.mapping = StringUtils.trimToEmpty(mapping)
     }
 
-    List<Recording> getRecordings() {
+    List<RecordingAsSetting> getRecordings() {
         return recordings
     }
 
     @DataBoundSetter
-    void setRecordings(List<Recording> recordings) {
+    void setRecordings(List<RecordingAsSetting> recordings) {
         this.recordings = recordings ? removeEmptyRecordings(recordings) : []
     }
 
@@ -77,7 +78,7 @@ class AnalysisConfig extends AbstractDescribableImpl<AnalysisConfig> implements 
         return expConfig
     }
 
-    private static List<Recording> removeEmptyRecordings(List<Recording> recordings) {
+    private static List<RecordingAsSetting> removeEmptyRecordings(List<RecordingAsSetting> recordings) {
         return recordings.findAll { recording -> StringUtils.isNotBlank(recording.path) }
     }
 
