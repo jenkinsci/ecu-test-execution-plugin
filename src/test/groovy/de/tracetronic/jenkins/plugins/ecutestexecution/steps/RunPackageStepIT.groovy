@@ -13,7 +13,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.Recording
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
@@ -57,7 +57,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
-            Recording recording = new Recording('recording.csv')
+        RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
@@ -106,7 +106,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
-            Recording recording = new Recording('recording.csv')
+            RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
