@@ -56,8 +56,6 @@ dependencies {
         }
     }
 
-    compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
-
     // ecu-test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
     api 'io.swagger:swagger-parser:1.0.61'
