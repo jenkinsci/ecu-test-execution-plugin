@@ -4,7 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 8
     reviewers:
       - 'TT-S3-D1'
       - 'MartinGroscheTT'
