@@ -4,7 +4,12 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 8
+    ignore:
+      - dependency-name: "org.spockframework:spock-core"
+      - dependency-name: "org.spockframework:spock-junit4"
+      - dependency-name: "org.jenkins-ci.jpi"
+      - dependency-name: "org.openapi.generator"
+    open-pull-requests-limit: 10
     reviewers:
       - 'TT-S3-D1'
       - 'MartinGroscheTT'
