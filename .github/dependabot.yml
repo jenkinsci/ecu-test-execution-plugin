@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "org.spockframework:spock-core"    # upgrade includes multiple transitive version, not supported
+      - dependency-name: "org.spockframework:spock-junit4"  # upgrade includes multiple transitive version, not supported
+      - dependency-name: "org.jenkins-ci.jpi"               # maintenance version should not be upgraded automatically
+      - dependency-name: "org.openapi.generator"            # API generator depends on the ECU-TEST openapi.yml
     open-pull-requests-limit: 10
     reviewers:
       - 'TT-S3-D1'
