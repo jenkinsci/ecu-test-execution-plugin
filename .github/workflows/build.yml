@@ -20,4 +20,18 @@ jobs:
           distribution: temurin
           java-version: 8
       - name: Run Gradle Build
+        id: build
         run: ./gradlew build -x containerTest
+      - name: Read Plugin Version
+        uses: madhead/read-java-properties@latest
+        id: version
+        with:
+          file: gradle.properties
+          property: version
+          default: latest
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+          with:
+            name: ${{ ${{ github.ref_name }}_steps.version.outputs.value }}
+            path: |
+              build/libs/*.hpi
