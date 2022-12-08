@@ -31,7 +31,7 @@ jobs:
           default: latest
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
-          with:
-            name: ecu-test-execution-plugin-${{ steps.version.outputs.value }}.hpi
-            path: |
-              build/libs/*.hpi
+        with:
+          name: ecu-test-execution-plugin-${{ steps.version.outputs.value }}.hpi
+          path: |
+            build/libs/*.hpi
