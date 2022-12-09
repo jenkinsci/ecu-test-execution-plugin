@@ -17,7 +17,7 @@ jobs:
       - name: Set Artifact Name
         id: artifactName
         run: |
-          if [[ "${{ github.event._name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "::set-output name=artifact_name::${{ github.ref_name }}"
           else
             echo "::set-output name=artifact_name::PR-${{ github.event.pull_request.number }}"
