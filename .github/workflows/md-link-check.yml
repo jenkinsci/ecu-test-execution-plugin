@@ -13,3 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - uses: gaurav-nelson/github-action-markdown-link-check@1.0.13
+        with:
+          [404](https://plugins.jenkins.io/ecu-test-execution) <!-- markdown-link-check-disable-line -->
+          [404](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml) <!-- markdown-link-check-disable-line -->
+          [404](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg) <!-- markdown-link-check-disable-line -->
