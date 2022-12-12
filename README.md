@@ -1,12 +1,7 @@
 # TraceTronic ECU-TEST-Execution Plugin
 <!-- markdown-link-check-disable -->
-[](https://plugins.jenkins.io/ecu-test-execution)
-[](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml)
-[](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)
-<!-- markdown-link-check-enable -->
-
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution) [![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2022.3-orange?style=flat)](https://tracetronic.com/products/ecu-test) [![GitHub CI](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml) [![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) [![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue)](https://plugins.jenkins.io/ecu-test-execution) [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
-
+<!-- markdown-link-check-enable -->
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
 it provides an easy and reliable entry into continuous testing. It integrates 
 [ECU-TEST](https://www.tracetronic.com/products/ecu-test) with Jenkins and allows report generation and its upload of 
