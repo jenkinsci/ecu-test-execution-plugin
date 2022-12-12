@@ -1016,7 +1016,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "Apache License 2.0",
       "moduleVersion": "2.2.1",
       "moduleName": "xerces:xerces",
       "licenseUrl": null,
@@ -1232,7 +1232,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "The MIT License",
       "moduleVersion": "2.0.8-kohsuke-1",
       "moduleName": "org.kohsuke.jinterop:j-interop",
       "licenseUrl": null,
@@ -1240,7 +1240,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "The MIT License",
       "moduleVersion": "2.0.8-kohsuke-1",
       "moduleName": "org.kohsuke.jinterop:j-interopdeps",
       "licenseUrl": null,
@@ -1248,7 +1248,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "GNU Lesser General Public License, version 2.1",
       "moduleVersion": "1.2.19",
       "moduleName": "org.samba.jcifs:jcifs",
       "licenseUrl": null,
@@ -1352,7 +1352,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "Apache License 2.0",
       "moduleVersion": "2.4-jenkins-3",
       "moduleName": "org.kohsuke.stapler:json-lib",
       "licenseUrl": null,
@@ -1360,7 +1360,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "Apache License 2.0",
       "moduleVersion": "1.0.6",
       "moduleName": "net.sf.ezmorph:ezmorph",
       "licenseUrl": null,
@@ -1472,7 +1472,7 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": null,
+      "moduleLicense": "Apache Software License, version 1.1",
       "moduleVersion": "1.1.4c",
       "moduleName": "xpp3:xpp3",
       "licenseUrl": null,
