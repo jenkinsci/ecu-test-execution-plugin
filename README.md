@@ -1,4 +1,9 @@
 # TraceTronic ECU-TEST-Execution Plugin
+<!-- markdown-link-check-disable -->
+[](https://plugins.jenkins.io/ecu-test-execution)
+[](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml)
+[](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)
+<!-- markdown-link-check-enable -->
 
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution) [![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2022.3-orange?style=flat)](https://tracetronic.com/products/ecu-test) [![GitHub CI](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/tracetronic/ecu-test-execution-plugin/actions/workflows/gradle.yml) [![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) [![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue)](https://plugins.jenkins.io/ecu-test-execution) [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
 
@@ -129,4 +134,4 @@ Using the [REUSE helper tool](https://github.com/fsfe/reuse-tool), you can run `
 For 3rd party dependencies you can use `./gradlew checkLicense`. The third-party dependencies are generated in 
 _./build/licenses/_.
 
-To generate a software bill of material (sbom) for the project run ```./gradlew cyclonedxBom```. The generated _sbom_ destination is ```build/reports/bom.json``` 
+To generate a software bill of material (sbom) for the project run ```./gradlew cyclonedxBom```. The generated _sbom_ destination is ```build/reports/bom.json```
