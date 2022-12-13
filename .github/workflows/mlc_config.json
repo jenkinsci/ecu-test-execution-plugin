@@ -1,7 +1,7 @@
 {
   "ignorePatterns": [
     {
-      "pattern": "https://plugins.jenkins.io/ecu-test-execution"
+      "pattern": "^https://plugins.jenkins.io/ecu-test-execution"
     }
   ]
 }
