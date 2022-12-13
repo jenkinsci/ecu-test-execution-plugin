@@ -1,0 +1,7 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "https://plugins.jenkins.io/ecu-test-execution"
+    }
+  ]
+}
