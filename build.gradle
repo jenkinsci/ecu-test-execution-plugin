@@ -14,6 +14,7 @@ plugins {
     id "org.openapi.generator" version "$openapiVersion"
     id "com.github.spotbugs" version "$spotBugsPlugin"
     id 'org.cyclonedx.bom' version "$cyclondxVersion"
+    id 'com.github.jk1.dependency-license-report' version '1.17'
 }
 
 group = 'de.tracetronic.jenkins.plugins'
@@ -48,6 +49,12 @@ dependencies {
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
     implementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
+    implementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.4.0'
+    implementation('com.google.inject:guice') {
+        version {
+            strictly '4.0'
+        }
+    }
 
     // ecu-test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
@@ -256,6 +263,19 @@ openApiGenerate {
             licenseUrl: "https://spdx.org/licenses/MIT.html",
             dateLibrary: "java8"
     ]
+}
+
+licenseReport {
+    outputDir = "$projectDir/build/licenses"
+    projects = [project] + project.subprojects
+    configurations = ['runtimeClasspath']
+    excludeGroups = []
+    excludes = []
+    excludeOwnGroup = false
+    excludeBoms = false
+    renderers = []
+    importers = []
+    allowedLicensesFile = new File("$projectDir/config/allowed_licenses.json")
 }
 
 cyclonedxBom {
