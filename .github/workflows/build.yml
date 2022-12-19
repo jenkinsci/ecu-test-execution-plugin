@@ -10,10 +10,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
+      runs-on: ubuntu-22.04
+      steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
+      - name: Read Plugin Version
+        uses: madhead/read-java-properties@latest
+        id: version
+        with:
+          file: gradle.properties
+          property: version
+          default: latest
       - name: Set Artifact Name
         id: artifactName
         run: |
@@ -33,9 +40,15 @@ jobs:
         with:
           gradle-version: 7.3
           arguments: build -x containerTest
+      - name: Add Artifacts To Local Repository
+        id: artifactCopy
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.3
+          arguments: publishMavenPublicationToArtifactsRepository
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifactName.outputs.artifact_name }}
           path: |
-            build/libs/*.hpi
+            build/artifacts/**/${{ steps.version.outputs.value }}
