@@ -8,7 +8,7 @@ on:
       - .github/labels.yml
 
 jobs:
-  build:
+  sync-repo-labels:
     name: Sync Labels
     runs-on: ubuntu-latest
     steps:
