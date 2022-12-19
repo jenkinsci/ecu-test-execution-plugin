@@ -45,4 +45,5 @@ jobs:
         with:
           name: ${{ steps.artifactName.outputs.artifact_name }}
           path: |
-            build/artifacts/**/${{ steps.version.outputs.value }}
+            build/artifacts/de/tracetronic/jenkins/plugins/ecutestexecution/${{ steps.version.outputs.value }}
+          if-no-files-found: error
