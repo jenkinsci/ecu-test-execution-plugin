@@ -79,13 +79,16 @@ node('windows') {
         ttGenerateReports 'HTML'
     }
     stage('Upload Reports') {
-        ttUploadReports testGuideUrl: 'http://HOST:Port', authKey: 'ApIAUTheNtiCatIOnKeY0123456789', projectId: 1
+        ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
     }
     stage('Stop Tools') {
         ttStopTool 'ECU-TEST'
     }
 }
 ```
+
+The [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) authentication key has to be set as a Jenkins 
+[credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the *ttUploadReports* step.
 
 ## Migration
 

@@ -75,7 +75,7 @@ node('windows') {
     }
     stage('Upload Reports') {
         // upload generated reports into project (projectId) of TEST-GUIDE
-        ttUploadReports testGuideUrl: 'http://HOST:Port', authKey: 'ApIAUTheNtiCatIOnKeY0123456789', projectId: 1
+        ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
     }
     stage('Stop Tools') {
         // shutdown ECU-TEST instance
