@@ -14,6 +14,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      - name: Read Plugin Version
+        uses: madhead/read-java-properties@latest
+        id: version
+        with:
+          file: gradle.properties
+          property: version
+          default: latest
       - name: Set Artifact Name
         id: artifactName
         run: |
@@ -30,9 +37,12 @@ jobs:
       - name: Run Gradle Build
         id: build
         run: ./gradlew build -x containerTest
+      - name: Add Artifacts To Local Repository
+        id: artifactCopy
+        run: ./gradlew publishMavenPublicationToArtifactsRepository
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifactName.outputs.artifact_name }}
           path: |
-            build/libs/*.hpi
+            build/artifacts/**/${{ steps.version.outputs.value }}
