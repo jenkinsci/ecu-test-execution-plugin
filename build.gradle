@@ -13,8 +13,9 @@ plugins {
     id 'org.jenkins-ci.jpi' version "$jpiVersion"
     id "org.openapi.generator" version "$openapiVersion"
     id "com.github.spotbugs" version "$spotBugsPlugin"
-    id 'org.cyclonedx.bom' version "$cyclondxVersion"
+    id 'org.cyclonedx.bom' version "$cyclonedxVersion"
     id 'com.github.jk1.dependency-license-report' version '1.17'
+    id "org.owasp.dependencycheck" version "$depCheckVersion"
 }
 
 group = 'de.tracetronic.jenkins.plugins'
@@ -280,6 +281,12 @@ licenseReport {
 
 cyclonedxBom {
     outputFormat = "json"
+}
+
+dependencyCheck {
+    autoUpdate = false
+    cveValidForHours = 24
+    format = 'ALL'
 }
 
 sourceSets {
