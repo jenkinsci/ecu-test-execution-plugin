@@ -286,7 +286,16 @@ cyclonedxBom {
 dependencyCheck {
     autoUpdate = false
     cveValidForHours = 24
-    format = 'ALL'
+    formats = ['HTML', 'JSON']
+    failBuildOnCVSS = Float.parseFloat(project.properties['failBuildOnCVSS']) // only "HIGH" and "CRITICAL" vulnerabilities
+}
+
+tasks.register('filterVulnerabilityJson', FilterTask) {
+    minimumScore = Float.parseFloat(project.properties['failBuildOnCVSS'])
+}
+
+tasks.register('dependencyCheckEval') {
+    it.dependsOn dependencyCheckAnalyze finalizedBy filterVulnerabilityJson
 }
 
 sourceSets {
