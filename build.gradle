@@ -288,6 +288,7 @@ dependencyCheck {
     cveValidForHours = 24
     formats = ['HTML', 'JSON']
     failBuildOnCVSS = Float.parseFloat(project.properties['failBuildOnCVSS']) // only "HIGH" and "CRITICAL" vulnerabilities
+    suppressionFile = 'config/vulnerabilities/suppressionFile.xml'
 }
 
 tasks.register('filterVulnerabilityJson', FilterTask) {
