@@ -1,0 +1,32 @@
+name: Check CVE vulnerabilities
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Update local CVE database
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.3
+          arguments: dependencyCheckUpdate
+      - name: Run Vulnerability Check
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.3
+          arguments: dependencyCheckAnalyze
+      - name: Filter Top-Level Vulnerabilities
+        if: ${{ always() }}
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.3
+          arguments: filterVulnerabilityJson
