@@ -20,21 +20,15 @@ pipeline {
 
     agent {
         node {
-            label 'ecutest && windows && docker'
+            label 'windows && docker'
         }
     }
 
     stages {
-        stage ('Prepare Resources') {
+        stage ('Run Integration Test') {
             steps {
-                copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
-            }
-        }
-        stage ('ContainerTest') {
-            steps {
-                withGradle {
-                    bat './gradlew clean containerTest'
-                }
+                // wait for completion and propagate errors
+                build job: '../integrationTest', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
             }
         }
     }
