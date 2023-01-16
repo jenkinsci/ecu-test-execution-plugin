@@ -1,4 +1,4 @@
-name: Check CVE vulnerabilities
+name: Check CVE
 
 on:
   push:
