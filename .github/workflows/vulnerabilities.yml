@@ -17,18 +17,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Update local CVE database
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.3
-          arguments: dependencyCheckUpdate
+        run: ./gradlew dependencyCheckUpdate
       - name: Run Vulnerability Check
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.3
-          arguments: dependencyCheckAnalyze
+        run: ./gradlew dependencyCheckAnalyze
       - name: Filter Top-Level Vulnerabilities
         if: ${{ always() }}
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.3
-          arguments: filterVulnerabilityJson
+        run: ./gradlew filterVulnerabilityJson
