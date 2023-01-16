@@ -1478,6 +1478,14 @@
       "licenseUrl": null,
       "moduleCopyright": null,
       "actualLicense" : "$moduleLicense"
+    },
+    {
+      "moduleLicense": "Apache License 2.0",
+      "moduleVersion": "7.4.1",
+      "moduleName": "org.owasp:dependency-check-gradle",
+      "licenseUrl": "https://github.com/dependency-check/dependency-check-gradle/blob/v7.4.1/LICENSE.txt",
+      "moduleCopyright": "Copyright (c) 2015 Wei Ma. All Rights Reserved.",
+      "actualLicense" : "$moduleLicense"
     }
   ]
 }
