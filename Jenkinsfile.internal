@@ -25,13 +25,34 @@ pipeline {
     }
 
     stages {
-        stage ('Run Integration Test') {
-            steps {
-                // wait for completion and propagate errors
-                build job: '../integrationTest', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
+        stage ('Run Parallel') {
+            failFast false
+            parallel {
+                stage ('Container Tests') {
+                    stages {
+                        stage ('Prepare Resources') {
+                            steps {
+                                copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
+                            }
+                        }
+                    }
+                    stage ('Run Container Tests') {
+                        steps {
+                            withGradle {
+                                bat './gradlew clean containerTest'
+                            }
+                        }
+                    }
+                }
+                stage ('System Tests') {
+                    steps {
+                        build '../systemTests'
+                    }
+                }
             }
         }
     }
+
     post {
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
@@ -39,6 +60,4 @@ pipeline {
                 body: "Check console output at ${BUILD_URL} to view the results."
         }
     }
-
-
 }
