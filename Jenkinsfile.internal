@@ -25,28 +25,28 @@ pipeline {
     }
 
     stages {
-        stage ('Run Parallel') {
+        stage('Run Parallel') {
             failFast false
             parallel {
-                stage ('Container Tests') {
+                stage('System Tests') {
+                    steps {
+                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
+                    }
+                }
+                stage('Container Tests') {
                     stages {
-                        stage ('Prepare Resources') {
+                        stage('Prepare Resources') {
                             steps {
                                 copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
                             }
                         }
-                    }
-                    stage ('Run Container Tests') {
-                        steps {
-                            withGradle {
-                                bat './gradlew clean containerTest'
+                        stage('Run Container Tests') {
+                            steps {
+                                withGradle {
+                                    bat './gradlew clean containerTest'
+                                }
                             }
                         }
-                    }
-                }
-                stage ('System Tests') {
-                    steps {
-                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
                     }
                 }
             }
