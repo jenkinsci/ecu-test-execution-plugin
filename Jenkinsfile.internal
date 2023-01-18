@@ -46,7 +46,7 @@ pipeline {
                 }
                 stage ('System Tests') {
                     steps {
-                        build '../systemTests'
+                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
                     }
                 }
             }
