@@ -38,9 +38,7 @@ pipeline {
                         }
                         stage('Run Container Tests') {
                             steps {
-                                withGradle {
-                                    bat './gradlew clean containerTest'
-                                }
+                                bat './gradlew clean containerTest'
                             }
                         }
                     }
