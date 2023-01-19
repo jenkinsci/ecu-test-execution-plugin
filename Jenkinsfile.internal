@@ -18,11 +18,7 @@ pipeline {
         timestamps()
     }
 
-    agent {
-        node {
-            label 'windows && docker'
-        }
-    }
+    agent any
 
     stages {
         stage('Run Parallel') {
