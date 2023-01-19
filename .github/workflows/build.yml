@@ -36,7 +36,7 @@ jobs:
           java-version: 8
       - name: Run Gradle Build
         id: build
-        run: ./gradlew build -x containerTest
+        run: ./gradlew clean build -x containerTest
       - name: Add Artifacts To Local Repository
         id: artifactCopy
         run: ./gradlew publishMavenPublicationToArtifactsRepository
