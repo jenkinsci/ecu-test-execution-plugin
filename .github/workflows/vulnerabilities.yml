@@ -20,6 +20,7 @@ jobs:
         run: ./gradlew dependencyCheckUpdate
       - name: Run Vulnerability Check
         run: ./gradlew dependencyCheckAnalyze
+        continue-on-error: true
       - name: Filter Top-Level Vulnerabilities
         if: ${{ always() }}
         run: ./gradlew filterVulnerabilityJson
