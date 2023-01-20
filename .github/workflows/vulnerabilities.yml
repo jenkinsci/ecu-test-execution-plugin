@@ -1,0 +1,26 @@
+name: Check CVE
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron:  '0 0 * * *'
+
+jobs:
+  check-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Update local CVE database
+        run: ./gradlew dependencyCheckUpdate
+      - name: Run Vulnerability Check
+        run: ./gradlew dependencyCheckAnalyze
+        continue-on-error: true
+      - name: Filter Top-Level Vulnerabilities
+        if: ${{ always() }}
+        run: ./gradlew filterVulnerabilityJson
