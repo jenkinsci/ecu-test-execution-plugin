@@ -216,7 +216,6 @@ task containerTest(type: Test) {
         includeTestsMatching('*ContainerTest')
     }
     useJUnitPlatform()
-    //dependsOn test
 }
 
 jacocoTestReport {
