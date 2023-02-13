@@ -26,7 +26,7 @@ pipeline {
             parallel {
                 stage('System Tests') {
                     steps {
-                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}")]
+                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}")]
                     }
                 }
                 stage('Container Tests') {
