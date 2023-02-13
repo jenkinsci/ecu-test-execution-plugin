@@ -18,7 +18,9 @@ pipeline {
         timestamps()
     }
 
-    agent any
+    agent {
+        label 'windows'
+    }
 
     stages {
         stage('Run Parallel') {
