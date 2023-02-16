@@ -19,7 +19,7 @@ pipeline {
     }
 
     agent {
-        label 'windows'
+        label 'windows && docker'
     }
 
     stages {

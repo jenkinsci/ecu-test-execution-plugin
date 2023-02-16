@@ -25,7 +25,7 @@ jobs:
         id: artifactName
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "artifact_name==${{ github.ref_name }}" >>$GITHUB_OUTPUT
+            echo "artifact_name=${{ github.ref_name }}" >>$GITHUB_OUTPUT
           else
             echo "artifact_name=PR-${{ github.event.pull_request.number }}" >>$GITHUB_OUTPUT
           fi
