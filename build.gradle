@@ -29,7 +29,7 @@ description = 'This plugin enables a platform-independent test execution. Due to
 jenkinsPlugin {
     jenkinsVersion = "${project.properties['jenkinsVersion']}"
     shortName = 'ecu-test-execution'
-    group = 'io.jenkins.plugins'
+    group = "${group}"
     displayName = 'TraceTronic ECU-TEST-Execution Plugin'
 
     url = 'https://plugins.jenkins.io/ecu-test-execution/'
@@ -94,6 +94,10 @@ configurations.testRuntimeOnly {
 publishing {
     publications {
         maven(MavenPublication) {
+            artifactId = "ecutestexecution"
+            groupId = "${group}"
+            version = "${version}"
+
             from components.java
 
             pom {
@@ -162,6 +166,10 @@ publishing {
                 password = project.findProperty('jenkinsPwd')
             }
         }
+        maven {
+            name = "Artifacts"
+            url = uri("file://${buildDir}/artifacts")
+        }
     }
 }
 
@@ -208,7 +216,6 @@ task containerTest(type: Test) {
         includeTestsMatching('*ContainerTest')
     }
     useJUnitPlatform()
-    dependsOn test
 }
 
 jacocoTestReport {

@@ -14,10 +14,36 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      - name: Read Plugin Version
+        uses: madhead/read-java-properties@latest
+        id: version
+        with:
+          file: gradle.properties
+          property: version
+          default: latest
+      - name: Set Artifact Name
+        id: artifactName
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "artifact_name=${{ github.ref_name }}" >>$GITHUB_OUTPUT
+          else
+            echo "artifact_name=PR-${{ github.event.pull_request.number }}" >>$GITHUB_OUTPUT
+          fi
       - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 8
       - name: Run Gradle Build
-        run: ./gradlew build -x containerTest
+        id: build
+        run: ./gradlew clean build -x containerTest
+      - name: Add Artifacts To Local Repository
+        id: artifactCopy
+        run: ./gradlew publishMavenPublicationToArtifactsRepository
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifactName.outputs.artifact_name }}
+          path: |
+            build/artifacts/de/tracetronic/jenkins/plugins/ecutestexecution/${{ steps.version.outputs.value }}
+          if-no-files-found: error
