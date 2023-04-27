@@ -15,6 +15,9 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
 class StartToolStepIT extends IntegrationTestBase {
 
     def setup() {
@@ -71,6 +74,23 @@ class StartToolStepIT extends IntegrationTestBase {
         then:
             st.assertRoundTrip(step, "ttStartTool keepInstance: true, settingsDir: 'settings', timeout: 120, " +
                     "toolName: 'ECU-TEST', workspaceDir: 'workspace'")
+    }
+
+    def 'Run pipeline: Settings dir does not exist'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String tempDirString = tempDir.getPath().replace('\\', '/')
+
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ECU-TEST', " +
+                    "workspaceDir: '${tempDirString}', settingsDir: '${tempDirString}/foo' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("ECU-TEST settings directory created at ${tempDirString}/foo", run)
+            jenkins.assertLogContains('Starting ECU-TEST...', run)
+            Files.exists(Paths.get("${tempDirString}/foo"))
     }
 
     def 'Run pipeline'() {

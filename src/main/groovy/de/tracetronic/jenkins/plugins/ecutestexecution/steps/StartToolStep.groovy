@@ -9,7 +9,9 @@ import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -119,7 +121,10 @@ class StartToolStep extends Step {
             EnvVars envVars = context.get(EnvVars.class)
             FilePath workspace = context.get(FilePath.class)
             String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
-            String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
+            String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, expWorkspaceDir)
+
+            expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
+            expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
 
             checkWorkspace(expWorkspaceDir, expSettingsDir)
 
@@ -161,8 +166,9 @@ class StartToolStep extends Step {
 
             FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
             if (!settingsPath.exists()) {
-                throw new IllegalArgumentException(String.format(
-                        "ECU-TEST settings directory at ${settingsPath.getRemote()} does not exist!"))
+                settingsPath.mkdirs()
+                def listener = context.get(TaskListener.class)
+                listener.logger.println("ECU-TEST settings directory created at ${settingsPath.getRemote()}.")
             }
         }
     }
