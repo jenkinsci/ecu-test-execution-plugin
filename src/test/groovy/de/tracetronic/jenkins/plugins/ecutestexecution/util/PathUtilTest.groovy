@@ -1,6 +1,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import hudson.FilePath
+import hudson.Launcher
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import spock.lang.IgnoreIf
 import spock.lang.Specification
@@ -9,12 +10,15 @@ class PathUtilTest extends Specification {
 
     private StepContext mockContext
     private MockFilePath mockFilePath
+    private MockLauncher mockLauncher
 
 
     def setup () {
-        mockContext = Mock(StepContext.class)
         mockFilePath = Mock(MockFilePath.class)
+        mockLauncher = new MockLauncher()
+        mockContext = Mock(StepContext.class)
         mockContext.get(FilePath.class) >> mockFilePath
+        mockContext.get(Launcher.class) >> mockLauncher
     }
 
     @IgnoreIf({ os.windows })
@@ -45,11 +49,21 @@ class PathUtilTest extends Specification {
             jenkinsPipelineHome             | inputString  | expectedResult
             "C:\\Jenkins\\Pipeline\\Home"   | "subdir"     | "C:/Jenkins/Pipeline/Home/subdir"
             "C:\\Jenkins\\Pipeline\\Home"   | "C:\\subdir" | "C:/subdir"
+            "C:/Jenkins/Pipeline/Home"      | "C:\\subdir" | "C:/subdir"
+            "C:\\Jenkins\\Pipeline\\Home"   | "C:/subdir"  | "C:/subdir"
+            "C:/Jenkins/Pipeline/Home"      | "C:/subdir"  | "C:/subdir"
+    }
+
+    private static class MockFilePath {
+        String getRemote() {
+            return ""
+        }
+    }
+    private static class MockLauncher {
+        Object getChannel() {
+            return null
+        }
     }
 }
 
-class MockFilePath {
-    public String getRemote() {
-        return ""
-    }
-}
+
