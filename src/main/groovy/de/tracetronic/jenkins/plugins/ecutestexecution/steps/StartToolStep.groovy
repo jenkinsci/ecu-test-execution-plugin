@@ -121,7 +121,7 @@ class StartToolStep extends Step {
             EnvVars envVars = context.get(EnvVars.class)
             FilePath workspace = context.get(FilePath.class)
             String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
-            String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, expWorkspaceDir)
+            String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
 
             expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
             expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)

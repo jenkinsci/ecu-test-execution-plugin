@@ -13,13 +13,12 @@ class PathUtil {
 
         def absPath = file.absolutize().getRemote()
         if (absPath.replace('\\', '/').equals(file.getRemote().replace('\\', '/'))) {
-            String independentInputPath = inputPath.replace('\\', '/')
-            return independentInputPath
+            return inputPath.replace('\\', '/')
         }
 
-        String independentInputPath = inputPath.replace('\\', '/')
-        String independentBuildDirectory = buildDirectory.replace('\\', '/')
+        String forwardSlashInputPath = inputPath.replace('\\', '/')
+        String forwardSlashBuildDirectory = buildDirectory.replace('\\', '/')
 
-        return independentBuildDirectory + "/" + independentInputPath
+        return forwardSlashBuildDirectory + "/" + forwardSlashInputPath
     }
 }
