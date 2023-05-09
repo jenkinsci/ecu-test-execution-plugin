@@ -211,6 +211,10 @@ class StartToolStep extends Step {
             return null
         }
 
+        /**
+         * Checks whether the tool has a valid license.
+         * @param the name of the tool, as defined in the Jenkins tool installation settings.
+         */
         private void checkLicense(String toolName) {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.getExeFile().absolutePath)
@@ -246,6 +250,11 @@ class StartToolStep extends Step {
             }
         }
 
+        /**
+         * Starts the tool (ECU-TEST or TRACE-CHECK) with CLI parameters.
+         * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
+         * @throws IllegalStateException
+         */
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.getExeFile().absolutePath)
@@ -271,6 +280,10 @@ class StartToolStep extends Step {
             }
         }
 
+        /**
+         * Checks whether the REST API of the tool is available.
+         * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
+         */
         private void connectTool(String toolName) {
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive(timeout)) {
