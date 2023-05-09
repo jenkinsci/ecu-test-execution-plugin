@@ -209,7 +209,7 @@ class StartToolStep extends Step {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.getExeFile().absolutePath)
             args.add("--startupAutomated=True")
-            args.add("-p")
+            args.add("-q")
             Process process = new ProcessBuilder().command(args.toCommandArray()).start()
 
             Callable<Integer> call = new Callable<Integer>() {
