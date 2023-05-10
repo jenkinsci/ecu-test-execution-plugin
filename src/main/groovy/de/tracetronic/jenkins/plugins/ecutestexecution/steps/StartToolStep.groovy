@@ -9,7 +9,9 @@ import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -121,6 +123,9 @@ class StartToolStep extends Step {
             String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
             String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
 
+            expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
+            expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
+
             checkWorkspace(expWorkspaceDir, expSettingsDir)
 
             return context.get(Launcher.class).getChannel().call(
@@ -161,8 +166,9 @@ class StartToolStep extends Step {
 
             FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
             if (!settingsPath.exists()) {
-                throw new IllegalArgumentException(String.format(
-                        "ECU-TEST settings directory at ${settingsPath.getRemote()} does not exist!"))
+                settingsPath.mkdirs()
+                def listener = context.get(TaskListener.class)
+                listener.logger.println("ECU-TEST settings directory created at ${settingsPath.getRemote()}.")
             }
         }
     }
@@ -205,6 +211,10 @@ class StartToolStep extends Step {
             return null
         }
 
+        /**
+         * Checks whether the tool has a valid license.
+         * @param the name of the tool, as defined in the Jenkins tool installation settings.
+         */
         private void checkLicense(String toolName) {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.getExeFile().absolutePath)
@@ -240,6 +250,11 @@ class StartToolStep extends Step {
             }
         }
 
+        /**
+         * Starts the tool (ECU-TEST or TRACE-CHECK) with CLI parameters.
+         * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
+         * @throws IllegalStateException
+         */
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.getExeFile().absolutePath)
@@ -265,6 +280,10 @@ class StartToolStep extends Step {
             }
         }
 
+        /**
+         * Checks whether the REST API of the tool is available.
+         * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
+         */
         private void connectTool(String toolName) {
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive(timeout)) {
