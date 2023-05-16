@@ -118,7 +118,7 @@ If the problem still exists search the following list of issues for possible sol
 - Java SE Runtime Environment 8 or higher
 
  <details>
-    <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a> 2022.2 or higher </summary>
+    <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a> 2021.4.1 or higher </summary>
 
 | Version  |        3.0         |
 |:--------:|:------------------:|
