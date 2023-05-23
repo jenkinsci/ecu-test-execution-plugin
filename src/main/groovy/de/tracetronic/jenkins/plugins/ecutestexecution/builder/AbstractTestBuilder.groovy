@@ -103,11 +103,6 @@ abstract class AbstractTestBuilder implements Serializable {
             listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             configUtil.log()
 
-            toolInstallations.each {
-                it ->
-                    listener.logger.println("Installation: " + it.toString())
-            }
-
             Execution execution = apiClient.runTest(
                     executionOrder as ExecutionOrder, executionConfig.timeout)
 

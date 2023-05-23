@@ -20,7 +20,7 @@ class StopToolStepIT extends IntegrationTestBase {
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', 'C:\\ECU-TEST', JenkinsRule.NO_PROPERTIES))
+        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', 'C:\\ECU-TEST\\ECU-TEST.exe', JenkinsRule.NO_PROPERTIES))
     }
 
     def 'Default config round trip'() {
