@@ -29,25 +29,42 @@ import javax.annotation.CheckForNull
 import javax.annotation.Nonnull
 import java.lang.reflect.Array
 
+/**
+ * This class manages the ECU-TEST tool installations, found under "Global Tool Configuration" in Jenkins.
+ */
 class ETInstallation extends ToolInstallation implements
         EnvironmentSpecific<ETInstallation>, NodeSpecific<ETInstallation> {
 
     private static final long serialVersionUID = 1L
 
-    private static final String UNIX_EXECUTABLE = 'ecu-test'
-    private static final String WINDOWS_EXECUTABLE = 'ECU-TEST.exe'
-
     @DataBoundConstructor
+    /**
+     * Constructor.
+     * @param name the name of the tool installation (selectable in Jenkins jobs)
+     * @param home path to the tool executable
+     * @param properties properties of the tool installation
+     */
     ETInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
         super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties)
     }
 
     @Override
+    /**
+     * This method returns an environment-specific instance of ETInstallation.
+     * @param env the environment within which the path to the executable is resolved
+     * @return an environment-specific instance of ETInstallation
+     */
     ETInstallation forEnvironment(EnvVars env) {
         return new ETInstallation(getName(), env.expand(getHome()), getProperties().toList())
     }
 
     @Override
+    /**
+     * This method returns a node-specific instance of ETInstallation.
+     * @param node the node on which the path to the executable is resolved
+     * @param log the log
+     * @return a node-specific instance of ETInstallation
+     */
     ETInstallation forNode(@Nonnull Node node, TaskListener log) throws IOException, InterruptedException {
         return new ETInstallation(getName(), translateFor(node, log), getProperties().toList())
     }
@@ -55,11 +72,24 @@ class ETInstallation extends ToolInstallation implements
     @CheckForNull
     File getExeFile() {
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars)
-        return new File(home, getExeFileName())
+        return new File(home)
     }
 
-    static String getExeFileName() {
-        return Functions.isWindows() ? WINDOWS_EXECUTABLE : UNIX_EXECUTABLE
+    /**
+     * Get names of executables of all items in the ToolInstallation list for the node where the step is executed.
+     * @return list of names of executables (only filename)
+     */
+    static ArrayList<String> getAllExecutableNames(EnvVars envVars, Node node, TaskListener log) {
+        def result = new ArrayList<String>()
+        def etToolInstallations = all().get(DescriptorImpl.class)
+        etToolInstallations.installations.each {
+            it ->
+                def exeFilePath = it.forEnvironment(envVars).forNode(node, log).exeFile.toString()
+                def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
+                        exeFilePath.tokenize("/")[-1]
+                if (!result.contains(it)) result.add(exeFileName)
+        }
+        return result
     }
 
     @Symbol('ecuTest')
@@ -93,11 +123,6 @@ class ETInstallation extends ToolInstallation implements
             return installations.findAll { install -> StringUtils.isNotBlank(install.name) }
         }
 
-        @CheckForNull
-        private static File getExeFile(final File home) {
-            return home ? new File(home, getExeFileName()) : null
-        }
-
         @Override
         String getDisplayName() {
             'ECU-TEST'
@@ -108,16 +133,7 @@ class ETInstallation extends ToolInstallation implements
             Jenkins.get().checkPermission(Jenkins.ADMINISTER)
 
             FormValidation returnValue = FormValidation.ok()
-            if (StringUtils.isNotEmpty(value.toString())) {
-                if (value.isDirectory()) {
-                    final File etExe = getExeFile(value)
-                    if (!etExe.exists()) {
-                        returnValue = FormValidation.error("${value} is not a valid ECU-TEST home directory.")
-                    }
-                } else {
-                    returnValue = FormValidation.error("${value} is not a valid directory.")
-                }
-            } else {
+            if (StringUtils.isEmpty(value.toString())) {
                 returnValue = FormValidation.warning('Entry is mandatory only if it is intended to execute ECU-TEST ' +
                         'on the Jenkins master, otherwise configure each individual agent.')
             }

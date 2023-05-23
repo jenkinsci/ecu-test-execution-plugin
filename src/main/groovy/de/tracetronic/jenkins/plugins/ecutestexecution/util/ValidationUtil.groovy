@@ -9,8 +9,6 @@ import hudson.util.FormValidation
 import hudson.util.IOUtils
 import org.apache.commons.lang.StringUtils
 
-import java.text.Normalizer
-
 class ValidationUtil {
 
     /**

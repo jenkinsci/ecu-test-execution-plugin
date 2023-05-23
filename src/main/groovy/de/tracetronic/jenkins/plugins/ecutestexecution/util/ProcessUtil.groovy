@@ -40,4 +40,20 @@ final class ProcessUtil {
             return process.waitFor(timeout, TimeUnit.SECONDS)
         }
     }
+
+    /**
+     * Kills all processes in the given list, and all their descendant processes, by calling {@link #killProcess
+     * killProcess} method multiple times.
+     * @param taskName the task name of the process
+     * @param timeout the maximum time to wait for process termination, 0 disabled timeout
+     * @return {@code true} if all processes have exited in timeout, {@code false} otherwise
+     */
+    static boolean killProcesses(ArrayList<String> taskNames, int timeout = 30) {
+        boolean allExitedInTimeout = true
+        taskNames.each {
+            it ->
+                if (!killProcess(it, timeout) && allExitedInTimeout) allExitedInTimeout = false
+        }
+        return allExitedInTimeout
+    }
 }
