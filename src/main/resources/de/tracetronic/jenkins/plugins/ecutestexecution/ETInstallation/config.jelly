@@ -1,0 +1,9 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="${%name.title}" field="name">
+        <f:textbox clazz="required"/>
+    </f:entry>
+    <f:entry title="${%pathToExecutable.title}" field="home">
+        <f:textbox clazz="required"/>
+    </f:entry>
+</j:jelly>
