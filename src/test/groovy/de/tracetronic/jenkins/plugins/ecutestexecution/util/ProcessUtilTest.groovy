@@ -4,11 +4,8 @@ import spock.lang.Specification
 
 class ProcessUtilTest extends Specification {
     def 'test killProcess'(int timeout, expected) {
-        given:
-            boolean actual = ProcessUtil.killProcess("doesReallyNotExistFoo", timeout)
-
         expect:
-            actual == expected
+            ProcessUtil.killProcess("doesReallyNotExistFoo", timeout) == expected
 
         where:
             timeout | expected
@@ -18,12 +15,8 @@ class ProcessUtilTest extends Specification {
     }
 
     def 'test killProcesses'(int timeout, expected) {
-        given:
-            boolean actual = ProcessUtil.killProcesses(["doesReallyNotExistFoo", "doesReallyNotExistBar"],
-                    timeout)
-
         expect:
-            actual == expected
+            ProcessUtil.killProcesses(["doesReallyNotExistFoo", "doesReallyNotExistBar"], timeout) == expected
 
         where:
             timeout | expected

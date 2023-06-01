@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution
 
 import hudson.EnvVars
 import hudson.Extension
+import hudson.FilePath
 import hudson.Functions
 import hudson.Util
 import hudson.model.EnvironmentSpecific
@@ -80,16 +81,16 @@ class ETInstallation extends ToolInstallation implements
      * @return list of names of executables (only filename)
      */
     static ArrayList<String> getAllExecutableNames(EnvVars envVars, Node node, TaskListener log) {
-        def result = new ArrayList<String>()
+        def executableNames = new ArrayList<String>()
         def etToolInstallations = all().get(DescriptorImpl.class)
         etToolInstallations.installations.each {
             it ->
                 def exeFilePath = it.forEnvironment(envVars).forNode(node, log).exeFile.toString()
                 def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
                         exeFilePath.tokenize("/")[-1]
-                if (!result.contains(it)) result.add(exeFileName)
+                if (!executableNames.contains(it)) executableNames.add(exeFileName)
         }
-        return result
+        return executableNames
     }
 
     @Symbol('ecuTest')
