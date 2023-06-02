@@ -53,10 +53,10 @@ class ETInstallationTest extends IntegrationTestBase {
             def mockListener = Mock(TaskListener)
             def slave = jenkins.createSlave()
 
-        ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
-                .getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', '', JenkinsRule.NO_PROPERTIES),
-                new ETInstallation('TRACE-CHECK', '', JenkinsRule.NO_PROPERTIES))
+            ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
+                    .getDescriptorByType(ETInstallation.DescriptorImpl.class)
+            etDescriptor.setInstallations(new ETInstallation('ECU-TEST', '', JenkinsRule.NO_PROPERTIES),
+                    new ETInstallation('TRACE-CHECK', '', JenkinsRule.NO_PROPERTIES))
 
         when:
             def allInstallations = ETInstallation.getAllExecutableNames(mockEnvVars, slave,

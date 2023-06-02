@@ -35,8 +35,7 @@ final class ProcessUtil {
 
         Process process = new ProcessBuilder().command(args.toCommandArray()).start()
         if (timeout <= 0) {
-            process.waitFor() // return value is volatile
-            return true
+            return process.waitFor() == 0
         } else {
             return process.waitFor(timeout, TimeUnit.SECONDS)
         }

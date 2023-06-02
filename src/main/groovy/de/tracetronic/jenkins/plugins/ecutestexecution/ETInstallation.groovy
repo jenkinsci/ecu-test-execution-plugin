@@ -85,10 +85,11 @@ class ETInstallation extends ToolInstallation implements
         def etToolInstallations = all().get(DescriptorImpl.class)
         etToolInstallations.installations.each {
             it ->
+                if (executableNames.contains(it)) return
                 def exeFilePath = it.forEnvironment(envVars).forNode(node, log).exeFile.toString()
                 def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
                         exeFilePath.tokenize("/")[-1]
-                if (!executableNames.contains(it)) executableNames.add(exeFileName)
+                executableNames.add(exeFileName)
         }
         return executableNames
     }
