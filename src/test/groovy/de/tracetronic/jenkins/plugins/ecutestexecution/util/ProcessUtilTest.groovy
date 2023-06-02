@@ -9,8 +9,8 @@ class ProcessUtilTest extends Specification {
 
         where:
             timeout | expected
-                -1  |   true
-                0   |   true
+                -1  |   false
+                0   |   false
                 1   |   true
     }
 
@@ -20,8 +20,8 @@ class ProcessUtilTest extends Specification {
 
         where:
             timeout | expected
-            -1      |   true
-            0       |   true
+            -1      |   false
+            0       |   false
             1       |   true
     }
 }
