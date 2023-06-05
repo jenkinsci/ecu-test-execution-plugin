@@ -81,12 +81,13 @@ class ETInstallation extends ToolInstallation implements
      * @return list of names of executables (only filename)
      */
     static ArrayList<String> getAllExecutableNames(EnvVars envVars, Node node, TaskListener log) {
-        def executableNames = new ArrayList<String>()
+        List<String> executableNames = []
         def etToolInstallations = all().get(DescriptorImpl.class)
         etToolInstallations.installations.each {
             it ->
                 def exeFilePath = it.forEnvironment(envVars).forNode(node, log).exeFile.toString()
-                def exeFileName = exeFilePath.tokenize(Functions.isWindows() ? "\\" : "/")[-1].toString()
+                def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
+                        exeFilePath.tokenize("/")[-1]
                 if (!executableNames.contains(exeFileName)) executableNames.add(exeFileName)
         }
         return executableNames
