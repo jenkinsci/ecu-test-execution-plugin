@@ -51,6 +51,7 @@ dependencies {
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
     implementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
     implementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.4.0'
+    implementation 'org.codehaus.groovy:groovy-all:3.0.8'
     implementation('com.google.inject:guice') {
         version {
             strictly '4.0'
