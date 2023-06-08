@@ -197,6 +197,8 @@ test {
     }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+    // skip some process tests for ci
+    systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
 }
 
 task containerTest(type: Test) {

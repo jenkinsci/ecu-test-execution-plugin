@@ -40,7 +40,7 @@ pipeline {
                         }
                         stage('Run Container Tests') {
                             steps {
-                                bat './gradlew clean containerTest'
+                                bat './gradlew clean containerTest -Dspock.skip.sandbox=false'
                             }
                         }
                     }
