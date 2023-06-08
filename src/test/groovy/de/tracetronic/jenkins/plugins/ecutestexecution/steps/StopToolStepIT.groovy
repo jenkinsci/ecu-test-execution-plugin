@@ -14,7 +14,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
-import spock.lang.IgnoreIf
 
 class StopToolStepIT extends IntegrationTestBase {
 
@@ -56,7 +55,6 @@ class StopToolStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, "ttStopTool timeout: 120, toolName: 'ECU-TEST'")
     }
 
-    @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
     def 'Run pipeline'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
