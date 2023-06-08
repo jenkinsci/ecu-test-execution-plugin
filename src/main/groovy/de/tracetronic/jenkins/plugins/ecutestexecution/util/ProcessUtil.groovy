@@ -25,7 +25,8 @@ final class ProcessUtil {
      */
     static boolean killProcess(String taskName, int timeout = 30) {
         ArgumentListBuilder args = new ArgumentListBuilder()
-        if (Functions.isWindows()) {
+        println('Kill process' + taskName)
+        /*if (Functions.isWindows()) {
             args.add('taskkill.exe')
             args.addTokenized('/f /im')
         } else {
@@ -38,7 +39,7 @@ final class ProcessUtil {
             return process.waitFor() == 0
         } else {
             return process.waitFor(timeout, TimeUnit.SECONDS)
-        }
+        }*/
     }
 
     /**
