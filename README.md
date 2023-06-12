@@ -113,7 +113,7 @@ If the problem still exists search the following list of issues for possible sol
 > using a containerized version of ECU-TEST, the executing Jenkins agent needs to be within the same container.
 </details>
 
-## Compatibility
+## Compatibility 
 
 - Jenkins LTS 2.332.3 or higher
 - Java SE Runtime Environment 8 or higher
