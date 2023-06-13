@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.junit.Rule
 import org.jvnet.hudson.test.GroovyJenkinsRule
+import org.jvnet.hudson.test.JenkinsRule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
@@ -56,6 +57,34 @@ class ETContainerTest extends ContainerTest {
         then: "expect successful test completion"
             jenkins.assertLogContains("result: SUCCESS", run)
             jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+    }
+
+    def "Execute nonexisting test case"() {
+        given: "a test execution pipeline"
+        String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
+                        testConfig: [tbcPath: 'test.tbc', 
+                                     tcfPath: 'test.tcf', 
+                                     forceConfigurationReload: false, 
+                                     constants: [[label: 'test', value: '123']]]
+                }
+            }
+            """.stripIndent()
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+        job.setDefinition(new CpsFlowDefinition(script, true))
+        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                .setInstallations(new ETInstallation('ECU-TEST',
+                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+
+        when: "scheduling a new build"
+        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+        jenkins.assertLogContains("result: ERROR", run)
+        jenkins.assertLogContains("Executing package failed!", run)
+        jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Generate report format"() {

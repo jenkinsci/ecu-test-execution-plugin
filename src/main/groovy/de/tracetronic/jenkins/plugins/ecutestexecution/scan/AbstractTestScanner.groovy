@@ -1,6 +1,5 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.scan
 
-import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import hudson.Launcher
 import jenkins.security.MasterToSlaveCallable
 import org.apache.tools.ant.DirectoryScanner

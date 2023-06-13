@@ -1,9 +1,10 @@
 # TraceTronic ECU-TEST-Execution Plugin
-[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) <!-- markdown-link-check-disable -->[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution)<!-- markdown-link-check-enable --> [![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2022.3-orange?style=flat)](https://tracetronic.com/products/ecu-test) [![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) <!-- markdown-link-check-disable -->[![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue)](https://plugins.jenkins.io/ecu-test-execution)<!-- markdown-link-check-enable --> [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) <!-- markdown-link-check-disable -->[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution)<!-- markdown-link-check-enable --> [![ECU-TEST](https://img.shields.io/badge/ECU--TEST-2023.1-orange?style=flat)](https://tracetronic.com/products/ecu-test)
+[![TRACE-CHECK](https://img.shields.io/badge/TRACE--CHECK-2023.1-orange?style=flat)](https://www.tracetronic.com/products/trace-check/)[![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) <!-- markdown-link-check-disable -->[![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue)](https://plugins.jenkins.io/ecu-test-execution)<!-- markdown-link-check-enable --> [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
 
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
 it provides an easy and reliable entry into continuous testing. It integrates 
-[ECU-TEST](https://www.tracetronic.com/products/ecu-test) with Jenkins and allows report generation and its upload of 
+[ECU-TEST](https://www.tracetronic.com/products/ecu-test) and [TRACE-CHECK](https://www.tracetronic.com/products/trace-check/) with Jenkins and allows report generation and its upload of 
 automated test execution.<br><br>
 
 <img src="docs/images/ecutest_logo.png" align="left" alt="ECU-TEST Logo" style="padding-right: 15px;"> 
@@ -32,7 +33,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 
 - [Features](#features)
 - [Configuration](#configuration)
-    - [ECU-TEST configuration](#ecu-test-configuration)
+    - [Tool configuration](#tool-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
 - [Migration](#migration)
 - [Contribution](#contribution)
@@ -43,18 +44,18 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 
 ## Features
 
-- Provides an easy integration and control of ECU-TEST with Jenkins
+- Provides an easy integration and control of ECU-TEST and TRACE-CHECK with Jenkins
 - Enables the execution of ECU-TEST packages and projects with their respective configurations
 - Enable the upload of generated test reports to [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) 
 - Using "pipelines first" approach to improve the automated process and traceability
 
 ## Configuration
 
-### ECU-TEST configuration
+### Tool configuration
 
-ECU-TEST installations are administrated in the global tool configuration at section "ECU-TEST". An installation entry
-is specified by an arbitrary name and the path to the installation directory. The execution on a Jenkins agent requires
-the adaption of the ECU-TEST installation directory on the agent configuration page.
+ECU-TEST and TRACE-CHECK installations are administrated in the global tool configuration at section "ECU-TEST". An installation entry
+is specified by an arbitrary name and the path to the executable. The execution on a Jenkins agent requires
+the adaptation of the path to the executable of the tool on the agent configuration page.
 
 ![ECU-TEST](docs/images/ecutest.png "ECU-TEST")
 
@@ -112,13 +113,14 @@ If the problem still exists search the following list of issues for possible sol
 > using a containerized version of ECU-TEST, the executing Jenkins agent needs to be within the same container.
 </details>
 
-## Compatibility
+## Compatibility 
 
 - Jenkins LTS 2.332.3 or higher
 - Java SE Runtime Environment 8 or higher
 
  <details>
-    <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a> 2021.4.1 or higher </summary>
+    <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a>/
+    <a href="https://www.tracetronic.com/products/trace-check/">TRACE-CHECK</a> 2021.4.1 or higher </summary>
 
 | Version  |        3.0         |
 |:--------:|:------------------:|
@@ -129,8 +131,7 @@ If the problem still exists search the following list of issues for possible sol
 |  2022.1  | :heavy_check_mark: |
 | 2021.4.1 | :heavy_check_mark: |
 
-**Explanation:** :heavy_check_mark: -> compatible | :grey_question: -> not tested, might be compatible | :x: -> not
-compatible
+:warning: Please note that compatibility for TRACE-CHECK is only warranted for __Windows__ OS.
 
 </details>
 <details>

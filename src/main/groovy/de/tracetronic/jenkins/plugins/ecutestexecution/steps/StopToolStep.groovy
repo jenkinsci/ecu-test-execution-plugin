@@ -11,6 +11,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
+import hudson.Functions
 import hudson.Launcher
 import hudson.model.Computer
 import hudson.model.Node
@@ -122,7 +123,10 @@ class StopToolStep extends Step {
         Void call() throws IOException {
             String toolName = installation.getName()
             listener.logger.println("Stopping ${toolName}...")
-            if (ProcessUtil.killProcess(ETInstallation.getExeFileName(), timeout)) {
+            def exeFilePath = installation.exeFile.toString()
+            def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
+                    exeFilePath.tokenize("/")[-1]
+            if (ProcessUtil.killProcess(exeFileName, timeout)) {
                 listener.logger.println("${toolName} stopped successfully.")
             } else {
                 throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!")

@@ -21,8 +21,8 @@ class PathUtilTest extends Specification {
         mockContext.get(Launcher.class) >> mockLauncher
     }
 
-    @IgnoreIf({ os.windows })
-    def 'make absolute in pipeline home windows'(String jenkinsPipelineHome, String inputString,
+    @IgnoreIf({ os.isWindows() })
+    def 'make absolute in pipeline home linux'(String jenkinsPipelineHome, String inputString,
                                                  String expectedResult) {
         given:
             mockFilePath.getRemote() >> jenkinsPipelineHome
@@ -36,7 +36,7 @@ class PathUtilTest extends Specification {
             "Path/To/Jenkins/Pipeline/Home" | "/subdir"    | "/subdir"
     }
 
-    @IgnoreIf({ os.linux })
+    @IgnoreIf({ os.isLinux() })
     def 'make absolute in pipeline home windows'(String jenkinsPipelineHome, String inputString,
                                                  String expectedResult) {
         given:

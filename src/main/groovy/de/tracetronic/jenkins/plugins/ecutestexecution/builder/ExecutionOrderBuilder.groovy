@@ -3,7 +3,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.cxs.generated.et.client.model.AdditionalSettings
 import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.LabeledValue
-import de.tracetronic.cxs.generated.et.client.model.Recording
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig

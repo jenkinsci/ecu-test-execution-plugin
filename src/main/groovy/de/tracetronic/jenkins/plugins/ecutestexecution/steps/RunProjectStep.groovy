@@ -6,18 +6,10 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.model.AdditionalSettings
-import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
-import de.tracetronic.cxs.generated.et.client.model.LabeledValue
-import de.tracetronic.cxs.generated.et.client.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.actions.RunProjectAction
 import de.tracetronic.jenkins.plugins.ecutestexecution.builder.TestProjectBuilder
-import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -27,7 +19,6 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.FormValidation
 import hudson.util.IOUtils
-import jenkins.security.MasterToSlaveCallable
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.jenkinsci.plugins.workflow.steps.StepExecution
