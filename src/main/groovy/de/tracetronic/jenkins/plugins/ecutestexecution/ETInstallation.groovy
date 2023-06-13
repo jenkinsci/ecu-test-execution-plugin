@@ -83,12 +83,12 @@ class ETInstallation extends ToolInstallation implements
     static ArrayList<String> getAllExecutableNames(EnvVars envVars, Node node, TaskListener log) {
         List<String> executableNames = []
         def etToolInstallations = all().get(DescriptorImpl.class)
-        etToolInstallations.installations.each {
-            it ->
-                String exeFilePath = it.forEnvironment(envVars).forNode(node, log).exeFile.toString()
-                String exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
-                        exeFilePath.tokenize("/")[-1]
-                if (!executableNames.contains(exeFileName)) executableNames.add(exeFileName)
+
+        for (def installation: etToolInstallations.installations) {
+            String exeFilePath = installation.forEnvironment(envVars).forNode(node, log).exeFile.toString()
+            String exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
+                    exeFilePath.tokenize("/")[-1]
+            if (!executableNames.contains(exeFileName)) executableNames.add(exeFileName)
         }
         return executableNames
     }

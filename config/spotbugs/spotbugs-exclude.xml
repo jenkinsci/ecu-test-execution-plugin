@@ -6,9 +6,4 @@
     <Match>
         <Source name="~.*\.java" />
     </Match>
-    <Match>
-        <Class name="de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation$_getAllExecutableNames_closure1" />
-        <!--<Method name="getAllExecutableNames" /> -->
-        <Bug code="EI2" />
-    </Match>
 </FindBugsFilter>
