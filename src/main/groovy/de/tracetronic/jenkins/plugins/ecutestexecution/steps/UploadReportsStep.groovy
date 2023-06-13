@@ -13,6 +13,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.cxs.generated.et.client.model.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.TGUploadOrder
+import de.tracetronic.cxs.generated.et.client.model.TGUploadStatus
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
@@ -205,15 +206,23 @@ class UploadReportsStep extends Step {
             if (reportIds == null || reportIds.isEmpty()) {
                 reportIds = apiClient.getAllReportIds()
             }
+
+            String status = 'successful'
             reportIds.each { reportId ->
                 listener.logger.println("- Uploading ATX report for report id ${reportId}...")
 
                 TGUpload upload = apiClient.uploadReport(reportId, uploadOrder)
-                result = new UploadResult(upload.status.key.name(), upload.status.message)
+                if (upload.result.link) {
+                    result = new UploadResult(upload.status.key.name(), null, upload.result.link)
+                } else {
+                    result = new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
+                            "Report upload for ${reportId} failed", null)
+                    status = 'unstable. Please check pipeline and TEST-GUIDE configurations'
+                }
                 listener.logger.println(result.toString())
             }
 
-            listener.logger.println('Reports uploaded successfully.')
+            listener.logger.println("Reports upload ${status}")
 
             return result
         }

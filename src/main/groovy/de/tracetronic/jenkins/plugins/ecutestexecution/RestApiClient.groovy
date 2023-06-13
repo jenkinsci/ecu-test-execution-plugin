@@ -18,9 +18,11 @@ import de.tracetronic.cxs.generated.et.client.model.ReportGeneration
 import de.tracetronic.cxs.generated.et.client.model.ReportGenerationOrder
 import de.tracetronic.cxs.generated.et.client.model.ReportGenerationStatus
 import de.tracetronic.cxs.generated.et.client.model.ReportInfo
+import de.tracetronic.cxs.generated.et.client.model.SimpleMessage
 import de.tracetronic.cxs.generated.et.client.model.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.TGUploadOrder
 import de.tracetronic.cxs.generated.et.client.model.TGUploadStatus
+import hudson.model.TaskListener
 import org.apache.commons.lang.StringUtils
 
 class RestApiClient {

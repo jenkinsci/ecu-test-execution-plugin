@@ -107,4 +107,27 @@ class TGContainerTest extends ContainerTest {
         then: "expect successful test and upload completion"
             StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 1
     }
+
+    def "Upload an invalid test report"() {
+        given: "a test execution and upload pipeline"
+        Secret authKey = Secret.fromString(TG_AUTH_KEY)
+        String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test.pkg'
+                    ttRunProject testCasePath: 'test.prj'
+                    ttUploadReports testGuideUrl: 'http://${tgContainer.host}:${tgContainer.getMappedPort(TG_PORT)}',
+                        credentialsId: 'authKey', reportIds: ['0815-241543903-0815']
+                }
+            }
+            """.stripIndent()
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+        job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test but upload failed"
+        StringUtils.countMatches(jenkins.getLog(run), "result: ERROR") == 1
+    }
 }
