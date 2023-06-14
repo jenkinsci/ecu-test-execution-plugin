@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2023 TraceTronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -110,7 +110,7 @@ publishing {
                     url =  'https://github.com/jenkinsci/ecu-test-execution-plugin'
                     connection = 'scm:git:git://github.com/jenkinsci/ecu-test-execution-plugin.git'
                     developerConnection = 'scm:git:git@github.com:jenkinsci/ecu-test-execution-plugin.git'
-                    tag = "$project.version"
+                    tag = "ecu-test-execution-$project.version"
                 }
 
                 developers {
@@ -128,6 +128,11 @@ publishing {
                         id = 'cwellmtt'
                         name = 'Christoph Wellm'
                         email = 'christoph.wellm@tracetronic.de'
+                    }
+                    developer {
+                        id = 'ErikRehmTT'
+                        name = 'Erik Rehm'
+                        email = 'erik.rehm@tracetronic.de'
                     }
                 }
 
