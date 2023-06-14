@@ -39,9 +39,9 @@ class UploadResult implements Serializable {
     @Override
     String toString() {
         """
-        ${result -> if(uploadResult) result << '-> result: ' + uploadResult}
-        ${message -> if(uploadMessage) message << '-> message: ' + uploadMessage}
-        ${link -> if(reportLink) link << '-> report link: ' + reportLink}
-        """.stripIndent().replaceAll('\n\n', '\n').trim()
+        -> result: ${uploadResult}
+        "-> message: ${uploadMessage}"
+        "-> report link: ${reportLink}"
+        """.stripIndent().trim()
     }
 }

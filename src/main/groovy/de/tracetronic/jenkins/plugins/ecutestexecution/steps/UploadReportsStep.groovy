@@ -213,10 +213,10 @@ class UploadReportsStep extends Step {
 
                 TGUpload upload = apiClient.uploadReport(reportId, uploadOrder)
                 if (upload.result.link) {
-                    result = new UploadResult(upload.status.key.name(), null, upload.result.link)
+                    result = new UploadResult(upload.status.key.name(), 'Uploaded successfully', upload.result.link)
                 } else {
                     result = new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
-                            "Report upload for ${reportId} failed", null)
+                            "Report upload for ${reportId} failed", '')
                     status = 'unstable. Please check pipeline and TEST-GUIDE configurations'
                 }
                 listener.logger.println(result.toString())
