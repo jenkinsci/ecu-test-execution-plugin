@@ -27,6 +27,8 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils
 import org.testcontainers.spock.Testcontainers
 import spock.lang.Shared
 
+import java.time.Duration
+
 @Testcontainers
 class TGContainerTest extends ContainerTest {
 
@@ -44,7 +46,7 @@ class TGContainerTest extends ContainerTest {
             .withNetwork(network)
             .withClasspathResourceMapping("autoConfig.prop", "/app/TTS-TM/autoConfig.prop", BindMode.READ_ONLY)
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-            .waitingFor(Wait.forHttp("/api/health/live"))
+            .waitingFor(Wait.forHttp("/api/health/ready").withStartupTimeout(Duration.ofMinutes(15)))
 
     private GenericContainer etContainer = new GenericContainer<>(ET_IMAGE_NAME)
             .withExposedPorts(ET_PORT)
