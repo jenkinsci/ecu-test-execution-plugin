@@ -217,12 +217,12 @@ class UploadReportsStep extends Step {
                 } else {
                     result = new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
                             "Report upload for ${reportId} failed", '')
-                    status = 'unstable. Please check pipeline and TEST-GUIDE configurations'
+                    status = 'unstable. Please check pipeline and TEST-GUIDE configuration.'
                 }
                 listener.logger.println(result.toString())
             }
 
-            listener.logger.println("Reports upload ${status}")
+            listener.logger.println("Report upload ${status}")
 
             return result
         }
