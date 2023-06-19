@@ -126,10 +126,6 @@ If the problem still exists search the following list of issues for possible sol
 |:--------:|:------------------:|
 |  2023.1  | :heavy_check_mark: |
 |  2022.4  | :heavy_check_mark: |
-|  2022.3  | :heavy_check_mark: |
-|  2022.2  | :heavy_check_mark: |
-|  2022.1  | :heavy_check_mark: |
-| 2021.4.1 | :heavy_check_mark: |
 
 :warning: Please note that compatibility for TRACE-CHECK is only warranted for __Windows__ OS.
 
@@ -140,7 +136,7 @@ If the problem still exists search the following list of issues for possible sol
 | Version |         3.0         |
 |:-------:|:-------------------:|
 | 1.147.0 | :heavy_check_mark:  |
-| 1.114.3 | :heavy_check_mark:  |
+| 1.142.0 | :heavy_check_mark:  |
 
  </details>
 
