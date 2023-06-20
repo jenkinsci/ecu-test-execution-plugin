@@ -40,8 +40,8 @@ class UploadResult implements Serializable {
     String toString() {
         """
         -> result: ${uploadResult}
-        "-> message: ${uploadMessage}"
-        "-> report link: ${reportLink}"
+        -> message: ${uploadMessage}
+        -> report link: ${reportLink}
         """.stripIndent().trim()
     }
 }
