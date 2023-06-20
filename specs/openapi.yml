@@ -3,7 +3,7 @@
 openapi: 3.0.3
 info:
   title: ECU-TEST REST-API
-  version: '1.3.6'
+  version: '1.5.0'
   description: '**ECU-TEST** is a test automation software for the validation of embedded systems in automotive environments developed by TraceTronic GmbH.
   This software executes regression tests which are essential for validating complex technical products such as electronic control units (ECUs).
   It supports standardized access to a broad range of test tools and provides an extensive automation of distributed test environments.
@@ -282,11 +282,14 @@ components:
       required:
         - status
         - order
+        - result
       properties:
         status:
           $ref: '#/components/schemas/TGUploadStatus'
         order:
           $ref: '#/components/schemas/TGUploadOrder'
+        result:
+          $ref: '#/components/schemas/TGUploadResult'
 
     TGUploadOrder:
       description: An order to execute a TEST-GUIDE upload.
@@ -333,6 +336,16 @@ components:
             - RUNNING
             - FINISHED
             - ERROR
+
+    TGUploadResult:
+      description: The result of a triggered TEST-GUIDE upload.
+      type: object
+      required:
+        - link
+      properties:
+        link:
+          type: string
+          description: Link to the uploaded TEST-GUIDE report.
 
     ReportGeneration:
       description: Represents the sum of all information ECU-TEST needs and provides for a certain test report generation via a report generator.

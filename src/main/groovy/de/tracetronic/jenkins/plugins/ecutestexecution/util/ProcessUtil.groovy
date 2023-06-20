@@ -10,7 +10,9 @@ import hudson.util.ArgumentListBuilder
 
 import java.util.concurrent.TimeUnit
 
-final class ProcessUtil {
+final class ProcessUtil implements Serializable {
+
+    private static final long serialVersionUID = 1L
 
     private ProcessUtil() {
         throw new UnsupportedOperationException('Utility class')
@@ -50,9 +52,8 @@ final class ProcessUtil {
      */
     static boolean killProcesses(ArrayList<String> taskNames, int timeout = 30) {
         boolean allExitedInTimeout = true
-        taskNames.each {
-            it ->
-                if (!killProcess(it, timeout) && allExitedInTimeout) allExitedInTimeout = false
+        for (def taskName: taskNames) {
+            if (!killProcess(taskName, timeout) && allExitedInTimeout) allExitedInTimeout = false
         }
         return allExitedInTimeout
     }

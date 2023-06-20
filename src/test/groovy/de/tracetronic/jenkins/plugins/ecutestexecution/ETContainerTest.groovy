@@ -28,7 +28,14 @@ class ETContainerTest extends ContainerTest {
 
     private GenericContainer etContainer = new GenericContainer<>(ET_IMAGE_NAME)
             .withExposedPorts(ET_PORT)
-            .withClasspathResourceMapping("workspace", ET_WS_PATH, BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/.workspace", "${ET_WS_PATH}/.workspace",
+                    BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/Configurations",
+                    "${ET_WS_PATH}/Configurations", BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/Packages", "${ET_WS_PATH}/Packages",
+                    BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
+                    BindMode.READ_ONLY)
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .waitingFor(Wait.forHttp("/api/v1/live"))
 

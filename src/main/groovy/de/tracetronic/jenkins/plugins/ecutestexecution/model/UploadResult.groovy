@@ -13,10 +13,12 @@ class UploadResult implements Serializable {
 
     private final String uploadResult
     private final String uploadMessage
+    private final String reportLink
 
-    UploadResult(String uploadResult, String uploadMessage) {
+    UploadResult(String uploadResult, String uploadMessage, String reportLink) {
         this.uploadResult = uploadResult
         this.uploadMessage = uploadMessage
+        this.reportLink = reportLink
     }
 
     @Whitelisted
@@ -29,11 +31,17 @@ class UploadResult implements Serializable {
         return uploadMessage
     }
 
+    @Whitelisted
+    String getReportLink() {
+        return reportLink
+    }
+
     @Override
     String toString() {
         """
         -> result: ${uploadResult}
-        -> message: ${uploadMessage}"
+        -> message: ${uploadMessage}
+        -> report link: ${reportLink}
         """.stripIndent().trim()
     }
 }
