@@ -12,6 +12,8 @@ Prerequisites
 - https://plugins.jenkins.io/gradle/
 */
 
+@Library(['tracetronic-jenkins-lib', 'internal-cxs-jenkins-lib']) _
+
 pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -20,6 +22,10 @@ pipeline {
 
     agent {
         label 'windows && docker'
+    }
+
+    environment {
+        authKey = credentials('TG_authkey_test_report_upload')
     }
 
     stages {
@@ -50,6 +56,12 @@ pipeline {
     }
 
     post {
+        always {
+            dir('report2TG') {
+                pipeline2ATX(true)
+            }
+            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", 'report2TG/**', '')
+        }
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
                 subject: "${JOB_NAME} - Build #${BUILD_NUMBER} - ${currentBuild.currentResult}",
