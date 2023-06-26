@@ -47,6 +47,7 @@ repositories {
 dependencies {
     implementation 'org.jenkins-ci.plugins:credentials:1087.v16065d268466'
     implementation 'org.jenkins-ci.plugins:script-security:1158.v7c1b_73a_69a_08'
+    implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
 
     // ecu-test-java-rest-client
@@ -77,7 +78,6 @@ dependencies {
     testImplementation 'com.google.guava:guava:31.1-jre'
 
     // compileOnly
-    compileOnly 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     compileOnly "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
     compileOnly('com.google.inject:guice') {
         version {
