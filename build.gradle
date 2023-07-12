@@ -95,7 +95,7 @@ configurations.testRuntimeOnly {
 publishing {
     publications {
         maven(MavenPublication) {
-            artifactId = "ecutestexecution"
+            artifactId = "ecu-test-execution"
             groupId = "${group}"
             version = "${version}"
 
