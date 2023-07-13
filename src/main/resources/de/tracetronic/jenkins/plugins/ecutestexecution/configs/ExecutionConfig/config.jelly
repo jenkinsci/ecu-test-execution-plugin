@@ -7,5 +7,8 @@
         <f:entry title="${%stopOnError.title}" description="${%stopOnError.description}" field="stopOnError">
             <f:checkbox default="true"/>
         </f:entry>
+        <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
+            <f:checkbox default="true"/>
+        </f:entry>
     </f:section>
 </j:jelly>

@@ -16,5 +16,8 @@
         <f:entry title="${%keepInstance.title}" description="${%keepInstance.description}" field="keepInstance">
             <f:checkbox/>
         </f:entry>
+        <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
+            <f:checkbox default="true"/>
+        </f:entry>
     </f:advanced>
 </j:jelly>
