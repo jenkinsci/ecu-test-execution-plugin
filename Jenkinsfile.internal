@@ -26,6 +26,7 @@ pipeline {
 
     environment {
         authKey = credentials('TG_authkey_test_report_upload')
+        pipeline_report_dir = "report2TG"
     }
 
     stages {
@@ -57,10 +58,10 @@ pipeline {
 
     post {
         always {
-            dir('report2TG') {
+            dir("${pipeline_report_dir}") {
                 pipeline2ATX(true)
             }
-            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", 'report2TG/**', '')
+            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", '')
         }
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
