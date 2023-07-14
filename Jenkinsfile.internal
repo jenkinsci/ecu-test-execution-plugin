@@ -24,11 +24,6 @@ pipeline {
         label 'windows && docker'
     }
 
-    environment {
-        authKey = credentials('TG_authkey_test_report_upload')
-        pipeline_report_dir = "report2TG"
-    }
-
     stages {
         stage('Run Parallel') {
             failFast false
@@ -58,10 +53,13 @@ pipeline {
 
     post {
         always {
-            dir("${pipeline_report_dir}") {
-                pipeline2ATX(true)
+            withCredentials([string(credentialsId: 'TG_authkey_test_report_upload', variable: 'authKey')]) {
+                pipeline_report_dir = "report2TG"
+                dir("${pipeline_report_dir}") {
+                    pipeline2ATX(true)
+                }
+                uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", "")
             }
-            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", "")
         }
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
