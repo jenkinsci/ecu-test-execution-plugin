@@ -116,6 +116,9 @@ abstract class AbstractTestBuilder implements Serializable {
                 listener.logger.println("Executing ${testArtifactName} failed!")
                 if (executionConfig.stopOnError) {
                     stopToolInstances()
+                    if (executionConfig.stopUndefinedTools) {
+                        stopTTInstances()
+                    }
                 }
             }
             listener.logger.println(result.toString())
@@ -124,9 +127,9 @@ abstract class AbstractTestBuilder implements Serializable {
         }
 
         private stopToolInstances() {
-            int timeout = 30
+            int timeout = executionConfig.timeout
             if (toolInstallations) {
-                if (ProcessUtil.killProcesses(toolInstallations)) {
+                if (ProcessUtil.killProcesses(toolInstallations, timeout)) {
                     listener.logger.println('-> Tools stopped successfully.')
                 }
                 else {
@@ -134,6 +137,16 @@ abstract class AbstractTestBuilder implements Serializable {
                 }
             } else {
                 listener.logger.println("No Tool Installations to stop were found. No processes killed.")
+            }
+        }
+
+        private stopTTInstances() {
+            int timeout = executionConfig.timeout
+            listener.logger.println("Stop TraceTronic tool instances.")
+            if (ProcessUtil.killTTProcesses(timeout)) {
+                listener.logger.println("Stopped TraceTronic tools successfully.")
+            } else {
+                throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping TraceTronic tools!")
             }
         }
     }

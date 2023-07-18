@@ -7,7 +7,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution
 
 import hudson.EnvVars
 import hudson.Extension
-import hudson.FilePath
 import hudson.Functions
 import hudson.Util
 import hudson.model.EnvironmentSpecific
@@ -37,6 +36,9 @@ class ETInstallation extends ToolInstallation implements
         EnvironmentSpecific<ETInstallation>, NodeSpecific<ETInstallation> {
 
     private static final long serialVersionUID = 1L
+
+    private static final List<String> UNIX_EXECUTABLES = ['ecu-test', 'trace-check']
+    private static final List<String> WINDOWS_EXECUTABLES = ['ECU-TEST.exe', 'TRACE-CHECK.exe']
 
     @DataBoundConstructor
     /**
@@ -76,6 +78,10 @@ class ETInstallation extends ToolInstallation implements
         return new File(home)
     }
 
+    static List<String> getExeFileNames() {
+        return Functions.isWindows() ? WINDOWS_EXECUTABLES : UNIX_EXECUTABLES
+    }
+
     /**
      * Get names of executables of all items in the ToolInstallation list for the node where the step is executed.
      * @return list of names of executables (only filename)
@@ -84,7 +90,7 @@ class ETInstallation extends ToolInstallation implements
         List<String> executableNames = []
         def etToolInstallations = all().get(DescriptorImpl.class)
 
-        for (def installation: etToolInstallations.installations) {
+        for (def installation : etToolInstallations.installations) {
             String exeFilePath = installation.forEnvironment(envVars).forNode(node, log).exeFile.toString()
             String exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
                     exeFilePath.tokenize("/")[-1]

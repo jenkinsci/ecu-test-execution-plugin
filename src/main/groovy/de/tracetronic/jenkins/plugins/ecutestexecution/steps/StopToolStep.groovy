@@ -38,12 +38,14 @@ class StopToolStep extends Step {
 
     private final String toolName
     private int timeout
+    private boolean stopUndefinedTools
 
     @DataBoundConstructor
     StopToolStep(String toolName) {
         super()
         this.toolName = StringUtils.trimToEmpty(toolName)
         this.timeout = DEFAULT_TIMEOUT
+        this.stopUndefinedTools = true
     }
 
     String getToolName() {
@@ -57,6 +59,15 @@ class StopToolStep extends Step {
     @DataBoundSetter
     void setTimeout(int timeout) {
         this.timeout = timeout < 0 ? 0 : timeout
+    }
+
+    boolean getStopUndefinedTools() {
+        return stopUndefinedTools
+    }
+
+    @DataBoundSetter
+    void setStopUndefinedTools(boolean stopUndefinedTools) {
+        this.stopUndefinedTools = stopUndefinedTools
     }
 
     @Override
@@ -76,7 +87,7 @@ class StopToolStep extends Step {
         @Override
         protected Void run() throws Exception {
             return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(getToolInstallation(), step.timeout,
+                    new ExecutionCallable(getToolInstallation(), step.timeout, step.stopUndefinedTools,
                             context.get(EnvVars.class), context.get(TaskListener.class)))
         }
 
@@ -108,13 +119,15 @@ class StopToolStep extends Step {
 
         private final ETInstallation installation
         private final int timeout
+        private final boolean stopUndefinedTools
         private final EnvVars envVars
         private final TaskListener listener
 
-        ExecutionCallable(ETInstallation installation, int timeout, EnvVars envVars, TaskListener listener) {
+        ExecutionCallable(ETInstallation installation, int timeout, boolean stopUndefinedTools, EnvVars envVars, TaskListener listener) {
             super()
             this.installation = installation
             this.timeout = timeout
+            this.stopUndefinedTools = stopUndefinedTools
             this.envVars = envVars
             this.listener = listener
         }
@@ -122,14 +135,25 @@ class StopToolStep extends Step {
         @Override
         Void call() throws IOException {
             String toolName = installation.getName()
-            listener.logger.println("Stopping ${toolName}...")
-            def exeFilePath = installation.exeFile.toString()
-            def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
-                    exeFilePath.tokenize("/")[-1]
-            if (ProcessUtil.killProcess(exeFileName, timeout)) {
-                listener.logger.println("${toolName} stopped successfully.")
-            } else {
-                throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!")
+            if (toolName) {
+                listener.logger.println("Stopping ${toolName}...")
+                def exeFilePath = installation.exeFile.toString()
+                def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
+                        exeFilePath.tokenize("/")[-1]
+                if (ProcessUtil.killProcess(exeFileName, timeout)) {
+                    listener.logger.println("${toolName} stopped successfully.")
+                } else {
+                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!")
+                }
+            }
+
+            if (stopUndefinedTools) {
+                listener.logger.println("Stop TraceTronic tool instances.")
+                if (ProcessUtil.killTTProcesses(timeout)) {
+                    listener.logger.println("Stopped TraceTronic tools successfully.")
+                } else {
+                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping TraceTronic tools!")
+                }
             }
 
             return null

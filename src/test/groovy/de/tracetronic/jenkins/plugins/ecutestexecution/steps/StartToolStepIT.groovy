@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
@@ -42,6 +43,7 @@ class StartToolStepIT extends IntegrationTestBase {
             before.setSettingsDir('settings')
             before.setTimeout(120)
             before.setKeepInstance(true)
+            before.setStopUndefinedTools(false)
         when:
             StartToolStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -74,6 +76,11 @@ class StartToolStepIT extends IntegrationTestBase {
         then:
             st.assertRoundTrip(step, "ttStartTool keepInstance: true, settingsDir: 'settings', timeout: 120, " +
                     "toolName: 'ECU-TEST', workspaceDir: 'workspace'")
+        when:
+            step.setStopUndefinedTools(false)
+        then:
+            st.assertRoundTrip(step, "ttStartTool keepInstance: true, settingsDir: 'settings', " +
+                    "stopUndefinedTools: false, timeout: 120, toolName: 'ECU-TEST', workspaceDir: 'workspace'")
     }
 
     def 'Run pipeline: Settings dir does not exist'() {
@@ -103,6 +110,36 @@ class StartToolStepIT extends IntegrationTestBase {
                     "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Stop TraceTronic tool instances.', run)
+            jenkins.assertLogContains('Starting ECU-TEST...', run)
+    }
+
+    def 'Run pipeline keep instances'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ECU-TEST', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', keepInstance: true }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Re-using running instance ', run)
+    }
+
+    def 'Run pipeline keep TT tools open'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ECU-TEST', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', stopUndefinedTools: false }",
+                    true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogNotContains('Re-using running instance ', run)
+            jenkins.assertLogNotContains('Stop TraceTronic tool instances.', run)
             jenkins.assertLogContains('Starting ECU-TEST...', run)
     }
 }

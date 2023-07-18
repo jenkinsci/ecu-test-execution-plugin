@@ -74,6 +74,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(60)
             before.setExecutionConfig(executionConfig)
         when:
@@ -141,6 +142,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
             step.setExecutionConfig(executionConfig)
         then:
@@ -148,7 +150,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "analysisConfig: [analysisName: 'analysisName', mapping: 'mappingName', " +
                     "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
-                    "executionConfig: [stopOnError: false, timeout: 0], failFast: false, " +
+                    "executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], failFast: false, " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +

@@ -5,6 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import hudson.Functions
 import hudson.util.ArgumentListBuilder
 
@@ -52,9 +53,18 @@ final class ProcessUtil implements Serializable {
      */
     static boolean killProcesses(ArrayList<String> taskNames, int timeout = 30) {
         boolean allExitedInTimeout = true
-        for (def taskName: taskNames) {
+        for (def taskName : taskNames) {
             if (!killProcess(taskName, timeout) && allExitedInTimeout) allExitedInTimeout = false
         }
         return allExitedInTimeout
+    }
+
+    /**
+     * Kills all TraceTronic tool processes, even if they are not configured within the Jenkins installations.
+     * @param timeout the maximum time to wait for process termination, 0 disabled timeout
+     * @return {@code true} if all processes have exited in timeout, {@code false} otherwise
+     */
+    static boolean killTTProcesses(int timeout = 30) {
+        return killProcesses(ETInstallation.getExeFileNames(), timeout)
     }
 }
