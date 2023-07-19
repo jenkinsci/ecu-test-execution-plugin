@@ -122,10 +122,11 @@ If the problem still exists search the following list of issues for possible sol
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">TRACE-CHECK</a> 2021.4.1 or higher </summary>
 
-| Version  |        3.0         |
-|:--------:|:------------------:|
-|  2023.1  | :heavy_check_mark: |
-|  2022.4  | :heavy_check_mark: |
+| Version |        3.0         |
+|:-------:|:------------------:|
+| 2023.2  | :heavy_check_mark: |
+| 2023.1  | :heavy_check_mark: |
+| 2022.4  | :heavy_check_mark: |
 
 :warning: Please note that compatibility for TRACE-CHECK is only warranted for __Windows__ OS.
 
