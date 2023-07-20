@@ -1,6 +1,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution
 
 import hudson.EnvVars
+import hudson.Functions
 import hudson.model.Node
 import hudson.model.TaskListener
 import org.jvnet.hudson.test.JenkinsRule
@@ -66,5 +67,11 @@ class ETInstallationTest extends IntegrationTestBase {
             allInstallations.size() == 2
             allInstallations.contains("ecutest")
             allInstallations.contains("tracecheck")
+    }
+
+    def 'getExeFileNames for TraceTronic tools' () {
+        expect:
+            ETInstallation.getExeFileNames() == Functions.isWindows() ? ['ECU-TEST.exe', 'TRACE-CHECK.exe'] :
+                    ['ecu-test', 'trace-check']
     }
 }

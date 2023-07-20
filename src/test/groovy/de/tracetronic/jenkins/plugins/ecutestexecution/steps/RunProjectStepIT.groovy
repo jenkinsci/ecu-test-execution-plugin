@@ -48,6 +48,7 @@ class RunProjectStepIT extends IntegrationTestBase {
 
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(60)
             before.setExecutionConfig(executionConfig)
         when:
@@ -77,10 +78,12 @@ class RunProjectStepIT extends IntegrationTestBase {
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
             step.setExecutionConfig(executionConfig)
         then:
-            st.assertRoundTrip(step, "ttRunProject executionConfig: [stopOnError: false, timeout: 0], " +
+            st.assertRoundTrip(step,
+                    "ttRunProject executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
                     "testCasePath: 'test.prj', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
                     "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
     }

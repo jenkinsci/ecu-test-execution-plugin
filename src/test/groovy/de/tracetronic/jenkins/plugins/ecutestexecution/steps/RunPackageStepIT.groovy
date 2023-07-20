@@ -57,7 +57,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
-        RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
+            RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
@@ -68,6 +68,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
             executionConfig.setTimeout(60)
+            executionConfig.setStopUndefinedTools(false)
             before.setExecutionConfig(executionConfig)
         when:
             RunPackageStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -124,6 +125,7 @@ class RunPackageStepIT extends IntegrationTestBase {
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
             step.setExecutionConfig(executionConfig)
         then:
@@ -131,7 +133,7 @@ class RunPackageStepIT extends IntegrationTestBase {
                     "analysisName: 'analysisName', mapping: 'mappingName', " +
                     "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
-                    "executionConfig: [stopOnError: false, timeout: 0], " +
+                    "executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "testCasePath: 'test.pkg', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
                     "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")

@@ -10,6 +10,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 
 import hudson.EnvVars
@@ -49,6 +50,7 @@ class StartToolStep extends Step {
     private String settingsDir
     private int timeout
     private boolean keepInstance
+    private boolean stopUndefinedTools
 
     @DataBoundConstructor
     StartToolStep(String toolName) {
@@ -58,6 +60,7 @@ class StartToolStep extends Step {
         this.settingsDir = ''
         this.timeout = DEFAULT_TIMEOUT
         this.keepInstance = false
+        this.stopUndefinedTools = true
     }
 
     String getToolName() {
@@ -100,6 +103,15 @@ class StartToolStep extends Step {
         this.keepInstance = keepInstance
     }
 
+    boolean getStopUndefinedTools() {
+        return stopUndefinedTools
+    }
+
+    @DataBoundSetter
+    void setStopUndefinedTools(boolean stopUndefinedTools) {
+        this.stopUndefinedTools = stopUndefinedTools
+    }
+
     @Override
     StepExecution start(StepContext context) throws Exception {
         return new Execution(this, context)
@@ -130,7 +142,7 @@ class StartToolStep extends Step {
 
             return context.get(Launcher.class).getChannel().call(
                     new ExecutionCallable(getToolInstallation(), expWorkspaceDir, expSettingsDir,
-                            step.timeout, step.keepInstance, envVars, context.get(TaskListener.class)))
+                            step.timeout, step.keepInstance, step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
         }
 
         private static ETInstallation.DescriptorImpl getToolDescriptor() {
@@ -180,17 +192,19 @@ class StartToolStep extends Step {
         private final String settingsDir
         private final int timeout
         private final boolean keepInstance
+        private final boolean stopUndefinedTools
         private final EnvVars envVars
         private final TaskListener listener
 
         ExecutionCallable(ETInstallation installation, String workspaceDir, String settingsDir, int timeout,
-                          boolean keepInstance, EnvVars envVars, TaskListener listener) {
+                          boolean keepInstance, boolean stopUndefinedTools, EnvVars envVars, TaskListener listener) {
             super()
             this.installation = installation
             this.workspaceDir = workspaceDir
             this.settingsDir = settingsDir
             this.timeout = timeout
             this.keepInstance = keepInstance
+            this.stopUndefinedTools = stopUndefinedTools
             this.envVars = envVars
             this.listener = listener
         }
@@ -202,6 +216,14 @@ class StartToolStep extends Step {
                 listener.logger.println("Re-using running instance ${toolName}...")
                 connectTool(toolName)
             } else {
+                if (stopUndefinedTools) {
+                    listener.logger.println("Stop TraceTronic tool instances.")
+                    if (ProcessUtil.killTTProcesses(timeout)) {
+                        listener.logger.println("Stopped TraceTronic tools successfully.")
+                    } else {
+                        throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping TraceTronic tools!")
+                    }
+                }
                 listener.logger.println("Starting ${toolName}...")
                 checkLicense(toolName)
                 startTool(toolName)

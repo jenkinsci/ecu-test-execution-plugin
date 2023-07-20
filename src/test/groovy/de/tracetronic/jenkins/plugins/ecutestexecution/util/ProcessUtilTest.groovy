@@ -27,4 +27,21 @@ class ProcessUtilTest extends Specification {
             0       |   false
             1       |   true
     }
+
+    def 'test killTTProcesses'(int timeout, expected) {
+        expect:
+            ProcessUtil.killTTProcesses(timeout) == expected
+
+        where:
+            timeout | expected
+            -1      |   false
+            0       |   false
+            1       |   true
+    }
+
+    def 'test killTTProcesses default'() {
+        expect:
+            ProcessUtil.killTTProcesses() == true
+
+    }
 }
