@@ -8,6 +8,5 @@
         <f:property field="packageConfig"/>
         <f:property field="analysisConfig"/>
         <f:property field="executionConfig"/>
-
     </f:advanced>
 </j:jelly>

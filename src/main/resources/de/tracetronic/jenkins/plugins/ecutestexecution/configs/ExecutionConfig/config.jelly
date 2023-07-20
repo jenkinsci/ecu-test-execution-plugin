@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="${%configSection.title}">
         <f:entry title="${%timeout.title}" description="${%timeout.description}" field="timeout">
             <f:number clazz="non-negative-number-required" min="0" default="${descriptor.defaultTimeout}"/>
@@ -10,8 +10,5 @@
         <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
             <f:checkbox default="true"/>
         </f:entry>
-        <p>Parent Name: ${request.view}</p>
-        <f:entry title="${h.getCurrentDescriptorByNameUrl()}" />
-        <f:entry title="${app.getDescriptorByName('de.tracetronic.jenkins.plugins.ecutestexecution.steps.CheckPackageStep')}" />
     </f:section>
 </j:jelly>
