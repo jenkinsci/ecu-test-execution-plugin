@@ -54,7 +54,7 @@ final class ProcessUtil implements Serializable {
     static boolean killProcesses(ArrayList<String> taskNames, int timeout = 30) {
         boolean allExitedInTimeout = true
         for (def taskName : taskNames) {
-            if (!killProcess(taskName, timeout) && allExitedInTimeout) allExitedInTimeout = false
+            allExitedInTimeout = killProcess(taskName, timeout) && allExitedInTimeout
         }
         return allExitedInTimeout
     }

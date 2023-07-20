@@ -72,6 +72,6 @@ class ETInstallationTest extends IntegrationTestBase {
     def 'getExeFileNames for TraceTronic tools' () {
         expect:
             ETInstallation.getExeFileNames() == Functions.isWindows() ? ['ECU-TEST.exe', 'TRACE-CHECK.exe'] :
-                    ['ecu-test', 'trace-tronic']
+                    ['ecu-test', 'trace-check']
     }
 }
