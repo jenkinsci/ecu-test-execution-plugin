@@ -65,7 +65,9 @@ class CheckPackageStep extends Step {
         @Override
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
-            return getContext().get(Launcher.class).getChannel().call(new ExecutionCallable(envVars,step.testCasePath, context.get(TaskListener.class)))
+            return getContext().get(Launcher.class).getChannel().call(
+                    new ExecutionCallable(envVars,step.testCasePath, context.get(TaskListener.class))
+            )
 
         }
 
