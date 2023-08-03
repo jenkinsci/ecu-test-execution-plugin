@@ -9,8 +9,13 @@ import de.tracetronic.cxs.generated.et.client.ApiClient
 import de.tracetronic.cxs.generated.et.client.ApiException
 import de.tracetronic.cxs.generated.et.client.Configuration
 import de.tracetronic.cxs.generated.et.client.api.ApiStatusApi
+import de.tracetronic.cxs.generated.et.client.api.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.ReportApi
+import de.tracetronic.cxs.generated.et.client.model.AcceptedCheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.CheckReport
+import de.tracetronic.cxs.generated.et.client.model.CheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.CheckExecutionStatus
 import de.tracetronic.cxs.generated.et.client.model.Execution
 import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.ExecutionStatus
@@ -59,6 +64,21 @@ class RestApiClient {
             }
         }
         return alive
+    }
+
+    CheckReport runPackageCheck(String filepath){
+        ChecksApi apiInstance = new ChecksApi(apiClient)
+        CheckExecutionOrder order = new CheckExecutionOrder().filePath(filepath)
+        String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
+        Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
+            response?.status in [null, "WAITING", "RUNNING"]
+        }
+
+        while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            sleep(1000)
+        }
+        CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
+        return checkReport
     }
 
     Execution runTest(ExecutionOrder executionOrder, int timeout) {
