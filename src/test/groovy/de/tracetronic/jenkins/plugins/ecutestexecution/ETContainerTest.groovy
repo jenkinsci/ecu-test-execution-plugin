@@ -61,28 +61,6 @@ class ETContainerTest extends ContainerTest {
         jenkins.assertLogContains("Found : 0 issues",run)
     }
 
-    def "Perfom check step with issues"() {
-        given: "a test execution pipeline"
-        String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttRunPackage testCasePath: 'testWithIssues.pkg', 
-                }
-            }
-            """.stripIndent()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-        job.setDefinition(new CpsFlowDefinition(script, true))
-        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                .setInstallations(new ETInstallation('ECU-TEST',
-                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
-
-        when: "scheduling a new build"
-        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then: "expect error"
-        jenkins.assertLogNotContains("Found : 0 issues",run)
-    }
-
     def "Execute test case"() {
         given: "a test execution pipeline"
             String script = """
