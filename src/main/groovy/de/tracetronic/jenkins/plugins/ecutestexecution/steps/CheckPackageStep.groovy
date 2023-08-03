@@ -6,6 +6,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -64,7 +65,7 @@ class CheckPackageStep extends Step {
         @Override
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
-            return getContext().get(Launcher.class).getChannel().call(new ExecutionCallable(envVars,step.testCasePath))
+            return getContext().get(Launcher.class).getChannel().call(new ExecutionCallable(envVars,step.testCasePath, context.get(TaskListener.class)))
 
         }
 
@@ -73,19 +74,29 @@ class CheckPackageStep extends Step {
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
         private  final EnvVars envVars
         private  final String testCasePath
-        ExecutionCallable(EnvVars envVars,String testCasePath){
+        private final TaskListener listener
+        ExecutionCallable(EnvVars envVars,String testCasePath, TaskListener listener){
             this.envVars = envVars
             this.testCasePath = testCasePath
+            this.listener = listener
+
         }
 
         @Override
         CheckPackageResult call() throws Exception {
+            listener.logger.println("Executing checks for: "+ testCasePath)
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive()) {
                 throw new TimeoutException("Timeout of ${timeout} seconds exceeded for connecting to ECU-TEST!")
             }
             CheckReport packageCheck = apiClient.runPackageCheck(this.testCasePath)
-            CheckPackageResult result = new CheckPackageResult(packageCheck.getPropertyClass(),packageCheck.getIssues(), packageCheck.getSize())
+            CheckPackageResult result = new CheckPackageResult( packageCheck.getSize(), packageCheck.getIssues())
+            if (result.getSize() != 0){
+                throw new Exception(result.toString())
+            }
+            else{
+                listener.logger.println(result.toString())
+            }
             return result
         }
     }
