@@ -66,7 +66,7 @@ class CheckPackageStep extends Step {
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
             return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(envVars,step.testCasePath, context.get(TaskListener.class))
+                    new ExecutionCallable(envVars,step.testCasePath, context.get(Launcher.class), context.get(TaskListener.class))
             )
 
         }
@@ -76,10 +76,12 @@ class CheckPackageStep extends Step {
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
         private  final EnvVars envVars
         private  final String testCasePath
+        private  final  Launcher launcher
         private final TaskListener listener
-        ExecutionCallable(EnvVars envVars,String testCasePath, TaskListener listener){
+        ExecutionCallable(EnvVars envVars,String testCasePath, Launcher launcher , TaskListener listener){
             this.envVars = envVars
             this.testCasePath = testCasePath
+            this.launcher = launcher
             this.listener = listener
 
         }
@@ -88,7 +90,7 @@ class CheckPackageStep extends Step {
         CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
             listener.logger.println("Executing checks for: "+ testCasePath)
             if (IOUtils.isAbsolute(testCasePath)) {
-                FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
+                FilePath packagePath = new FilePath(launcher.getChannel(), testCasePath)
                 if (!packagePath.exists()) {
                     throw new IllegalArgumentException("ECU-TEST package at ${packagePath.getRemote()} does not exist!")
                 }
