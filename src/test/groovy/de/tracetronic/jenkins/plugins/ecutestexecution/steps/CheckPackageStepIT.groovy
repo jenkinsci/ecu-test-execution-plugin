@@ -33,13 +33,13 @@ class CheckPackageStepIT extends IntegrationTestBase {
         when:
             CheckPackageStep step = new CheckPackageStep("test.pkg")
         then:
-            st.assertRoundTrip(step, "ttCheckPackage 'test.pkg'")
+            st.assertRoundTrip(step, "ttCheckPackage filePath 'test.pkg'")
     }
 
     def 'Run pipeline'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttCheckPackage 'test.pkg' }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttCheckPackage filePath 'test.pkg' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing checks for', run)

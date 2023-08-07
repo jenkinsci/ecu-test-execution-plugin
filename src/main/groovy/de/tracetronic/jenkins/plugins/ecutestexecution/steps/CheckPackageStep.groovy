@@ -36,15 +36,16 @@ import javax.annotation.Nonnull
  */
 class CheckPackageStep extends Step {
     @NonNull
-    private final String testCasePath
+    private final String filePath
+
     @DataBoundConstructor
-    CheckPackageStep(String testCasePath) {
-        this.testCasePath = StringUtils.trimToEmpty(testCasePath)
+    CheckPackageStep(String filePath) {
+        this.filePath = StringUtils.trimToEmpty(filePath)
     }
 
     @Nonnull
-    String getTestCasePath() {
-        return testCasePath
+    String getFilePath() {
+        return filePath
     }
 
     @Override
@@ -66,7 +67,7 @@ class CheckPackageStep extends Step {
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
             return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(envVars,step.testCasePath, context.get(Launcher.class), context.get(TaskListener.class))
+                    new ExecutionCallable(envVars,step.filePath, context.get(Launcher.class), context.get(TaskListener.class))
             )
 
         }
@@ -75,12 +76,12 @@ class CheckPackageStep extends Step {
     }
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
         private  final EnvVars envVars
-        private  final String testCasePath
+        private  final String filePath
         private  final  Launcher launcher
         private final TaskListener listener
-        ExecutionCallable(EnvVars envVars,String testCasePath, Launcher launcher , TaskListener listener){
+        ExecutionCallable(EnvVars envVars,String filePath, Launcher launcher , TaskListener listener){
             this.envVars = envVars
-            this.testCasePath = testCasePath
+            this.filePath = filePath
             this.launcher = launcher
             this.listener = listener
 
@@ -88,9 +89,9 @@ class CheckPackageStep extends Step {
 
         @Override
         CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
-            listener.logger.println("Executing checks for: "+ testCasePath)
-            if (IOUtils.isAbsolute(testCasePath)) {
-                FilePath packagePath = new FilePath(launcher.getChannel(), testCasePath)
+            listener.logger.println("Executing checks for: "+ filePath)
+            if (IOUtils.isAbsolute(filePath)) {
+                FilePath packagePath = new FilePath(launcher.getChannel(), filePath)
                 if (!packagePath.exists()) {
                     throw new IllegalArgumentException("ECU-TEST package at ${packagePath.getRemote()} does not exist!")
                 }
@@ -99,7 +100,7 @@ class CheckPackageStep extends Step {
             if (!apiClient.waitForAlive()) {
                 throw new TimeoutException("Timeout of ${timeout} seconds exceeded for connecting to ECU-TEST!")
             }
-            CheckReport packageCheck = apiClient.runPackageCheck(this.testCasePath)
+            CheckReport packageCheck = apiClient.runPackageCheck(filePath)
             CheckPackageResult result = new CheckPackageResult( packageCheck.getSize(), packageCheck.getIssues())
             if (result.getSize() != 0){
                 throw new RuntimeException(result.toString())

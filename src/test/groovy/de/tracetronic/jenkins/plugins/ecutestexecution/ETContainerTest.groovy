@@ -47,7 +47,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttCheckPackage testCasePath: 'test.pkg'
+                        ttCheckPackage filePath: 'test.pkg'
                     }
                 }
                 """.stripIndent()
@@ -67,7 +67,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                     node {
                         withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttCheckPackage testCasePath: 'testDoesNotExist.pkg'
+                            ttCheckPackage filePath: 'testDoesNotExist.pkg'
                         }
                     }
                     """.stripIndent()
