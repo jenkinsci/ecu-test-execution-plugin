@@ -78,7 +78,7 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("BAD REQUEST",run)
+            jenkins.assertLogContains("does not exist!",run)
             jenkins.assertLogNotContains("Package Checks Success", run)
     }
 

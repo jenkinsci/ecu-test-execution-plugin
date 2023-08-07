@@ -85,8 +85,14 @@ class CheckPackageStep extends Step {
         }
 
         @Override
-        CheckPackageResult call() throws Exception {
+        CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
             listener.logger.println("Executing checks for: "+ testCasePath)
+            if (IOUtils.isAbsolute(testCasePath)) {
+                FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
+                if (!packagePath.exists()) {
+                    throw new IllegalArgumentException("ECU-TEST package at ${packagePath.getRemote()} does not exist!")
+                }
+            }
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive()) {
                 throw new TimeoutException("Timeout of ${timeout} seconds exceeded for connecting to ECU-TEST!")
