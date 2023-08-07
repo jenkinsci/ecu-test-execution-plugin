@@ -94,10 +94,10 @@ class CheckPackageStep extends Step {
             CheckReport packageCheck = apiClient.runPackageCheck(this.testCasePath)
             CheckPackageResult result = new CheckPackageResult( packageCheck.getSize(), packageCheck.getIssues())
             if (result.getSize() != 0){
-                throw new Exception(result.toString())
+                throw new RuntimeException(result.toString())
             }
             else{
-                listener.logger.println(result.toString())
+                listener.logger.println("Package Checks Success")
             }
             return result
         }

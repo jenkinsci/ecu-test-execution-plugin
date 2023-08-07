@@ -20,28 +20,29 @@ class CheckPackageStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
-        CheckPackageStep before = new CheckPackageStep("test.pkg")
+            CheckPackageStep before = new CheckPackageStep("test.pkg")
         when:
-        GenerateReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+            CheckPackageStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
-        jenkins.assertEqualDataBoundBeans(before, after)
+            jenkins.assertEqualDataBoundBeans(before, after)
     }
 
     def 'Snippet generator'() {
         given:
-        SnippetizerTester st = new SnippetizerTester(jenkins)
+            SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-        CheckPackageStep step = new CheckPackageStep("test.pkg")
+            CheckPackageStep step = new CheckPackageStep("test.pkg")
         then:
-        st.assertRoundTrip(step, "ttCheckPackage 'test.pkg'")
+            st.assertRoundTrip(step, "ttCheckPackage 'test.pkg'")
     }
 
     def 'Run pipeline'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { ttCheckPackage 'test.pkg' }", true))
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttCheckPackage 'test.pkg' }", true))
         expect:
-        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains('Executing checks for', run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Executing checks for', run)
+            jenkins.assertLogContains("Package Checks Success", run)
     }
 }

@@ -44,21 +44,42 @@ class ETContainerTest extends ContainerTest {
 
     def "Perform check step"() {
         given: "a test execution pipeline"
-        String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttCheckPackage testCasePath: 'test.pkg'
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttCheckPackage testCasePath: 'test.pkg'
+                    }
                 }
-            }
-            """.stripIndent()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-        job.setDefinition(new CpsFlowDefinition(script, true))
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
 
         when: "scheduling a new build"
-        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-        jenkins.assertLogContains("Found : 0 issues",run)
+            jenkins.assertLogContains("Executing checks for",run)
+            jenkins.assertLogContains("Package Checks Success", run)
+    }
+
+    def "Perform check step on non-existing package"() {
+        given: "a test execution pipeline"
+            String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttCheckPackage testCasePath: 'test.pkg'
+                        }
+                    }
+                    """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("BAD REQUEST",run)
+            jenkins.assertLogNotContains("Package Checks Success", run)
     }
 
     def "Execute test case"() {

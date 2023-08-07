@@ -30,7 +30,7 @@ class CheckPackageResult implements  Serializable{
     String toString() {
         String str = """Found : ${size} issues\n"""
         for (issue in issues){
-            str += issue.toString() + "\n"
+            str += issue.getFileName() +" "+ issue.getMessage() + "\n"
         }
         return str.stripIndent().trim()
     }
