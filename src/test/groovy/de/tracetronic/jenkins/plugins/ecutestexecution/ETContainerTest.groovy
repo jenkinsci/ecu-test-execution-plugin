@@ -58,8 +58,8 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("Executing checks for",run)
-            jenkins.assertLogContains("Package Checks Success", run)
+            jenkins.assertLogContains("Executing Package Checks for:", run)
+            jenkins.assertLogContains("Package checked successfully.", run)
     }
 
     def "Perform check step on non-existing package"() {
@@ -78,8 +78,9 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("does not exist!",run)
-            jenkins.assertLogNotContains("Package Checks Success", run)
+            jenkins.assertLogContains("Executing Package Checks for:", run)
+            jenkins.assertLogContains("does not exist!", run)
+            jenkins.assertLogNotContains("Package checked successfully.", run)
     }
 
     def "Execute test case"() {
