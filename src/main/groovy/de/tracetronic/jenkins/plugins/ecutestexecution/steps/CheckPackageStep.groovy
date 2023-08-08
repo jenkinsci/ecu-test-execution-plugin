@@ -89,7 +89,7 @@ class CheckPackageStep extends Step {
 
         @Override
         CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
-            listener.logger.println("Executing checks for: "+ filePath)
+            listener.logger.println("Executing Package Checks for: "+ filePath +" ...")
             if (IOUtils.isAbsolute(filePath)) {
                 FilePath packagePath = new FilePath(launcher.getChannel(), filePath)
                 if (!packagePath.exists()) {
@@ -106,7 +106,7 @@ class CheckPackageStep extends Step {
                 throw new RuntimeException(result.toString())
             }
             else{
-                listener.logger.println("Package Checks Success")
+                listener.logger.println("Package checked successfully.")
             }
             return result
         }
