@@ -85,6 +85,31 @@ class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("does not exist!", run)
             jenkins.assertLogNotContains("Package checked successfully.", run)
     }
+/*
+    TODO add invalid package to ecu-test workspace
+    def "Perform check on package without desc"() {
+        given: "a test execution pipeline"
+        String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttCheckPackage filePath: 'invalidPackageCheck.pkg' # TODO add to docker
+                        }
+                    }
+                    """.stripIndent()
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+        job.setDefinition(new CpsFlowDefinition(script, true))
+        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                .setInstallations(new ETInstallation('ECU-TEST',
+                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+
+        when: "scheduling a new build"
+        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job) # line 158 ??
+
+        then: "expect error"
+        jenkins.assertLogContains("Executing Package Checks for:", run)
+        jenkins.assertLogContains("Description must not be empty!", run)
+    }
+    */
 
     def "Execute test case"() {
         given: "a test execution pipeline"
