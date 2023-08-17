@@ -78,7 +78,7 @@ class ETContainerTest extends ContainerTest {
                             '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for:", run)
