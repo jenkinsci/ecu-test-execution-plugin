@@ -73,6 +73,9 @@ class ETContainerTest extends ContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
@@ -109,30 +112,30 @@ class ETContainerTest extends ContainerTest {
 
     def "Execute nonexisting test case"() {
         given: "a test execution pipeline"
-        String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
-                        testConfig: [tbcPath: 'test.tbc', 
-                                     tcfPath: 'test.tcf', 
-                                     forceConfigurationReload: false, 
-                                     constants: [[label: 'test', value: '123']]]
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
+                            testConfig: [tbcPath: 'test.tbc', 
+                                         tcfPath: 'test.tcf', 
+                                         forceConfigurationReload: false, 
+                                         constants: [[label: 'test', value: '123']]]
+                    }
                 }
-            }
-            """.stripIndent()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-        job.setDefinition(new CpsFlowDefinition(script, true))
-        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                .setInstallations(new ETInstallation('ECU-TEST',
-                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
-        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-        jenkins.assertLogContains("result: ERROR", run)
-        jenkins.assertLogContains("Executing package failed!", run)
-        jenkins.assertLogContains("-> Tools stopped successfully.", run)
+            jenkins.assertLogContains("result: ERROR", run)
+            jenkins.assertLogContains("Executing package failed!", run)
+            jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Generate report format"() {
