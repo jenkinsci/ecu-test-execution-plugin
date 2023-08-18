@@ -81,9 +81,9 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing Package Checks for:", run)
-            jenkins.assertLogContains("does not exist!", run)
-            jenkins.assertLogNotContains("Package checked successfully.", run)
+            StringUtils.countMatches(jenkins.getLog(run),"Executing Package Checks for:") == 1
+            StringUtils.countMatches(jenkins.getLog(run),"Package check failed.") == 1
+            StringUtils.countMatches(jenkins.getLog(run),"does not exist!") == 1
     }
 /*
     TODO add invalid package to ecu-test workspace
