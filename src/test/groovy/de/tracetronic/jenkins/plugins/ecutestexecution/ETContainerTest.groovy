@@ -82,8 +82,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             StringUtils.countMatches(jenkins.getLog(run),"Executing Package Checks for:") == 1
-            StringUtils.countMatches(jenkins.getLog(run),"Package check failed.") == 1
-            StringUtils.countMatches(jenkins.getLog(run),"does not exist!") == 1
+            StringUtils.countMatches(jenkins.getLog(run),"IllegalArgumentException") == 1
     }
 /*
     TODO add invalid package to ecu-test workspace
