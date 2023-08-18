@@ -81,6 +81,7 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
+            println(run.getLog(100))
             StringUtils.countMatches(jenkins.getLog(run),"Executing Package Checks for:") == 1
             StringUtils.countMatches(jenkins.getLog(run),"IllegalArgumentException") == 1
     }
