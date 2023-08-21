@@ -59,7 +59,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for:", run)
-            jenkins.assertLogContains("result -> SUCCESS", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
     def "Perform check step on non-existing package"() {
@@ -105,7 +105,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for:", run)
-            jenkins.assertLogContains("result -> ERROR", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
     }
 
     def "Execute test case"() {
