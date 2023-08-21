@@ -59,7 +59,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for:", run)
-            jenkins.assertLogContains("Package checked successfully.", run)
+            jenkins.assertLogContains("result -> SUCCESS", run)
     }
 
     def "Perform check step on non-existing package"() {
@@ -84,31 +84,29 @@ class ETContainerTest extends ContainerTest {
             StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
             StringUtils.countMatches(jenkins.getLog(run), "400") == 1
     }
-/*
-    TODO add invalid package to ecu-test workspace
+
     def "Perform check on package without desc"() {
         given: "a test execution pipeline"
-        String script = """
-                    node {
-                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttCheckPackage filePath: 'invalidPackageCheck.pkg' # TODO add to docker
+            String script = """
+                        node {
+                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                ttCheckPackage filePath: 'invalid_package_desc.pkg'
+                            }
                         }
-                    }
-                    """.stripIndent()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-        job.setDefinition(new CpsFlowDefinition(script, true))
-        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                .setInstallations(new ETInstallation('ECU-TEST',
-                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+                        """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
-        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job) # line 158 ??
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-        jenkins.assertLogContains("Executing Package Checks for:", run)
-        jenkins.assertLogContains("Description must not be empty!", run)
+            jenkins.assertLogContains("Executing Package Checks for:", run)
+            jenkins.assertLogContains("result -> ERROR", run)
     }
-    */
 
     def "Execute test case"() {
         given: "a test execution pipeline"
