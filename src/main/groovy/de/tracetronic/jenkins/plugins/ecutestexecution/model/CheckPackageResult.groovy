@@ -28,9 +28,16 @@ class CheckPackageResult implements  Serializable{
 
     @Override
     String toString() {
-        String str = """Found : ${size} issues\n"""
+        String str = ""
+        if (getSize() != 0){
+            str += "-> result: ERROR \n"
+            str += "-> size: ${size} issues\n"
+        }
+        else{
+            str += "-> result: SUCCESS \n"
+        }
         for (issue in issues){
-            str += issue.getFileName() +" "+ issue.getMessage() + "\n"
+            str += "-> ${issue.getFileName()}: ${issue.getMessage()}\n"
         }
         return str.stripIndent().trim()
     }

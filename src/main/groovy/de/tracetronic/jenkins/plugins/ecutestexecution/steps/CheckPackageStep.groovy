@@ -95,13 +95,8 @@ class CheckPackageStep extends Step {
                 throw new TimeoutException("Timeout was exceeded for connecting to ECU-TEST!")
             }
             CheckReport packageCheck = apiClient.runPackageCheck(filePath)
-            CheckPackageResult result = new CheckPackageResult( packageCheck.getSize(), packageCheck.getIssues())
-            if (result.getSize() != 0){
-                throw new RuntimeException(result.toString())
-            }
-            else{
-                listener.logger.println("Package checked successfully.")
-            }
+            CheckPackageResult result = new CheckPackageResult(packageCheck.getSize(), packageCheck.getIssues())
+            listener.logger.println(result.toString())
             return result
         }
     }
