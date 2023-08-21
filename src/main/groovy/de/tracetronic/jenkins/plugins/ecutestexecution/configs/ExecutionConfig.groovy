@@ -23,6 +23,7 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
     private int timeout
     private boolean stopOnError
     private boolean stopUndefinedTools
+    private boolean executePackageCheck
 
 
     @DataBoundConstructor
@@ -30,6 +31,7 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
         this.timeout = DEFAULT_TIMEOUT
         this.stopOnError = true
         this.stopUndefinedTools = true
+        this.executePackageCheck = false
     }
 
     ExecutionConfig(ExecutionConfig config) {
@@ -54,6 +56,15 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
     @DataBoundSetter
     void setStopOnError(boolean stopOnError) {
         this.stopOnError = stopOnError
+    }
+
+    boolean getExecutePackageCheck() {
+        return executePackageCheck
+    }
+
+    @DataBoundSetter
+    void setExecutePackageCheck(boolean executePackageCheck) {
+        this.executePackageCheck = executePackageCheck
     }
 
     boolean getStopUndefinedTools() {

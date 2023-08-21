@@ -94,6 +94,10 @@ class RunPackageStep extends RunTestStep {
             AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
 
             checkPackage(expTestCasePath)
+            if (step.executionConfig.executePackageCheck){
+                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
+                check.run()
+            }
 
             TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
                     step.executionConfig, context, expPackageConfig, expAnalysisConfig)

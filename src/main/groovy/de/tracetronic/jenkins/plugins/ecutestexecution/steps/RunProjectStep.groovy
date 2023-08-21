@@ -59,6 +59,10 @@ class RunProjectStep extends RunTestStep {
             TestConfig expTestConfig = step.testConfig.expand(envVars)
 
             checkProject(expTestCasePath)
+            if (step.executionConfig.executePackageCheck){
+                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
+                check.run()
+            }
 
             TestProjectBuilder testProject = new TestProjectBuilder(expTestCasePath, expTestConfig,
                     step.getExecutionConfig(), context)

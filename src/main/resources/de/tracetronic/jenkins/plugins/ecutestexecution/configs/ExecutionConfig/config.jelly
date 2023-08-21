@@ -10,5 +10,8 @@
         <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
             <f:checkbox default="true"/>
         </f:entry>
+        <f:entry title="${%executePackageCheck.title}" description="${%executePackageCheck.description}" field="executePackageCheck">
+            <f:checkbox default="false"/>
+        </f:entry>
     </f:section>
 </j:jelly>

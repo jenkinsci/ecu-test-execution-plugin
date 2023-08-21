@@ -141,6 +141,10 @@ class RunTestFolderStep extends RunTestStep {
             pkgFiles.each { pkgFile ->
                 TestPackageBuilder testPackage = new TestPackageBuilder(pkgFile, expTestConfig,
                         expExecutionConfig, context, expPackageConfig, expAnalysisConfig)
+                if (expExecutionConfig.executePackageCheck){
+                    CheckPackageStep.Execution check = new CheckPackageStep(pkgFile).start(context)
+                    check.run()
+                }
                 TestResult result = testPackage.runTest()
                 testResultList.add(result)
                 if (result.getTestResult() == 'FAILED' && isFailFast()) {
@@ -151,6 +155,10 @@ class RunTestFolderStep extends RunTestStep {
             prjFiles.each { prjFile ->
                 TestProjectBuilder testProject = new TestProjectBuilder(prjFile, expTestConfig,
                         expExecutionConfig, context)
+                if (expExecutionConfig.executePackageCheck){
+                    CheckPackageStep.Execution check = new CheckPackageStep(prjFile).start(context)
+                    check.run()
+                }
                 TestResult result = testProject.runTest()
                 testResultList.add(result)
                 if (result.getTestResult() == 'FAILED' && isFailFast()) {
