@@ -59,10 +59,6 @@ class RunProjectStep extends RunTestStep {
             TestConfig expTestConfig = step.testConfig.expand(envVars)
 
             checkProject(expTestCasePath)
-            if (step.executionConfig.executePackageCheck){
-                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
-                check.run()
-            }
 
             TestProjectBuilder testProject = new TestProjectBuilder(expTestCasePath, expTestConfig,
                     step.getExecutionConfig(), context)
@@ -80,6 +76,10 @@ class RunProjectStep extends RunTestStep {
                 if (!projectPath.exists()) {
                     throw new IllegalArgumentException("ECU-TEST project at ${projectPath.getRemote()} does not exist!")
                 }
+            }
+            if (step.executionConfig.executePackageCheck){
+                CheckPackageStep.Execution check = new CheckPackageStep(projectFile).start(context)
+                check.run()
             }
         }
 

@@ -94,10 +94,6 @@ class RunPackageStep extends RunTestStep {
             AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
 
             checkPackage(expTestCasePath)
-            if (step.executionConfig.executePackageCheck){
-                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
-                check.run()
-            }
 
             TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
                     step.executionConfig, context, expPackageConfig, expAnalysisConfig)
@@ -116,6 +112,10 @@ class RunPackageStep extends RunTestStep {
                 if (!packagePath.exists()) {
                     throw new IllegalArgumentException("ECU-TEST package at ${packagePath.getRemote()} does not exist!")
                 }
+            }
+            if (step.executionConfig.executePackageCheck){
+                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
+                check.run()
             }
         }
 
