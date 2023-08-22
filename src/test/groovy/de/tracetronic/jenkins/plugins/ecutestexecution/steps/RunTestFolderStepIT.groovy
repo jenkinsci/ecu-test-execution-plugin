@@ -76,6 +76,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(60)
+            executionConfig.setExecutePackageCheck(false)
             before.setExecutionConfig(executionConfig)
         when:
             RunTestFolderStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -144,13 +145,16 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
             step.setExecutionConfig(executionConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder " +
                     "analysisConfig: [analysisName: 'analysisName', mapping: 'mappingName', " +
                     "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
-                    "executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], failFast: false, " +
+                    "executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], "+
+                    "failFast: false, " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +

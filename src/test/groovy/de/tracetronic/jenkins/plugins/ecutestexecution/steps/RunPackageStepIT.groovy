@@ -69,6 +69,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setTimeout(60)
             executionConfig.setStopUndefinedTools(false)
+            executionConfig.setExecutePackageCheck(false)
             before.setExecutionConfig(executionConfig)
         when:
             RunPackageStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -127,13 +128,15 @@ class RunPackageStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
             step.setExecutionConfig(executionConfig)
         then:
             st.assertRoundTrip(step, "ttRunPackage analysisConfig: [" +
                     "analysisName: 'analysisName', mapping: 'mappingName', " +
                     "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
-                    "executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                    "executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "testCasePath: 'test.pkg', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
                     "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")

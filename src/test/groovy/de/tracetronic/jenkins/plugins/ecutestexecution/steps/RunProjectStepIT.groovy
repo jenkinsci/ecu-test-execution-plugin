@@ -50,6 +50,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(60)
+            executionConfig.setExecutePackageCheck(false)
             before.setExecutionConfig(executionConfig)
         when:
             RunProjectStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -80,10 +81,12 @@ class RunProjectStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
             executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
             step.setExecutionConfig(executionConfig)
         then:
             st.assertRoundTrip(step,
-                    "ttRunProject executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                    "ttRunProject executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
                     "testCasePath: 'test.prj', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
                     "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
     }
