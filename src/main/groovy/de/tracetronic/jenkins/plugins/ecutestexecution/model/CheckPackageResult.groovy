@@ -6,18 +6,11 @@ import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted
 class CheckPackageResult implements  Serializable{
     private static final long serialVersionUID = 1L
 
-    private final Integer size
     private final List<CheckFinding> issues
 
 
-    CheckPackageResult(Integer size,List<CheckFinding> issues) {
-        this.size = size
+    CheckPackageResult(List<CheckFinding> issues) {
         this.issues = issues
-    }
-
-    @Whitelisted
-    Integer getSize(){
-        return size
     }
 
     @Whitelisted
@@ -29,9 +22,9 @@ class CheckPackageResult implements  Serializable{
     @Override
     String toString() {
         String str = ""
-        if (getSize() != 0){
+        if (issues.size() != 0){
             str += "-> result: ERROR \n"
-            str += "-> size: ${size} issues\n"
+            str += "-> size: ${issues.size()} issues\n"
         }
         else{
             str += "-> result: SUCCESS \n"
