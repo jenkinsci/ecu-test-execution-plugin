@@ -114,7 +114,7 @@ class RunPackageStep extends RunTestStep {
                 }
             }
             if (step.executionConfig.executePackageCheck){
-                CheckPackageStep.Execution check = new CheckPackageStep(expTestCasePath).start(context)
+                CheckPackageStep.Execution check = new CheckPackageStep(packageFile).start(context)
                 check.run()
             }
         }
