@@ -6,17 +6,14 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import hudson.EnvVars
 import hudson.Extension
-import hudson.FilePath
 import hudson.Launcher
 import hudson.model.Run
 import hudson.model.TaskListener
-import hudson.util.IOUtils
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.Step
@@ -56,7 +53,6 @@ class CheckPackageStep extends Step {
     static class Execution extends SynchronousNonBlockingStepExecution<CheckPackageResult> {
 
         private final transient CheckPackageStep step
-        private final timeout = 60
 
         Execution(CheckPackageStep step, StepContext context) {
             super(context)
@@ -67,7 +63,7 @@ class CheckPackageStep extends Step {
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
             return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(envVars,step.filePath, context.get(Launcher.class), context.get(TaskListener.class))
+                    new ExecutionCallable(envVars,step.filePath, context.get(TaskListener.class))
             )
 
         }
@@ -77,12 +73,10 @@ class CheckPackageStep extends Step {
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
         private  final EnvVars envVars
         private  final String filePath
-        private  final  Launcher launcher
         private final TaskListener listener
-        ExecutionCallable(EnvVars envVars,String filePath, Launcher launcher , TaskListener listener){
+        ExecutionCallable(EnvVars envVars,String filePath, TaskListener listener){
             this.envVars = envVars
             this.filePath = filePath
-            this.launcher = launcher
             this.listener = listener
 
         }
@@ -95,7 +89,7 @@ class CheckPackageStep extends Step {
                 throw new TimeoutException("Timeout was exceeded for connecting to ECU-TEST!")
             }
             CheckReport packageCheck = apiClient.runPackageCheck(filePath)
-            CheckPackageResult result = new CheckPackageResult(packageCheck.getSize(), packageCheck.getIssues())
+            CheckPackageResult result = new CheckPackageResult(packageCheck.getIssues())
             listener.logger.println(result.toString())
             return result
         }
