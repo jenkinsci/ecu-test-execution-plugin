@@ -66,6 +66,12 @@ class RestApiClient {
         return alive
     }
 
+    /**
+     * This method performs the package check via the ChecksApi and returns the CheckResult. 
+     * Throws ApiExceptions on error status codes.
+     * @param filepath the path to the package to be checked
+     * @return the check report
+     */
     CheckReport runPackageCheck(String filepath){
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(filepath)

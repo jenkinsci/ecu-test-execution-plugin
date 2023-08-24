@@ -29,36 +29,67 @@ import java.util.concurrent.TimeoutException
 import javax.annotation.Nonnull
 
 /**
- * Step providing the checking of ECU-TEST packages.
+ * Step providing the package checks of ECU-TEST packages or projects.
  */
 class CheckPackageStep extends Step {
     @NonNull
     private final String filePath
 
+    /**
+     * Instantiates a new [CheckPackageStep].
+     *
+     * @param filePath
+     * the file path
+     */
     @DataBoundConstructor
     CheckPackageStep(String filePath) {
         this.filePath = StringUtils.trimToEmpty(filePath)
     }
 
+    /**
+     * @return the file path to the package or project
+     */
     @Nonnull
     String getFilePath() {
         return filePath
     }
 
+    /**
+     * Start the execution of the step with the given context in the workflow
+     *
+     * @param context
+     * @return the execution
+     */
     @Override
     StepExecution start(StepContext context) throws Exception {
         return new Execution(this, context)
     }
 
+    /**
+     * Execution class of the step
+     */
+
     static class Execution extends SynchronousNonBlockingStepExecution<CheckPackageResult> {
 
         private final transient CheckPackageStep step
-
+        /**
+         * Instantiates a new [Execution].
+         *
+         * @param step
+         * the step
+         * @param context
+         * the context
+         */
         Execution(CheckPackageStep step, StepContext context) {
             super(context)
             this.step = step
         }
 
+
+        /**
+         * Call the execution of the step in the build and return the results
+         * @return the results of the package check
+         */
         @Override
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
@@ -70,17 +101,35 @@ class CheckPackageStep extends Step {
 
 
     }
+
+    /**
+     * Callable providing the execution of the step in the build
+     */
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
         private  final EnvVars envVars
         private  final String filePath
         private final TaskListener listener
+
+        /**
+         * Instantiates a new [ExecutionCallable].
+         *
+         * @param envVars
+         * the environment variables
+         * @param filePath
+         * the file path
+         * @param listener
+         * the listener
+         */
         ExecutionCallable(EnvVars envVars,String filePath, TaskListener listener){
             this.envVars = envVars
             this.filePath = filePath
             this.listener = listener
-
         }
 
+        /**
+         * First waits/ checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
+         * @return the results of the package check
+         */
         @Override
         CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
             listener.logger.println("Executing Package Checks for: "+ filePath +" ...")
@@ -101,16 +150,25 @@ class CheckPackageStep extends Step {
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 
+        /**
+         * Defines the step name in the pipeline
+         */
         @Override
         String getFunctionName() {
             'ttCheckPackage'
         }
 
+        /**
+         * Defines the step name displayed in the pipeline editor
+         */
         @Override
         String getDisplayName() {
             '[TT] Check an ECU-TEST package'
         }
 
+        /**
+         * Get the required context of the step
+         */
         @Override
         Set<? extends Class<?>> getRequiredContext() {
             return ImmutableSet.of(Launcher.class, Run.class, EnvVars.class, TaskListener.class)
