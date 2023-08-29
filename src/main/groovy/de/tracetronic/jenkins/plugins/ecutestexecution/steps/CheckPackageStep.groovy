@@ -6,6 +6,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -14,6 +15,7 @@ import hudson.Extension
 import hudson.Launcher
 import hudson.model.Run
 import hudson.model.TaskListener
+import hudson.scheduler.Hash
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.Step
@@ -25,13 +27,13 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.springframework.lang.NonNull
 
 import java.util.concurrent.TimeoutException
-
 import javax.annotation.Nonnull
 
 /**
  * Step providing the package checks of ECU-TEST packages or projects.
  */
 class CheckPackageStep extends Step {
+
     @NonNull
     private final String filePath
 
@@ -85,7 +87,6 @@ class CheckPackageStep extends Step {
             this.step = step
         }
 
-
         /**
          * Call the execution of the step in the build and return the results
          * @return the results of the package check
@@ -93,13 +94,14 @@ class CheckPackageStep extends Step {
         @Override
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
-            return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(envVars,step.filePath, context.get(TaskListener.class))
+            CheckPackageResult result = getContext().get(Launcher.class).getChannel().call(
+                    new ExecutionCallable(envVars, step.filePath, context.get(TaskListener.class))
             )
-
+            if (result.issues.size() > 0) {
+                throw new Exception("\n"+result)
+            }
+            return  result
         }
-
-
     }
 
     /**
@@ -132,14 +134,19 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
-            listener.logger.println("Executing Package Checks for: "+ filePath +" ...")
+            listener.logger.println('Executing Package Checks for: ' + filePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive()) {
-                throw new TimeoutException("Timeout was exceeded for connecting to ECU-TEST!")
+                throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
             }
             CheckReport packageCheck = apiClient.runPackageCheck(filePath)
-            CheckPackageResult result = new CheckPackageResult(packageCheck.getIssues())
-            listener.logger.println(result.toString())
+            def issue_list = []
+            for (CheckFinding issue : packageCheck.getIssues()){
+                def issue_map = [filename: issue.getFileName(), message: issue.getMessage()]
+                issue_list.add(issue_map)
+            }
+            CheckPackageResult result = new CheckPackageResult(filePath, issue_list)
+            listener.logger.println(result)
             return result
         }
     }
