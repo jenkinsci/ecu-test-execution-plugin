@@ -2,7 +2,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
@@ -12,6 +11,7 @@ import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
 class CheckPackageStepIT extends IntegrationTestBase {
+
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
@@ -44,4 +44,5 @@ class CheckPackageStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for", run)
     }
+
 }

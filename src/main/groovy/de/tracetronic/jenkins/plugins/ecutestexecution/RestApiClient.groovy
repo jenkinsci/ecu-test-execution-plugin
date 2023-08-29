@@ -12,7 +12,6 @@ import de.tracetronic.cxs.generated.et.client.api.ApiStatusApi
 import de.tracetronic.cxs.generated.et.client.api.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.ReportApi
-import de.tracetronic.cxs.generated.et.client.model.AcceptedCheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.cxs.generated.et.client.model.CheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.CheckExecutionStatus
@@ -23,11 +22,9 @@ import de.tracetronic.cxs.generated.et.client.model.ReportGeneration
 import de.tracetronic.cxs.generated.et.client.model.ReportGenerationOrder
 import de.tracetronic.cxs.generated.et.client.model.ReportGenerationStatus
 import de.tracetronic.cxs.generated.et.client.model.ReportInfo
-import de.tracetronic.cxs.generated.et.client.model.SimpleMessage
 import de.tracetronic.cxs.generated.et.client.model.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.TGUploadOrder
 import de.tracetronic.cxs.generated.et.client.model.TGUploadStatus
-import hudson.model.TaskListener
 import org.apache.commons.lang.StringUtils
 
 class RestApiClient {
@@ -67,17 +64,17 @@ class RestApiClient {
     }
 
     /**
-     * This method performs the package check via the ChecksApi and returns the CheckResult. 
+     * This method performs the package check via the ChecksApi and returns the CheckResult.
      * Throws ApiExceptions on error status codes.
      * @param filepath the path to the package to be checked
      * @return the check report
      */
-    CheckReport runPackageCheck(String filepath){
+    CheckReport runPackageCheck(String filepath) {
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(filepath)
         String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
         Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
-            response?.status in [null, "WAITING", "RUNNING"]
+            response?.status in [null, 'WAITING', 'RUNNING']
         }
 
         while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {

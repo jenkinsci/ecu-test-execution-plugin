@@ -15,7 +15,6 @@ import hudson.Extension
 import hudson.Launcher
 import hudson.model.Run
 import hudson.model.TaskListener
-import hudson.scheduler.Hash
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.Step
@@ -98,7 +97,7 @@ class CheckPackageStep extends Step {
                     new ExecutionCallable(envVars, step.filePath, context.get(TaskListener.class))
             )
             if (result.issues.size() > 0) {
-                throw new Exception("\n"+result)
+                throw new Exception('\n' + result)
             }
             return  result
         }
@@ -108,6 +107,7 @@ class CheckPackageStep extends Step {
      * Callable providing the execution of the step in the build
      */
     private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
+
         private  final EnvVars envVars
         private  final String filePath
         private final TaskListener listener
@@ -122,7 +122,7 @@ class CheckPackageStep extends Step {
          * @param listener
          * the listener
          */
-        ExecutionCallable(EnvVars envVars,String filePath, TaskListener listener){
+        ExecutionCallable(EnvVars envVars, String filePath, TaskListener listener) {
             this.envVars = envVars
             this.filePath = filePath
             this.listener = listener
@@ -140,12 +140,12 @@ class CheckPackageStep extends Step {
                 throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
             }
             CheckReport packageCheck = apiClient.runPackageCheck(filePath)
-            def issue_list = []
-            for (CheckFinding issue : packageCheck.getIssues()){
-                def issue_map = [filename: issue.getFileName(), message: issue.getMessage()]
-                issue_list.add(issue_map)
+            def issues = []
+            for (CheckFinding issue : packageCheck.issues) {
+                def issueMap = [filename: issue.fileName, message: issue.message]
+                issues.add(issueMap)
             }
-            CheckPackageResult result = new CheckPackageResult(filePath, issue_list)
+            CheckPackageResult result = new CheckPackageResult(filePath, issues)
             listener.logger.println(result)
             return result
         }

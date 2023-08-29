@@ -109,7 +109,6 @@ class ETContainerTest extends ContainerTest {
             //jenkins.assertLogContains("-> result: ERROR", run)
             StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
             StringUtils.countMatches(jenkins.getLog(run), "400") == 1
-
     }
 
     def "Execute test case"() {
