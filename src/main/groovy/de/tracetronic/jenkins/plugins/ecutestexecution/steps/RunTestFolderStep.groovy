@@ -113,6 +113,8 @@ class RunTestFolderStep extends RunTestStep {
 
     static class Execution extends SynchronousNonBlockingStepExecution<List<TestResult>> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient RunTestFolderStep step
 
         Execution(RunTestFolderStep step, StepContext context) {

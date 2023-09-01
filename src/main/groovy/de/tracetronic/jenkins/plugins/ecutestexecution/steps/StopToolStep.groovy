@@ -77,6 +77,8 @@ class StopToolStep extends Step {
 
     static class Execution extends SynchronousNonBlockingStepExecution<Void> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient StopToolStep step
 
         Execution(StopToolStep step, StepContext context) {
@@ -116,6 +118,8 @@ class StopToolStep extends Step {
     }
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<Void, IOException> {
+
+        private static final long serialVersionUID = 1L
 
         private final ETInstallation installation
         private final int timeout

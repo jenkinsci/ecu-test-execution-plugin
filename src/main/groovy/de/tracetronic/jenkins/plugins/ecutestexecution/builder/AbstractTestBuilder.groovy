@@ -73,6 +73,9 @@ abstract class AbstractTestBuilder implements Serializable {
     }
 
     private static final class RunTestCallable extends MasterToSlaveCallable<TestResult, IOException> {
+ 
+        private static final long serialVersionUID = 1L 
+
         private final String testCasePath
         private final EnvVars envVars
         private final TaskListener listener

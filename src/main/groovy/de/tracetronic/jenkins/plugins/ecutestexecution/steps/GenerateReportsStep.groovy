@@ -85,6 +85,8 @@ class GenerateReportsStep extends Step {
 
     static class Execution extends SynchronousNonBlockingStepExecution<GenerationResult> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient GenerateReportsStep step
 
         Execution(GenerateReportsStep step, StepContext context) {
@@ -104,6 +106,8 @@ class GenerateReportsStep extends Step {
     }
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<GenerationResult, IOException> {
+        
+        private static final long serialVersionUID = 1L
 
         private final String generatorName
         private final Map<String, String> additionalSettings

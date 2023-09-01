@@ -134,6 +134,8 @@ class UploadReportsStep extends Step {
 
     static class Execution extends SynchronousNonBlockingStepExecution<UploadResult> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient UploadReportsStep step
 
         Execution(UploadReportsStep step, StepContext context) {
@@ -166,6 +168,8 @@ class UploadReportsStep extends Step {
     }
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<UploadResult, IOException> {
+
+        private static final long serialVersionUID = 1L
 
         private final String testGuideUrl
         private final String authKey

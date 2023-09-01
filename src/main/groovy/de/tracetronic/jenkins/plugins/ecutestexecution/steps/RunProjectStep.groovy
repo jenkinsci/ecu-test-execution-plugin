@@ -43,6 +43,8 @@ class RunProjectStep extends RunTestStep {
 
     static class Execution extends SynchronousNonBlockingStepExecution<TestResult> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient RunProjectStep step
 
         Execution(RunProjectStep step, StepContext context) {

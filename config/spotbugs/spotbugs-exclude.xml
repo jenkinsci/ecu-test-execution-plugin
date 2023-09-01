@@ -6,4 +6,8 @@
     <Match>
         <Source name="~.*\.java" />
     </Match>
+    <Match>
+        <Class name="~.*_closure\d+" />
+        <Bug pattern="SE_NO_SERIALVERSIONID" />
+    </Match>
 </FindBugsFilter>

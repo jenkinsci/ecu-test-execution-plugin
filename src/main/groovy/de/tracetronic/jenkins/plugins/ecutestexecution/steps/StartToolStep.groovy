@@ -187,6 +187,8 @@ class StartToolStep extends Step {
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<Void, IOException> {
 
+        private static final long serialVersionUID = 1L
+
         private final ETInstallation installation
         private final String workspaceDir
         private final String settingsDir

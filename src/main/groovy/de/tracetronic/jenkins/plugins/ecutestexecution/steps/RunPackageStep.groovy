@@ -75,6 +75,8 @@ class RunPackageStep extends RunTestStep {
     }
 
     static class Execution extends SynchronousNonBlockingStepExecution<TestResult> {
+        
+        private static final long serialVersionUID = 1L
 
         private final transient RunPackageStep step
 

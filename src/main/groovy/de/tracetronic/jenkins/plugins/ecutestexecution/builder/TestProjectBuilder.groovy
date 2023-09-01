@@ -10,6 +10,9 @@ import org.jenkinsci.plugins.workflow.steps.StepContext
  * builder providing test project configuration.
  */
 class TestProjectBuilder extends AbstractTestBuilder {
+
+    private static final long serialVersionUID = 1L
+
     /**
      * Defines the test artifact name.
      */

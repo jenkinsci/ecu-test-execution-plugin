@@ -47,7 +47,7 @@ class ETInstallation extends ToolInstallation implements
      * @param home path to the tool executable
      * @param properties properties of the tool installation
      */
-    ETInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+    ETInstallation(String name, String home, List<? extends ToolProperty<? extends ToolInstallation>> properties) {
         super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties)
     }
 
