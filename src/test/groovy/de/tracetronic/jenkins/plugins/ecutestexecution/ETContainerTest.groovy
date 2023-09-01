@@ -73,9 +73,6 @@ class ETContainerTest extends ContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
@@ -96,9 +93,6 @@ class ETContainerTest extends ContainerTest {
                         """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job) //TODO adjust after ws change

@@ -99,4 +99,15 @@ class RunProjectStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing project test.prj...', run)
     }
+
+    def 'Run pipeline with package check'() {
+        given:
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+        job.setDefinition(new CpsFlowDefinition(
+                "node { ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}", true)
+        )
+        expect:
+        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        jenkins.assertLogContains('Executing Package Checks for: test.prj ...', run)
+    }
 }

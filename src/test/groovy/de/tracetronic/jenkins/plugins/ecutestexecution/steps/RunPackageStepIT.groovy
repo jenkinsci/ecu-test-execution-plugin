@@ -69,7 +69,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             executionConfig.setStopOnError(false)
             executionConfig.setTimeout(60)
             executionConfig.setStopUndefinedTools(false)
-            executionConfig.setExecutePackageCheck(false)
+            executionConfig.setExecutePackageCheck(true)
             before.setExecutionConfig(executionConfig)
         when:
             RunPackageStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -149,5 +149,16 @@ class RunPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
+    }
+
+    def 'Run pipeline with package check'(){
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttRunPackage testCasePath:'test.pkg', executionConfig: [executePackageCheck: true]}", true)
+            )
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Executing Package Checks for: test.pkg ...', run)
     }
 }
