@@ -29,6 +29,11 @@ class Constant extends AbstractDescribableImpl<Constant> implements ExpandableCo
         this.value = StringUtils.trimToEmpty(value)
     }
 
+    Constant(Constant constant) {
+        this.label = constant.getLabel()
+        this.value = constant.getValue()
+    }
+
     String getLabel() {
         return label
     }

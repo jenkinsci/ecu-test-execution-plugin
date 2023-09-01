@@ -37,6 +37,14 @@ class RecordingAsSetting extends AbstractDescribableImpl<RecordingAsSetting> imp
         this.formatDetails = ''
     }
 
+    RecordingAsSetting(RecordingAsSetting setting) {
+        this.path = setting.getPath()
+        this.recordingGroup = setting.getRecordingGroup()
+        this.mappingNames = setting.getMappingNames()
+        this.deviceName = setting.getDeviceName()
+        this.formatDetails = setting.getFormatDetails()
+    }
+
     String getPath() {
         return path
     }
@@ -51,7 +59,7 @@ class RecordingAsSetting extends AbstractDescribableImpl<RecordingAsSetting> imp
     }
 
     List<String> getMappingNames() {
-        return mappingNames
+        return mappingNames.collect()
     }
 
     @DataBoundSetter

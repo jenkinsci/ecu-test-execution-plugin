@@ -29,6 +29,11 @@ class AdditionalSetting extends AbstractDescribableImpl<AdditionalSetting> imple
         this.value = StringUtils.trimToEmpty(value)
     }
 
+    AdditionalSetting(AdditionalSetting setting) {
+        this.name = setting.getName()
+        this.value = setting.getValue()
+    }
+
     String getName() {
         return name
     }

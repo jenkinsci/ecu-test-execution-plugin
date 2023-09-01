@@ -23,10 +23,10 @@ class RunPackageAction extends RunTestAction {
     }
 
     PackageConfig getPackageConfig() {
-        return packageConfig
+        return new PackageConfig(packageConfig)
     }
 
     AnalysisConfig getAnalysisConfig() {
-        return analysisConfig
+        return new AnalysisConfig(analysisConfig)
     }
 }

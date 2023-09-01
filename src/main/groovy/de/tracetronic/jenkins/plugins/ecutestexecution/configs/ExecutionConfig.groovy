@@ -10,6 +10,7 @@ import hudson.Extension
 import hudson.model.AbstractDescribableImpl
 import hudson.model.Descriptor
 import hudson.util.FormValidation
+import org.apache.tools.ant.taskdefs.Exec
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
@@ -30,6 +31,12 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
         this.timeout = DEFAULT_TIMEOUT
         this.stopOnError = true
         this.stopUndefinedTools = true
+    }
+
+    ExecutionConfig(ExecutionConfig config) {
+        this.timeout = config.getTimeout()
+        this.stopOnError = config.isStopOnError()
+        this.stopUndefinedTools = config.getStopUndefinedTools()
     }
 
     int getTimeout() {

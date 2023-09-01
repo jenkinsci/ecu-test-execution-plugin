@@ -45,7 +45,7 @@ class GenerateReportsStep extends Step {
     }
 
     List<AdditionalSetting> getAdditionalSettings() {
-        return additionalSettings
+        return additionalSettings.collect({new AdditionalSetting(it)})
     }
 
     @DataBoundSetter
@@ -54,7 +54,7 @@ class GenerateReportsStep extends Step {
     }
 
     List<String> getReportIds() {
-        return reportIds
+        return reportIds.collect()
     }
 
     @DataBoundSetter

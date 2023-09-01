@@ -10,4 +10,8 @@
         <Class name="~.*_closure\d+" />
         <Bug pattern="SE_NO_SERIALVERSIONID" />
     </Match>
+    <Match>
+        <Field name="metaClass" />
+        <Bug code="EI,EI2"/>
+    </Match>
 </FindBugsFilter>

@@ -13,7 +13,7 @@ import hudson.model.Descriptor
 import org.apache.commons.lang.StringUtils
 import org.kohsuke.stapler.DataBoundConstructor
 
-class PackageConfig extends AbstractDescribableImpl<PackageConfig> implements ExpandableConfig, Serializable {
+class PackageConfig extends AbstractDescribableImpl<PackageConfig> implements ExpandableConfig, Serializable{
 
     private static final long serialVersionUID = 1L
 
@@ -24,8 +24,12 @@ class PackageConfig extends AbstractDescribableImpl<PackageConfig> implements Ex
         this.packageParameters = packageParameters ? removeEmptyParameters(packageParameters) : []
     }
 
+    PackageConfig(PackageConfig config) {
+        this.packageParameters = config.getPackageParameters()
+    }
+
     List<PackageParameter> getPackageParameters() {
-        return packageParameters
+        return packageParameters.collect({new PackageParameter(it)})
     }
 
     @Override

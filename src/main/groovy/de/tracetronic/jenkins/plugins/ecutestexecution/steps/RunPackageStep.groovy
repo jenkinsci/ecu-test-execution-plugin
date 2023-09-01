@@ -51,7 +51,7 @@ class RunPackageStep extends RunTestStep {
 
     @Nonnull
     PackageConfig getPackageConfig() {
-        return packageConfig
+        return new PackageConfig(packageConfig)
     }
 
     @DataBoundSetter
@@ -61,7 +61,7 @@ class RunPackageStep extends RunTestStep {
 
     @Nonnull
     AnalysisConfig getAnalysisConfig() {
-        return analysisConfig
+        return new AnalysisConfig(analysisConfig)
     }
 
     @DataBoundSetter

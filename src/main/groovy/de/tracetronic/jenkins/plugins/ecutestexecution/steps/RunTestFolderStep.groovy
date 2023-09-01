@@ -60,7 +60,7 @@ class RunTestFolderStep extends RunTestStep {
 
     @Nonnull
     ScanMode getScanMode() {
-        return scanMode;
+        return scanMode.toString() as ScanMode
     }
 
     @DataBoundSetter
@@ -88,7 +88,7 @@ class RunTestFolderStep extends RunTestStep {
 
     @Nonnull
     PackageConfig getPackageConfig() {
-        return packageConfig
+        return new PackageConfig(packageConfig)
     }
 
     @DataBoundSetter
@@ -98,7 +98,7 @@ class RunTestFolderStep extends RunTestStep {
 
     @Nonnull
     AnalysisConfig getAnalysisConfig() {
-        return analysisConfig
+        return new AnalysisConfig(analysisConfig)
     }
 
     @DataBoundSetter
