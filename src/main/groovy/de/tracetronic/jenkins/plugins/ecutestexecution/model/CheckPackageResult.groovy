@@ -15,8 +15,10 @@ class CheckPackageResult implements Serializable {
     /**
      * Instantiates a new [CheckPackageResult].
      *
+     * @param filePath
+     * the path to the file (package or project) where PackageCheckStep was executed on
      * @param issues
-     * the issues contain hashmap with filename as key and issue message as value
+     * the issues contain hashmaps with filename as key and issue message as value
      */
     CheckPackageResult(String filePath, List<HashMap<String, String>> issues) {
         this.filePath = filePath
