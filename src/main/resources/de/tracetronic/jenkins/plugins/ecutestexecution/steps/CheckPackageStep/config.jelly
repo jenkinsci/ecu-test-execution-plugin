@@ -3,4 +3,7 @@
     <f:entry title="${%filePath.title}" description="${%filePath.description}" field="filePath">
         <f:textbox clazz="required"/>
     </f:entry>
+    <f:advanced>
+        <f:property field="executionConfig"/>
+    </f:advanced>
 </j:jelly>

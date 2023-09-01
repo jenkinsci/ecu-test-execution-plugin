@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet
 import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import hudson.EnvVars
 import hudson.Extension
@@ -23,6 +24,7 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
+import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
 
 import java.util.concurrent.TimeoutException
@@ -35,7 +37,8 @@ class CheckPackageStep extends Step {
 
     @NonNull
     private final String filePath
-
+    @Nonnull
+    private ExecutionConfig executionConfig
     /**
      * Instantiates a new [CheckPackageStep].
      *
@@ -45,6 +48,7 @@ class CheckPackageStep extends Step {
     @DataBoundConstructor
     CheckPackageStep(String filePath) {
         this.filePath = StringUtils.trimToEmpty(filePath)
+        this.executionConfig = new ExecutionConfig()
     }
 
     /**
@@ -53,6 +57,25 @@ class CheckPackageStep extends Step {
     @Nonnull
     String getFilePath() {
         return filePath
+    }
+
+    /**
+     *
+     * @return the execution config
+     */
+    @Nonnull
+    ExecutionConfig getExecutionConfig() {
+        return executionConfig
+    }
+
+    /**
+     *
+     * @param executionConfig
+     * set the execution config
+     */
+    @DataBoundSetter
+    void setExecutionConfig(ExecutionConfig executionConfig) {
+        this.executionConfig = executionConfig ?: new ExecutionConfig()
     }
 
     /**
@@ -93,13 +116,9 @@ class CheckPackageStep extends Step {
         @Override
         protected CheckPackageResult run() throws Exception {
             EnvVars envVars = context.get(EnvVars.class)
-            CheckPackageResult result = getContext().get(Launcher.class).getChannel().call(
+            return getContext().get(Launcher.class).getChannel().call(
                     new ExecutionCallable(envVars, step.filePath, context.get(TaskListener.class))
             )
-            if (result.issues.size() > 0) {
-                throw new Exception('\n' + result)
-            }
-            return  result
         }
     }
 
@@ -130,10 +149,11 @@ class CheckPackageStep extends Step {
 
         /**
          * First waits/ checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
+         * Additionally CheckFindings (issues) are cast to Maps to make them serializable
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws RuntimeException,TimeoutException, IllegalArgumentException {
+        CheckPackageResult call() throws TimeoutException {
             listener.logger.println('Executing Package Checks for: ' + filePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             if (!apiClient.waitForAlive()) {
