@@ -12,6 +12,7 @@ import de.tracetronic.cxs.generated.et.client.api.ApiStatusApi
 import de.tracetronic.cxs.generated.et.client.api.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.ReportApi
+import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.cxs.generated.et.client.model.CheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.CheckExecutionStatus
@@ -69,7 +70,7 @@ class RestApiClient {
      * @param filepath the path to the package to be checked
      * @return the check report
      */
-    CheckReport runPackageCheck(String filepath) {
+    CheckReport runPackageCheck(String filepath) throws ApiException{
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(filepath)
         String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()

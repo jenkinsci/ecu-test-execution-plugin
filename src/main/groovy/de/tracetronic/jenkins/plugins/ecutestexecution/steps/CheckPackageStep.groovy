@@ -6,6 +6,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.cxs.generated.et.client.ApiException
 import de.tracetronic.cxs.generated.et.client.model.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
@@ -130,7 +131,6 @@ class CheckPackageStep extends Step {
         private  final EnvVars envVars
         private  final String filePath
         private final TaskListener listener
-
         /**
          * Instantiates a new [ExecutionCallable].
          *
@@ -149,6 +149,7 @@ class CheckPackageStep extends Step {
 
         /**
          * First waits/ checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
+         * Results and findings are printed in the pipeline logs
          * Additionally CheckFindings (issues) are cast to Maps to make them serializable
          * @return the results of the package check
          */
@@ -159,17 +160,27 @@ class CheckPackageStep extends Step {
             if (!apiClient.waitForAlive()) {
                 throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
             }
-            CheckReport packageCheck = apiClient.runPackageCheck(filePath)
+            CheckPackageResult result
             def issues = []
-            for (CheckFinding issue : packageCheck.issues) {
-                def issueMap = [filename: issue.fileName, message: issue.message]
-                issues.add(issueMap)
+            try{
+                CheckReport packageCheck = apiClient.runPackageCheck(filePath)
+                for (CheckFinding issue : packageCheck.issues) {
+                    def issueMap = [filename: issue.fileName, message: issue.message]
+                    issues.add(issueMap)
+                }
+                result = new CheckPackageResult(issues.size() ? "ERROR" : "SUCCESS", filePath, issues)
             }
-            CheckPackageResult result = new CheckPackageResult(filePath, issues)
+            catch (ApiException e){
+                listener.logger.println('Executing Package Checks failed!')
+                listener.logger.println(e.message)
+                result = new CheckPackageResult("ERROR", null, null)
+            }
             listener.logger.println(result)
             return result
         }
     }
+
+
 
     /**
      * DescriptorImpl for {@link CheckPackageStep}
