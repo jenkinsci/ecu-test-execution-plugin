@@ -14,4 +14,8 @@
         <Field name="metaClass" />
         <Bug code="EI,EI2"/>
     </Match>
+    <Match>
+        <Class name="~.*_closure\d+" />
+        <Bug code="EI2" />
+    </Match>
 </FindBugsFilter>
