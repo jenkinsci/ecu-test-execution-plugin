@@ -59,7 +59,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for:", run)
-            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("result: SUCCESS", run)
     }
 
     def "Perform check step on non-existing package"() {
@@ -75,11 +75,11 @@ class ETContainerTest extends ContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
 
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "400") == 1
+            jenkins.assertLogContains("Executing Package Checks failed!", run)
+            jenkins.assertLogContains("result: ERROR", run)
     }
 
     def "Perform check on package without desc"() {
@@ -95,14 +95,12 @@ class ETContainerTest extends ContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
 
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job) //TODO adjust after ws change
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            //TODO exchange for comment lines below once etep ws adjustment is approved and merged
-            //jenkins.assertLogContains("Executing Package Checks for:", run)
-            //jenkins.assertLogContains("-> result: ERROR", run)
-            StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "400") == 1
+            jenkins.assertLogContains("Executing Package Checks for:", run)
+            //jenkins.assertLogContains("Description must not be empty!", run) // TODO
+            jenkins.assertLogContains("result: ERROR", run)
     }
 
     def "Execute test case"() {
