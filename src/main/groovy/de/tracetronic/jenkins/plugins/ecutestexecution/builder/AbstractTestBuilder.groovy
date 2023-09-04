@@ -43,6 +43,22 @@ abstract class AbstractTestBuilder implements Serializable {
         this.context = context
     }
 
+    static ExecutionConfig getExecutionConfig() {
+        return executionConfig? new ExecutionConfig(executionConfig) : null
+    }
+
+    static void setExecutionConfig(ExecutionConfig config) {
+        executionConfig = config? new ExecutionConfig(config) : null
+    }
+
+    static TestConfig getTestConfig() {
+        return testConfig? new TestConfig(testConfig) : null
+    }
+
+    static void setTestConfig(TestConfig config) {
+        testConfig = config? new TestConfig(config) : null
+    }
+
     TestResult runTest() {
 
         def toolInstallations = getToolInstallationsOnNode()
