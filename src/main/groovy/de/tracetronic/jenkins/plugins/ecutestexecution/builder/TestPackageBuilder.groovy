@@ -18,8 +18,8 @@ class TestPackageBuilder extends AbstractTestBuilder {
      * Defines the test artifact name.
      */
     private final static String TEST_ARTIFACT_NAME = 'package'
-    private static PackageConfig packageConfig
-    private static AnalysisConfig analysisConfig
+    private final PackageConfig packageConfig
+    private final AnalysisConfig analysisConfig
 
     TestPackageBuilder(String testCasePath, TestConfig testConfig, ExecutionConfig executionConfig,
                        StepContext context, PackageConfig packageConfig, AnalysisConfig analysisConfig){

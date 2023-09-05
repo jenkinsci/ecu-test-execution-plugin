@@ -20,13 +20,13 @@ class TestPackageBuilderTest extends Specification {
 
     def 'Test Null Values'() {
         given:
-            new TestPackageBuilder(null, null, null, null, null, null)
+            def tpb = new TestPackageBuilder(null, null, null, null, null, null)
 
         expect:
-            TestPackageBuilder.testCasePath == null
-            TestPackageBuilder.testConfig == null
-            TestPackageBuilder.executionConfig == null
-            TestPackageBuilder.context == null
+            tpb.testCasePath == null
+            tpb.testConfig == null
+            tpb.executionConfig == null
+            tpb.context == null
     }
 
     def 'Test Default Values'() {
@@ -37,7 +37,7 @@ class TestPackageBuilderTest extends Specification {
             final ExecutionConfig executionConfig = new ExecutionConfig()
             final PackageConfig packageConfig = new PackageConfig(null)
             final AnalysisConfig analysisConfig = new AnalysisConfig()
-            new TestPackageBuilder(testCasePath, testConfig,
+            def tpb = new TestPackageBuilder(testCasePath, testConfig,
                     executionConfig, context, packageConfig, analysisConfig)
 
         when:
@@ -46,15 +46,15 @@ class TestPackageBuilderTest extends Specification {
             ExecutionOrder order = executionOrderBuilder.build()
 
         then:
-            assertBuilder()
+            assertBuilder(tpb)
             assertExecutionOrder(order)
     }
 
-    void assertBuilder()  {
-        assert TestPackageBuilder.testCasePath == 'testFile'
-        assert TestPackageBuilder.testConfig != null
-        assert TestPackageBuilder.executionConfig != null
-        assert TestPackageBuilder.context != null
+    void assertBuilder(TestPackageBuilder tpb)  {
+        assert tpb.testCasePath == 'testFile'
+        assert tpb.testConfig != null
+        assert tpb.executionConfig != null
+        assert tpb.context != null
     }
 
     void assertExecutionOrder(ExecutionOrder order) {

@@ -21,6 +21,6 @@
     <Match>
         <Class name="~.*AbstractTestBuilder" />
         <Field name="context" />
-        <Bug pattern="MS_EXPOSE_REP,EI_EXPOSE_STATIC_REP2" />
+        <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 </FindBugsFilter>

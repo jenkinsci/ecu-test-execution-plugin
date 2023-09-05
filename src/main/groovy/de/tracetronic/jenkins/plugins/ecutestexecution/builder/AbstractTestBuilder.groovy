@@ -25,10 +25,10 @@ import java.util.concurrent.TimeoutException
  * Common base class for all test related steps implemented in this plugin.
  */
 abstract class AbstractTestBuilder implements Serializable {
-    static String testCasePath
-    static TestConfig testConfig
-    static ExecutionConfig executionConfig
-    static StepContext context
+    final String testCasePath
+    final TestConfig testConfig
+    final ExecutionConfig executionConfig
+    final StepContext context
 
     protected abstract String getTestArtifactName()
     protected abstract LogConfigUtil getLogConfig()
@@ -43,20 +43,12 @@ abstract class AbstractTestBuilder implements Serializable {
         this.context = context
     }
 
-    static ExecutionConfig getExecutionConfig() {
+    ExecutionConfig getExecutionConfig() {
         return executionConfig? new ExecutionConfig(executionConfig) : null
     }
 
-    static void setExecutionConfig(ExecutionConfig config) {
-        executionConfig = config? new ExecutionConfig(config) : null
-    }
-
-    static TestConfig getTestConfig() {
+    TestConfig getTestConfig() {
         return testConfig? new TestConfig(testConfig) : null
-    }
-
-    static void setTestConfig(TestConfig config) {
-        testConfig = config? new TestConfig(config) : null
     }
 
     TestResult runTest() {
@@ -68,7 +60,7 @@ abstract class AbstractTestBuilder implements Serializable {
                 getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
     }
 
-    private static ArrayList<String> getToolInstallationsOnNode() {
+    private ArrayList<String> getToolInstallationsOnNode() {
         /**
          * This method gets the executable names of the tool installations on the node given by the context. Context is
          * not reasonably available in the MasterToSlaveCallable, so all info which needs a context must be fetched
