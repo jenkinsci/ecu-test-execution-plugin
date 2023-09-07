@@ -44,11 +44,11 @@ abstract class AbstractTestBuilder implements Serializable {
     }
 
     ExecutionConfig getExecutionConfig() {
-        return executionConfig? new ExecutionConfig(executionConfig) : null
+        return executionConfig ? new ExecutionConfig(executionConfig) : null
     }
 
     TestConfig getTestConfig() {
-        return testConfig? new TestConfig(testConfig) : null
+        return testConfig ? new TestConfig(testConfig) : null
     }
 
     TestResult runTest() {
