@@ -76,7 +76,7 @@ abstract class AbstractTestBuilder implements Serializable {
 
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
                         ExecutionConfig executionConfig, String testArtifactName, LogConfigUtil configUtil,
-                        ExecutionOrderBuilder executionOrderBuilder, ArrayList<String> toolInstallations) {
+                        ExecutionOrderBuilder executionOrderBuilder, ToolInstallations toolInstallations) {
             this.testCasePath = testCasePath
             this.envVars = envVars
             this.listener = listener
