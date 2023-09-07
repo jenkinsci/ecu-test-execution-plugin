@@ -10,8 +10,10 @@
         <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
             <f:checkbox default="true"/>
         </f:entry>
-        <f:entry title="${%executePackageCheck.title}" description="${%executePackageCheck.description}" field="executePackageCheck">
-            <f:checkbox default="false"/>
-        </f:entry>
+        <j:if test="${context.findVariable('symbol') != 'ttCheckPackage'}">
+            <f:entry title="${%executePackageCheck.title}" description="${%executePackageCheck.description}" field="executePackageCheck">
+                <f:checkbox default="false"/>
+            </f:entry>
+        </j:if>
     </f:section>
 </j:jelly>
