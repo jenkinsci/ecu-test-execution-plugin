@@ -80,9 +80,10 @@ class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks failed!", run)
             jenkins.assertLogContains("result: ERROR", run)
+            jenkins.assertLogContains("BAD REQUEST", run)
     }
 
-    def "Perform check on package without desc"() {
+    def "Perform check on invalid package"() {
         given: "a test execution pipeline"
             String script = """
                         node {
@@ -99,7 +100,27 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for:", run)
-            //jenkins.assertLogContains("Description must not be empty!", run) // TODO
+            //jenkins.assertLogContains("Description must not be empty!", run) TODO
+            jenkins.assertLogContains("result: ERROR", run)
+    }
+
+    def "Perform check on project with invalid packages"() {
+        given: "a test execution pipeline"
+            String script = """
+                        node {
+                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                ttCheckPackage filePath: 'invalid_package_desc.prj'
+                            }
+                        }
+                        """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing Package Checks for:", run)
+            //jenkins.assertLogContains("Description must not be empty!", run) TODO
             jenkins.assertLogContains("result: ERROR", run)
     }
 
