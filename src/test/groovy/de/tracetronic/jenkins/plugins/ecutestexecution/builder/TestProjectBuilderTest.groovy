@@ -18,13 +18,13 @@ class TestProjectBuilderTest extends Specification {
 
     def 'Test Null Values'() {
         given:
-            new TestProjectBuilder(null, null, null, null)
+            def tpb = new TestProjectBuilder(null, null, null, null)
 
         expect:
-            TestProjectBuilder.testCasePath == null
-            TestProjectBuilder.testConfig == null
-            TestProjectBuilder.executionConfig == null
-            TestProjectBuilder.context == null
+            tpb.testCasePath == null
+            tpb.testConfig == null
+            tpb.executionConfig == null
+            tpb.context == null
     }
 
     def 'Test Default Values'() {
@@ -33,7 +33,7 @@ class TestProjectBuilderTest extends Specification {
             final String testCasePath = 'testFile'
             final TestConfig testConfig = new TestConfig()
             final ExecutionConfig executionConfig = new ExecutionConfig()
-            new TestProjectBuilder(testCasePath, testConfig,
+            def tpb = new TestProjectBuilder(testCasePath, testConfig,
                 executionConfig, context)
 
         when:
@@ -41,15 +41,15 @@ class TestProjectBuilderTest extends Specification {
             ExecutionOrder order = executionOrderBuilder.build()
 
         then:
-            assertBuilder()
+            assertBuilder(tpb)
             assertExecutionOrder(order)
     }
 
-    void assertBuilder()  {
-        assert TestProjectBuilder.testCasePath == 'testFile'
-        assert TestProjectBuilder.testConfig != null
-        assert TestProjectBuilder.executionConfig != null
-        assert TestProjectBuilder.context != null
+    void assertBuilder(TestProjectBuilder tpb)  {
+        assert tpb.testCasePath == 'testFile'
+        assert tpb.testConfig != null
+        assert tpb.executionConfig != null
+        assert tpb.context != null
     }
 
     void assertExecutionOrder(ExecutionOrder order) {

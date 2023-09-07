@@ -14,6 +14,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.util.ConverterUtil
  * thus avoid serialization errors.
  */
 class ExecutionOrderBuilder implements Serializable {
+    
+    private static final long serialVersionUID = 1L
 
     private final String testCasePath
     private final TestConfig testConfig

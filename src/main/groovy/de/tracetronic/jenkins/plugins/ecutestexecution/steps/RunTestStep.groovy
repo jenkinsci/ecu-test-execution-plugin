@@ -36,7 +36,7 @@ abstract class RunTestStep extends Step {
 
     @Nonnull
     TestConfig getTestConfig() {
-        return testConfig
+        return new TestConfig(testConfig)
     }
 
     @DataBoundSetter
@@ -46,7 +46,7 @@ abstract class RunTestStep extends Step {
 
     @Nonnull
     ExecutionConfig getExecutionConfig() {
-        return executionConfig
+        return new ExecutionConfig(executionConfig)
     }
 
     @DataBoundSetter

@@ -51,7 +51,7 @@ class RunPackageStep extends RunTestStep {
 
     @Nonnull
     PackageConfig getPackageConfig() {
-        return packageConfig
+        return new PackageConfig(packageConfig)
     }
 
     @DataBoundSetter
@@ -61,7 +61,7 @@ class RunPackageStep extends RunTestStep {
 
     @Nonnull
     AnalysisConfig getAnalysisConfig() {
-        return analysisConfig
+        return new AnalysisConfig(analysisConfig)
     }
 
     @DataBoundSetter
@@ -75,6 +75,8 @@ class RunPackageStep extends RunTestStep {
     }
 
     static class Execution extends SynchronousNonBlockingStepExecution<TestResult> {
+        
+        private static final long serialVersionUID = 1L
 
         private final transient RunPackageStep step
 

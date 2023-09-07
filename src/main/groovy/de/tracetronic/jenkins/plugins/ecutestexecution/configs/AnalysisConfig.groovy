@@ -33,6 +33,12 @@ class AnalysisConfig extends AbstractDescribableImpl<AnalysisConfig> implements 
         this.recordings = []
     }
 
+    AnalysisConfig(AnalysisConfig config) {
+        this.analysisName = config.getAnalysisName()
+        this.mapping = config.getMapping()
+        this.recordings = config.getRecordings()
+    }
+
     String getAnalysisName() {
         return analysisName
     }
@@ -52,7 +58,7 @@ class AnalysisConfig extends AbstractDescribableImpl<AnalysisConfig> implements 
     }
 
     List<RecordingAsSetting> getRecordings() {
-        return recordings
+        return recordings.collect({new RecordingAsSetting(it)})
     }
 
     @DataBoundSetter

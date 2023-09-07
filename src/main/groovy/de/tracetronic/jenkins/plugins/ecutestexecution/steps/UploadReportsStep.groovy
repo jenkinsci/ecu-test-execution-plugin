@@ -94,7 +94,7 @@ class UploadReportsStep extends Step {
     }
 
     List<AdditionalSetting> getAdditionalSettings() {
-        return additionalSettings
+        return additionalSettings.collect({new AdditionalSetting(it)})
     }
 
     @DataBoundSetter
@@ -103,7 +103,7 @@ class UploadReportsStep extends Step {
     }
 
     List<String> getReportIds() {
-        return reportIds
+        return reportIds.collect()
     }
 
     @DataBoundSetter
@@ -133,6 +133,8 @@ class UploadReportsStep extends Step {
     }
 
     static class Execution extends SynchronousNonBlockingStepExecution<UploadResult> {
+
+        private static final long serialVersionUID = 1L
 
         private final transient UploadReportsStep step
 
@@ -166,6 +168,8 @@ class UploadReportsStep extends Step {
     }
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<UploadResult, IOException> {
+
+        private static final long serialVersionUID = 1L
 
         private final String testGuideUrl
         private final String authKey

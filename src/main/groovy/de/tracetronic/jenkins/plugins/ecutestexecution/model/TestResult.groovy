@@ -21,6 +21,12 @@ class TestResult implements Serializable {
         this.reportDir = reportDir
     }
 
+    TestResult(TestResult result) {
+        this.reportId = result.getReportId()
+        this.reportDir = result.getReportDir()
+        this.testResult = result.getTestResult()
+    }
+
     @Whitelisted
     String getReportId() {
         return reportId

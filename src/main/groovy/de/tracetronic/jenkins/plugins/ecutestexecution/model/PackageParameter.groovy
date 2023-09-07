@@ -29,6 +29,11 @@ class PackageParameter extends AbstractDescribableImpl<PackageParameter> impleme
         this.value = StringUtils.trimToEmpty(value)
     }
 
+    PackageParameter(PackageParameter param) {
+        this.label = param.getLabel()
+        this.value = param.getValue()
+    }
+
     String getLabel() {
         return label
     }

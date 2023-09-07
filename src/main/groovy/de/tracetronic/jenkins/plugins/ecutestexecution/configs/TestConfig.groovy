@@ -34,6 +34,13 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
         this.constants = []
     }
 
+    TestConfig(TestConfig config) {
+        this.tbcPath = config.getTbcPath()
+        this.tcfPath = config.getTcfPath()
+        this.constants = config.getConstants()
+        this.forceConfigurationReload = config.forceConfigurationReload
+    }
+
     String getTbcPath() {
         return tbcPath
     }
@@ -62,7 +69,7 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
     }
 
     List<Constant> getConstants() {
-        return constants
+        return constants.collect({new Constant(it)})
     }
 
     @DataBoundSetter

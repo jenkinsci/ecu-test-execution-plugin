@@ -56,6 +56,9 @@ abstract class AbstractTestScanner {
      * {@link hudson.remoting.Callable} providing remote access to scan a directory with a include file pattern.
      */
     private static final class ScanTestCallable extends MasterToSlaveCallable<List<String>, IOException> {
+        
+        private static final long serialVersionUID = 1L
+
         private final String inputDir
         private final filePattern
 

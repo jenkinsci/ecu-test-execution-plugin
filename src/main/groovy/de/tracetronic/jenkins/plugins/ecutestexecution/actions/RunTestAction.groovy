@@ -26,10 +26,10 @@ abstract class RunTestAction extends InvisibleAction {
     }
 
     TestConfig getTestConfig() {
-        return testConfig
+        return new TestConfig(testConfig)
     }
 
     TestResult getTestResult() {
-        return testResult
+        return new TestResult(testResult)
     }
 }

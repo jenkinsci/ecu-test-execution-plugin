@@ -32,6 +32,12 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
         this.stopUndefinedTools = true
     }
 
+    ExecutionConfig(ExecutionConfig config) {
+        this.timeout = config.getTimeout()
+        this.stopOnError = config.isStopOnError()
+        this.stopUndefinedTools = config.getStopUndefinedTools()
+    }
+
     int getTimeout() {
         return timeout
     }
