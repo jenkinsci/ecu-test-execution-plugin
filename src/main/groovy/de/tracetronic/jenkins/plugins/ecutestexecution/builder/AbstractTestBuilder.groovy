@@ -8,6 +8,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.LogConfigUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.EnvVars
@@ -53,31 +54,11 @@ abstract class AbstractTestBuilder implements Serializable {
 
     TestResult runTest() {
 
-        def toolInstallations = getToolInstallationsOnNode()
+        ToolInstallations toolInstallations = new ToolInstallations(context)
 
         return context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
                 context.get(EnvVars.class), context.get(TaskListener.class), executionConfig,
                 getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
-    }
-
-    private ArrayList<String> getToolInstallationsOnNode() {
-        /**
-         * This method gets the executable names of the tool installations on the node given by the context. Context is
-         * not reasonably available in the MasterToSlaveCallable, so all info which needs a context must be fetched
-         * outside.
-         *
-         * @return list of the executable names of the ECU-TEST installations on the respective node (can also be
-         * TRACE-CHECK executables)
-         */
-        Computer computer = context.get(Launcher).getComputer()
-        Node node = computer?.getNode()
-        EnvVars envVars = context.get(EnvVars)
-        TaskListener listener = context.get(TaskListener)
-        if(node) {
-            return ETInstallation.getAllExecutableNames(envVars, node, listener)
-        } else {
-            return null
-        }
     }
 
     private static final class RunTestCallable extends MasterToSlaveCallable<TestResult, IOException> {
@@ -91,7 +72,7 @@ abstract class AbstractTestBuilder implements Serializable {
         private final ExecutionConfig executionConfig
         private final String testArtifactName
         private final LogConfigUtil configUtil
-        private final ArrayList<String> toolInstallations
+        private final ToolInstallations toolInstallations
 
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
                         ExecutionConfig executionConfig, String testArtifactName, LogConfigUtil configUtil,
@@ -126,39 +107,14 @@ abstract class AbstractTestBuilder implements Serializable {
                 result = new TestResult(null, 'ERROR', null)
                 listener.logger.println("Executing ${testArtifactName} failed!")
                 if (executionConfig.stopOnError) {
-                    stopToolInstances()
+                    toolInstallations.stopToolInstances(executionConfig.timeout)
                     if (executionConfig.stopUndefinedTools) {
-                        stopTTInstances()
+                        toolInstallations.stopTTInstances(executionConfig.timeout)
                     }
                 }
             }
             listener.logger.println(result.toString())
-
             return result
-        }
-
-        private stopToolInstances() {
-            int timeout = executionConfig.timeout
-            if (toolInstallations) {
-                if (ProcessUtil.killProcesses(toolInstallations, timeout)) {
-                    listener.logger.println('-> Tools stopped successfully.')
-                }
-                else {
-                    throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping tool!")
-                }
-            } else {
-                listener.logger.println("No Tool Installations to stop were found. No processes killed.")
-            }
-        }
-
-        private stopTTInstances() {
-            int timeout = executionConfig.timeout
-            listener.logger.println("Stop TraceTronic tool instances.")
-            if (ProcessUtil.killTTProcesses(timeout)) {
-                listener.logger.println("Stopped TraceTronic tools successfully.")
-            } else {
-                throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping TraceTronic tools!")
-            }
         }
     }
 }

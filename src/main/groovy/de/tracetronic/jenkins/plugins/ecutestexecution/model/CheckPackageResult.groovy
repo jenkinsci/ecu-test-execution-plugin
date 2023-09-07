@@ -28,6 +28,14 @@ class CheckPackageResult implements Serializable {
     }
 
     /**
+     * @return result
+     */
+    @Whitelisted
+    String getResult() {
+        return result
+    }
+
+    /**
      * @return the filepath
      */
     @Whitelisted

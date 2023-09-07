@@ -12,6 +12,7 @@ import de.tracetronic.cxs.generated.et.client.model.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
@@ -42,7 +43,6 @@ class CheckPackageStep extends Step {
     private ExecutionConfig executionConfig
     /**
      * Instantiates a new [CheckPackageStep].
-     *
      * @param filePath
      * the file path
      */
@@ -61,7 +61,6 @@ class CheckPackageStep extends Step {
     }
 
     /**
-     *
      * @return the execution config
      */
     @Nonnull
@@ -96,6 +95,8 @@ class CheckPackageStep extends Step {
 
     static class Execution extends SynchronousNonBlockingStepExecution<CheckPackageResult> {
 
+        private static final long serialVersionUID = 1L
+
         private final transient CheckPackageStep step
         /**
          * Instantiates a new [Execution].
@@ -112,13 +113,14 @@ class CheckPackageStep extends Step {
 
         /**
          * Call the execution of the step in the build and return the results
-         * @return the results of the package check
+         * @return CheckPackageResult
+         * the results and findings of the package check
          */
         @Override
         protected CheckPackageResult run() throws Exception {
-            EnvVars envVars = context.get(EnvVars.class)
-            return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(envVars, step.filePath, context.get(TaskListener.class))
+            return getContext().get(Launcher.class).getChannel().call(new PackageCheckCallable (
+                    step.filePath, context, step.executionConfig
+                )
             )
         }
     }
@@ -126,43 +128,53 @@ class CheckPackageStep extends Step {
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class ExecutionCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
+    private  static final class PackageCheckCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
 
-        private  final EnvVars envVars
-        private  final String filePath
+        private static final long serialVersionUID = 1L
+
+        private final String filePath
+        private final StepContext context
+        private final EnvVars envVars
         private final TaskListener listener
+        private final ExecutionConfig executionConfig
+        private final ToolInstallations toolInstallations
         /**
          * Instantiates a new [ExecutionCallable].
          *
-         * @param envVars
-         * the environment variables
          * @param filePath
-         * the file path
-         * @param listener
-         * the listener
+         * file path to the package / project to be checked
+         * @param context
+         * the steps context
+         * @param executionConfig
+         * the steps executionConfig
+         * @param toolInstallations
+         * ArrayList of strings containing tool installations, which depending on execution cfg will be stopped
          */
-        ExecutionCallable(EnvVars envVars, String filePath, TaskListener listener) {
-            this.envVars = envVars
+        PackageCheckCallable(String filePath, StepContext context, ExecutionConfig executionConfig) {
             this.filePath = filePath
-            this.listener = listener
+            this.context = context
+            this.envVars = context.get(EnvVars.class)
+            this.listener = context.get(TaskListener.class)
+            this.executionConfig = executionConfig
+            this.toolInstallations = new ToolInstallations(context)
         }
 
         /**
-         * First waits/ checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
+         * First waits/checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
          * Results and findings are printed in the pipeline logs
-         * Additionally CheckFindings (issues) are cast to Maps to make them serializable
+         * Depending on the given executionConfig some or all TT Tool instances are also stopped.
          * @return the results of the package check
          */
         @Override
         CheckPackageResult call() throws TimeoutException {
             listener.logger.println('Executing Package Checks for: ' + filePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            if (!apiClient.waitForAlive()) {
+            if (!apiClient.waitForAlive(executionConfig.timeout)) {
                 throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
             }
             CheckPackageResult result
             def issues = []
-            try{
+            try {
                 CheckReport packageCheck = apiClient.runPackageCheck(filePath)
                 for (CheckFinding issue : packageCheck.issues) {
                     def issueMap = [filename: issue.fileName, message: issue.message]
@@ -170,17 +182,21 @@ class CheckPackageStep extends Step {
                 }
                 result = new CheckPackageResult(issues.size() ? "ERROR" : "SUCCESS", filePath, issues)
             }
-            catch (ApiException e){
+            catch (ApiException e) {
                 listener.logger.println('Executing Package Checks failed!')
                 listener.logger.println(e.message)
                 result = new CheckPackageResult("ERROR", null, null)
             }
             listener.logger.println(result)
+            if (result.result == "ERROR" && executionConfig.stopOnError){
+                toolInstallations.stopToolInstances(executionConfig.timeout)
+                if (executionConfig.stopUndefinedTools) {
+                    toolInstallations.stopTTInstances(executionConfig.timeout)
+                }
+            }
             return result
         }
     }
-
-
 
     /**
      * DescriptorImpl for {@link CheckPackageStep}
@@ -211,6 +227,5 @@ class CheckPackageStep extends Step {
         Set<? extends Class<?>> getRequiredContext() {
             return ImmutableSet.of(Launcher.class, Run.class, EnvVars.class, TaskListener.class)
         }
-
     }
 }
