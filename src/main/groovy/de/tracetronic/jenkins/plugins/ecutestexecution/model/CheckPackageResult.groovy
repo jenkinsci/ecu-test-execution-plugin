@@ -48,7 +48,7 @@ class CheckPackageResult implements Serializable {
      */
     @Whitelisted
     List<HashMap<String, String>> getIssues() {
-        return issues
+        return new ArrayList<HashMap<String, String>>(issues)
     }
 
     /**
