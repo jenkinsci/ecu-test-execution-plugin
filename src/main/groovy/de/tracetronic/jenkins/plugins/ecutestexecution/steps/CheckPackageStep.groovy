@@ -38,17 +38,17 @@ import javax.annotation.Nonnull
 class CheckPackageStep extends Step {
 
     @NonNull
-    private final String filePath
+    private final String testCasePath
     @Nonnull
     private ExecutionConfig executionConfig
     /**
      * Instantiates a new [CheckPackageStep].
-     * @param filePath
+     * @param testCasePath
      * the file path
      */
     @DataBoundConstructor
-    CheckPackageStep(String filePath) {
-        this.filePath = StringUtils.trimToEmpty(filePath)
+    CheckPackageStep(String testCasePath) {
+        this.testCasePath = StringUtils.trimToEmpty(testCasePath)
         this.executionConfig = new ExecutionConfig()
     }
 
@@ -56,8 +56,8 @@ class CheckPackageStep extends Step {
      * @return the file path to the package or project
      */
     @Nonnull
-    String getFilePath() {
-        return filePath
+    String getTestCasePath() {
+        return testCasePath
     }
 
     /**
@@ -119,7 +119,7 @@ class CheckPackageStep extends Step {
         @Override
         protected CheckPackageResult run() throws Exception {
             return getContext().get(Launcher.class).getChannel().call(new PackageCheckCallable (
-                    step.filePath, context, step.executionConfig
+                    step.testCasePath, context, step.executionConfig
                 )
             )
         }
@@ -132,7 +132,7 @@ class CheckPackageStep extends Step {
 
         private static final long serialVersionUID = 1L
 
-        private final String filePath
+        private final String testCasePath
         private final StepContext context
         private final EnvVars envVars
         private final TaskListener listener
@@ -141,7 +141,7 @@ class CheckPackageStep extends Step {
         /**
          * Instantiates a new [ExecutionCallable].
          *
-         * @param filePath
+         * @param testCasePath
          * file path to the package / project to be checked
          * @param context
          * the steps context
@@ -150,8 +150,8 @@ class CheckPackageStep extends Step {
          * @param toolInstallations
          * ArrayList of strings containing tool installations, which depending on execution cfg will be stopped
          */
-        PackageCheckCallable(String filePath, StepContext context, ExecutionConfig executionConfig) {
-            this.filePath = filePath
+        PackageCheckCallable(String testCasePath, StepContext context, ExecutionConfig executionConfig) {
+            this.testCasePath = testCasePath
             this.context = context
             this.envVars = context.get(EnvVars.class)
             this.listener = context.get(TaskListener.class)
@@ -167,20 +167,20 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult call() throws TimeoutException {
-            listener.logger.println('Executing Package Checks for: ' + filePath + ' ...')
+            listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            if (!apiClient.waitForAlive(executionConfig.timeout)) {
+            if (!apiClient.waitForAlive()) {
                 throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
             }
             CheckPackageResult result
             def issues = []
             try {
-                CheckReport packageCheck = apiClient.runPackageCheck(filePath)
+                CheckReport packageCheck = apiClient.runPackageCheck(testCasePath)
                 for (CheckFinding issue : packageCheck.issues) {
                     def issueMap = [filename: issue.fileName, message: issue.message]
                     issues.add(issueMap)
                 }
-                result = new CheckPackageResult(issues.size() ? "ERROR" : "SUCCESS", filePath, issues)
+                result = new CheckPackageResult(issues.size() ? "ERROR" : "SUCCESS", testCasePath, issues)
             }
             catch (ApiException e) {
                 listener.logger.println('Executing Package Checks failed!')

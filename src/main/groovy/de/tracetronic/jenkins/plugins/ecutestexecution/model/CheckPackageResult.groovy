@@ -16,14 +16,14 @@ class CheckPackageResult implements Serializable {
     /**
      * Instantiates a new [CheckPackageResult].
      *
-     * @param filePath
+     * @param testCasePath
      * the path to the file (package or project) where PackageCheckStep was executed on
      * @param issues
      * the issues contain hashmaps with filename as key and issue message as value
      */
-    CheckPackageResult(String result, String filePath, List<HashMap<String, String>> issues) {
+    CheckPackageResult(String result, String testCasePath, List<HashMap<String, String>> issues) {
         this.result = result
-        this.filePath = filePath
+        this.testCasePath = filePath
         this.issues = issues
     }
 
@@ -59,7 +59,7 @@ class CheckPackageResult implements Serializable {
     String toString() {
         String str = "-> result: ${result} \n"
         if (issues && issues.size() != 0) {
-            str += "-> ${issues.size()} issues in ${filePath} \n"
+            str += "-> ${issues.size()} issues in ${testCasePath} \n"
         }
         for (issue in issues) {
             str += "--> ${issue.filename}: ${issue.message}\n"

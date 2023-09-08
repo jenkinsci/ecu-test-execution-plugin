@@ -67,7 +67,7 @@ class RestApiClient {
     /**
      * This method performs the package check via the ChecksApi and returns the CheckResult.
      * Throws ApiExceptions on error status codes.
-     * @param filepath the path to the package to be checked
+     * @param filepath the path to the package or project to be checked
      * @return the check report
      */
     CheckReport runPackageCheck(String filepath) throws ApiException{
