@@ -278,7 +278,7 @@ openApiGenerate {
     configOptions = [
             licenseName: "MIT License",
             licenseUrl: "https://spdx.org/licenses/MIT.html",
-            dateLibrary: "java8"
+            dateLibrary: "java11"
     ]
 }
 
@@ -328,11 +328,11 @@ tasks.compileJava.dependsOn tasks.openApiGenerate
 idea {
     project {
         vcs = 'Git'
-        jdkName = '1.8'
-        languageLevel = '8'
+        jdkName = '11'
+        languageLevel = '11'
     }
     module {
-        jdkName = '1.8'
+        jdkName = '11'
         downloadJavadoc = true
         downloadSources = true
     }
