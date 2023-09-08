@@ -115,7 +115,7 @@ If the problem still exists search the following list of issues for possible sol
 ## Compatibility 
 
 - Jenkins LTS 2.332.3 or higher
-- Java SE Runtime Environment 8 or higher
+- Java SE Runtime Environment 11 or higher
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a>/
