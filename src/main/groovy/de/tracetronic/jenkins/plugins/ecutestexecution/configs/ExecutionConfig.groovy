@@ -38,6 +38,7 @@ class ExecutionConfig extends AbstractDescribableImpl<ExecutionConfig> implement
         this.timeout = config.getTimeout()
         this.stopOnError = config.isStopOnError()
         this.stopUndefinedTools = config.getStopUndefinedTools()
+        this.executePackageCheck = config.getExecutePackageCheck()
     }
 
     int getTimeout() {

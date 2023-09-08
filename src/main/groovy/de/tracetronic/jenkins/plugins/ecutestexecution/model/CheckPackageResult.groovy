@@ -10,7 +10,7 @@ class CheckPackageResult implements Serializable {
     private static final long serialVersionUID = 1L
 
     private final String result
-    private final String filePath
+    private final String testCasePath
     private final List<HashMap<String, String>> issues
 
     /**
@@ -23,7 +23,7 @@ class CheckPackageResult implements Serializable {
      */
     CheckPackageResult(String result, String testCasePath, List<HashMap<String, String>> issues) {
         this.result = result
-        this.testCasePath = filePath
+        this.testCasePath = testCasePath
         this.issues = issues
     }
 
@@ -36,11 +36,11 @@ class CheckPackageResult implements Serializable {
     }
 
     /**
-     * @return the filepath
+     * @return the testCasePath
      */
     @Whitelisted
-    String getFilePath() {
-        return filePath
+    String getTestCasePath() {
+        return testCasePath
     }
 
     /**

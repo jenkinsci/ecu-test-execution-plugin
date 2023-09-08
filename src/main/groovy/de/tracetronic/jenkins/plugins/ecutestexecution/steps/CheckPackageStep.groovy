@@ -65,7 +65,7 @@ class CheckPackageStep extends Step {
      */
     @Nonnull
     ExecutionConfig getExecutionConfig() {
-        return executionConfig
+        return new ExecutionConfig(executionConfig)
     }
 
     /**
