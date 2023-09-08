@@ -47,7 +47,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttCheckPackage filePath: 'test.pkg'
+                        ttCheckPackage testCasePath: 'test.pkg'
                     }
                 }
                 """.stripIndent()
@@ -67,7 +67,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                     node {
                         withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttCheckPackage filePath: 'testDoesNotExist.pkg'
+                            ttCheckPackage testCasePath: 'testDoesNotExist.pkg'
                         }
                     }
                     """.stripIndent()
@@ -92,7 +92,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                         node {
                             withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                ttCheckPackage filePath: 'invalid_package_desc.pkg'
+                                ttCheckPackage testCasePath: 'invalid_package_desc.pkg'
                             }
                         }
                         """.stripIndent()
@@ -117,7 +117,7 @@ class ETContainerTest extends ContainerTest {
             String script = """
                         node {
                             withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                ttCheckPackage filePath: 'invalid_package_desc.prj'
+                                ttCheckPackage testCasePath: 'invalid_package_desc.prj'
                             }
                         }
                         """.stripIndent()
