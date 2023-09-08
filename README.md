@@ -74,8 +74,8 @@ node('windows') {
         ttStartTool toolName: 'ECU-TEST', workspaceDir: './workspace', settingsDir: './settings'
     }
     stage('Package Checks') {
-      ttCheckPackage filePath: 'sample.pkg'
-      ttCheckPackage filePath: 'sample.prj'
+      ttCheckPackage testCasePath: 'sample.pkg'
+      ttCheckPackage testCasePath: 'sample.prj'
     }
     stage('Test Execution') {
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
