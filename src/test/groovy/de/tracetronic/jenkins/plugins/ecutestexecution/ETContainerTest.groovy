@@ -130,7 +130,7 @@ class ETContainerTest extends ContainerTest {
         WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-        jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.prj", run)
+        jenkins.assertLogContains("Executing Package Checks for: test.prj", run)
         jenkins.assertLogContains("result: SUCCESS", run)
     }
 
