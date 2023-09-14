@@ -58,10 +58,7 @@ class ToolInstallations implements Serializable {
 
     private ArrayList<String> getToolInstallationsOnNode() {
         /**
-         * This method gets the executable names of the tool installations on the node given by the context. Context is
-         * not reasonably available in the MasterToSlaveCallable, so all info which needs a context must be fetched
-         * outside.
-         *
+         * This method gets the executable names of the tool installations on the node given by the context.
          * @return list of the executable names of the ECU-TEST installations on the respective node (can also be
          * TRACE-CHECK executables)
          */
