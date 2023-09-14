@@ -107,7 +107,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
-            //jenkins.assertLogContains("Description must not be empty!", run) TODO
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
             jenkins.assertLogContains("result: ERROR", run)
             jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
@@ -117,7 +117,7 @@ class ETContainerTest extends ContainerTest {
         String script = """
                         node {
                             withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                ttCheckPackage testCasePath: 'invalid_package_desc.prj'
+                                ttCheckPackage testCasePath: 'test.prj'
                             }
                         }
                         """.stripIndent()
@@ -217,7 +217,7 @@ class ETContainerTest extends ContainerTest {
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                         ttRunPackage testCasePath: 'invalid_package_desc.pkg', 
-                            executionConfig: [executionConfig: [executePackageCheck: true, stopOnError: false]]
+                            executionConfig: [executePackageCheck: true, stopOnError: false],
                             testConfig: [tbcPath: 'test.tbc', 
                                          tcfPath: 'test.tcf', 
                                          forceConfigurationReload: false, 
@@ -233,10 +233,11 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("-> result: ERROR ", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
             jenkins.assertLogContains("Executing package invalid_package_desc.pkg", run)
-            jenkins.assertLogContains("result: SUCCESS", run)
-            jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
 
     def "Generate report format"() {
