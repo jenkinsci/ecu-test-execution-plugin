@@ -59,7 +59,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
-            jenkins.assertLogContains("result: SUCCESS", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
     def "Perform check step on non-existing package"() {
@@ -82,7 +82,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks failed!", run)
-            jenkins.assertLogContains("result: ERROR", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("BAD REQUEST", run)
             jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
@@ -107,8 +107,8 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("result: ERROR", run)
             jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
@@ -131,7 +131,7 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
         jenkins.assertLogContains("Executing Package Checks for: test.prj", run)
-        jenkins.assertLogContains("result: SUCCESS", run)
+        jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
 
@@ -154,8 +154,8 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.prj", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("result: ERROR", run)
             jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
@@ -179,8 +179,8 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("result: SUCCESS", run)
-            jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
     def "Execute nonexisting test case"() {
@@ -206,7 +206,7 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("result: ERROR", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("Executing package failed!", run)
             jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
@@ -233,11 +233,11 @@ class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
-            jenkins.assertLogContains("-> result: ERROR ", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
             jenkins.assertLogContains("Executing package invalid_package_desc.pkg", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
-            jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
 
     def "Generate report format"() {
