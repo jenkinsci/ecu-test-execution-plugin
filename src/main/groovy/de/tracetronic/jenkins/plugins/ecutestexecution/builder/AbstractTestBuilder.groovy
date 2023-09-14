@@ -3,24 +3,20 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.cxs.generated.et.client.model.Execution
 import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
+import de.tracetronic.jenkins.plugins.ecutestexecution.steps.CheckPackageStep
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.LogConfigUtil
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.EnvVars
 import hudson.Launcher
-import hudson.model.Computer
-import hudson.model.Node
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
-
-import java.util.concurrent.TimeoutException
 
 /**
  * Common base class for all test related steps implemented in this plugin.
@@ -52,12 +48,30 @@ abstract class AbstractTestBuilder implements Serializable {
         return testConfig ? new TestConfig(testConfig) : null
     }
 
+    /**
+     * Performs CheckPackageStep if executePackageCheck option was set in the execution config and calls the execution
+     * of the package.
+     * @return TestResult
+     * results of the test execution
+     */
     TestResult runTest() {
-
+        TaskListener listener = context.get(TaskListener.class)
         ToolInstallations toolInstallations = new ToolInstallations(context)
 
+        if (executionConfig.executePackageCheck){
+            CheckPackageStep step = new CheckPackageStep(testCasePath)
+            step.setExecutionConfig(executionConfig)
+            CheckPackageResult check_result = step.start(context).run()
+            if (executionConfig.stopOnError && check_result.result == "ERROR") {
+                listener.logger.println(
+                        "Skiping execution of ${testArtifactName} ${testCasePath} due to failed package checks"
+                )
+                return new TestResult(null, "ERROR",null)
+            }
+        }
+
         return context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
-                context.get(EnvVars.class), context.get(TaskListener.class), executionConfig,
+                context.get(EnvVars.class), listener, executionConfig,
                 getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
     }
 
