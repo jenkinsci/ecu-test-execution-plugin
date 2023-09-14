@@ -21,7 +21,7 @@ class CheckPackageResult implements Serializable {
      * the issues contain hashmaps with filename as key and issue message as value
      */
     CheckPackageResult(String testCasePath, List<HashMap<String, String>> issues) {
-        this.result = (!issues || issues.size()) ? "ERROR" : "SUCCESS"
+        this.result = (issues == null || issues.size()) ? "ERROR" : "SUCCESS"
         this.testCasePath = testCasePath
         this.issues = issues
     }
