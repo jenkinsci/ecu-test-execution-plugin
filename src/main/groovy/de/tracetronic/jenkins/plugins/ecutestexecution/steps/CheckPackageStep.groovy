@@ -117,7 +117,7 @@ class CheckPackageStep extends Step {
          * the results and findings of the package check
          */
         @Override
-        protected CheckPackageResult run() throws Exception {
+        CheckPackageResult run() throws Exception {
             return getContext().get(Launcher.class).getChannel().call(new PackageCheckCallable (
                     step.testCasePath, context, step.executionConfig
                 )
@@ -160,18 +160,16 @@ class CheckPackageStep extends Step {
         }
 
         /**
-         * First waits/checks if the ECU-TEST Api is alive and then calls the package check via the RestApiClient.
-         * Results and findings are printed in the pipeline logs
+         * Calls the package check via the RestApiClient, if ECU-TEST api is not alive it will throw an ConnectException
+         * Results and findings of the package/project are printed in the pipeline logs
+         * If the package is missing it will also be printed in the pipeline logs
          * Depending on the given executionConfig some or all TT Tool instances are also stopped.
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws TimeoutException {
+        CheckPackageResult call() throws ConnectException {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            if (!apiClient.waitForAlive()) {
-                throw new TimeoutException('Timeout was exceeded for connecting to ECU-TEST!')
-            }
             CheckPackageResult result
             def issues = []
             try {
@@ -180,12 +178,15 @@ class CheckPackageStep extends Step {
                     def issueMap = [filename: issue.fileName, message: issue.message]
                     issues.add(issueMap)
                 }
-                result = new CheckPackageResult(issues.size() ? "ERROR" : "SUCCESS", testCasePath, issues)
+                result = new CheckPackageResult(testCasePath, issues)
             }
             catch (ApiException e) {
+                if (e.message.contains("ConnectException")) {
+                    throw e
+                }
                 listener.logger.println('Executing Package Checks failed!')
                 listener.logger.println(e.message)
-                result = new CheckPackageResult("ERROR", null, null)
+                result = new CheckPackageResult(null, null)
             }
             listener.logger.println(result)
             if (result.result == "ERROR" && executionConfig.stopOnError){
