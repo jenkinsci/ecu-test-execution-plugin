@@ -34,6 +34,8 @@ class ETContainerTest extends ContainerTest {
                     "${ET_WS_PATH}/Configurations", BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/Packages", "${ET_WS_PATH}/Packages",
                     BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/UserPyModules", "${ET_WS_PATH}/UserPyModules",
+                    BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
                     BindMode.READ_ONLY)
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
