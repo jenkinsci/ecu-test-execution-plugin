@@ -119,13 +119,14 @@ If the problem still exists search the following list of issues for possible sol
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ECU-TEST</a>/
-    <a href="https://www.tracetronic.com/products/trace-check/">TRACE-CHECK</a> 2021.4.1 or higher </summary>
+    <a href="https://www.tracetronic.com/products/trace-check/">TRACE-CHECK</a> 2022.4 or higher </summary>
 
-| Version |        3.0         |
-|:-------:|:------------------:|
-| 2023.2  | :heavy_check_mark: |
-| 2023.1  | :heavy_check_mark: |
-| 2022.4  | :heavy_check_mark: |
+| Version |    latest - 3.1    |        3.0         |
+|:-------:|:------------------:|:------------------:|
+| 2023.3  | :heavy_check_mark: |        :x:         |
+| 2023.2  | :heavy_check_mark: | :heavy_check_mark: |
+| 2023.1  | :heavy_check_mark: | :heavy_check_mark: |
+| 2022.4  | :heavy_check_mark: | :heavy_check_mark: |
 
 :warning: Please note that compatibility for TRACE-CHECK is only warranted for __Windows__ OS.
 
@@ -133,10 +134,10 @@ If the problem still exists search the following list of issues for possible sol
 <details>
     <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">TEST-GUIDE</a> 1.114.3 or higher</summary>
 
-| Version |         3.0         |
-|:-------:|:-------------------:|
-| 1.147.0 | :heavy_check_mark:  |
-| 1.142.0 | :heavy_check_mark:  |
+| Version |    latest - 3.0    |
+|:-------:|:------------------:|
+| 1.147.0 | :heavy_check_mark: |
+| 1.142.0 | :heavy_check_mark: |
 
  </details>
 
