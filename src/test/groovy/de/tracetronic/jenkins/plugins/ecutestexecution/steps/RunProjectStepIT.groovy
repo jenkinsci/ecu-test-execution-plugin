@@ -104,7 +104,7 @@ class RunProjectStepIT extends IntegrationTestBase {
         given:
         WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
         job.setDefinition(new CpsFlowDefinition("node { " +
-                "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true, timeout: 5]}",
+                "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",
                 true)
         )
         expect:
