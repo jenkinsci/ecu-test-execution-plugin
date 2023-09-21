@@ -16,6 +16,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
+import hudson.model.Api
 import hudson.model.Run
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
@@ -160,7 +161,7 @@ class CheckPackageStep extends Step {
         }
 
         /**
-         * Calls the package check via the RestApiClient, if ECU-TEST api is not alive it will throw an ApiException
+         * Calls the package check via the RestApiClient
          * Results and findings of the package/project are printed in the pipeline logs
          * If the package is missing it will also be printed in the pipeline logs
          * Depending on the given executionConfig some or all TT Tool instances are also stopped.
@@ -181,9 +182,14 @@ class CheckPackageStep extends Step {
                 result = new CheckPackageResult(testCasePath, issues)
             }
             catch (ApiException e) {
-                listener.logger.println('Executing Package Checks failed!')
-                listener.logger.println(e.message)
-                result = new CheckPackageResult(null, null)
+                if (e.message.contains("BAD REQUEST")) {
+                    listener.logger.println('Executing Package Checks failed!')
+                    listener.logger.println(e.message)
+                    result = new CheckPackageResult(null, null)
+                }
+                else {
+                    throw e
+                }
             }
             listener.logger.println(result)
             if (result.result == "ERROR" && executionConfig.stopOnError){
