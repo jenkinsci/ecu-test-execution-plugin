@@ -70,7 +70,7 @@ class RestApiClient {
      * @param filepath the path to the package or project to be checked
      * @return the check report
      */
-    CheckReport runPackageCheck(String filepath) throws ApiException{
+    CheckReport runPackageCheck(String filepath) throws ApiException {
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(filepath)
         String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()

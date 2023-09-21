@@ -64,7 +64,7 @@ abstract class AbstractTestBuilder implements Serializable {
             CheckPackageResult check_result = step.start(context).run()
             if (executionConfig.stopOnError && check_result.result == "ERROR") {
                 listener.logger.println(
-                        "Skiping execution of ${testArtifactName} ${testCasePath} due to failed package checks"
+                        "Skipping execution of ${testArtifactName} ${testCasePath} due to failed package checks"
                 )
                 return new TestResult(null, "ERROR",null)
             }
