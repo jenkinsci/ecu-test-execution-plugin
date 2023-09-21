@@ -160,14 +160,14 @@ class CheckPackageStep extends Step {
         }
 
         /**
-         * Calls the package check via the RestApiClient, if ECU-TEST api is not alive it will throw an ConnectException
+         * Calls the package check via the RestApiClient, if ECU-TEST api is not alive it will throw an ApiException
          * Results and findings of the package/project are printed in the pipeline logs
          * If the package is missing it will also be printed in the pipeline logs
          * Depending on the given executionConfig some or all TT Tool instances are also stopped.
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws ConnectException {
+        CheckPackageResult call() {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             CheckPackageResult result
@@ -181,9 +181,6 @@ class CheckPackageStep extends Step {
                 result = new CheckPackageResult(testCasePath, issues)
             }
             catch (ApiException e) {
-                if (e.message.contains("ConnectException")) {
-                    throw e
-                }
                 listener.logger.println('Executing Package Checks failed!')
                 listener.logger.println(e.message)
                 result = new CheckPackageResult(null, null)
