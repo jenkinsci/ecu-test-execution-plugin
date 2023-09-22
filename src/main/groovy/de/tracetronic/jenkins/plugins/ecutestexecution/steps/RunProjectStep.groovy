@@ -58,7 +58,7 @@ class RunProjectStep extends RunTestStep {
             String expTestCasePath = envVars.expand(step.testCasePath)
             TestConfig expTestConfig = step.testConfig.expand(envVars)
 
-            checkProject(expTestCasePath)
+            checkProjectPath(expTestCasePath)
 
             TestProjectBuilder testProject = new TestProjectBuilder(expTestCasePath, expTestConfig,
                     step.getExecutionConfig(), context)
@@ -69,7 +69,7 @@ class RunProjectStep extends RunTestStep {
             return result
         }
 
-        private void checkProject(String projectFile)
+        private void checkProjectPath(String projectFile)
                 throws IOException, InterruptedException, IllegalArgumentException {
             if (IOUtils.isAbsolute(projectFile)) {
                 FilePath projectPath = new FilePath(context.get(Launcher.class).getChannel(), projectFile)

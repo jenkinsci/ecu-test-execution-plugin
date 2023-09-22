@@ -3,23 +3,20 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.cxs.generated.et.client.model.Execution
 import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
+import de.tracetronic.jenkins.plugins.ecutestexecution.steps.CheckPackageStep
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.LogConfigUtil
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.EnvVars
 import hudson.Launcher
-import hudson.model.Computer
-import hudson.model.Node
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
-
-import java.util.concurrent.TimeoutException
 
 /**
  * Common base class for all test related steps implemented in this plugin.
@@ -51,33 +48,31 @@ abstract class AbstractTestBuilder implements Serializable {
         return testConfig ? new TestConfig(testConfig) : null
     }
 
+    /**
+     * Performs CheckPackageStep if executePackageCheck option was set in the execution config and calls the execution
+     * of the package.
+     * @return TestResult
+     * results of the test execution
+     */
     TestResult runTest() {
+        TaskListener listener = context.get(TaskListener.class)
+        ToolInstallations toolInstallations = new ToolInstallations(context)
 
-        def toolInstallations = getToolInstallationsOnNode()
+        if (executionConfig.executePackageCheck){
+            CheckPackageStep step = new CheckPackageStep(testCasePath)
+            step.setExecutionConfig(executionConfig)
+            CheckPackageResult check_result = step.start(context).run()
+            if (executionConfig.stopOnError && check_result.result == "ERROR") {
+                listener.logger.println(
+                        "Skipping execution of ${testArtifactName} ${testCasePath} due to failed package checks"
+                )
+                return new TestResult(null, "ERROR",null)
+            }
+        }
 
         return context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
-                context.get(EnvVars.class), context.get(TaskListener.class), executionConfig,
+                context.get(EnvVars.class), listener, executionConfig,
                 getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
-    }
-
-    private ArrayList<String> getToolInstallationsOnNode() {
-        /**
-         * This method gets the executable names of the tool installations on the node given by the context. Context is
-         * not reasonably available in the MasterToSlaveCallable, so all info which needs a context must be fetched
-         * outside.
-         *
-         * @return list of the executable names of the ECU-TEST installations on the respective node (can also be
-         * TRACE-CHECK executables)
-         */
-        Computer computer = context.get(Launcher).getComputer()
-        Node node = computer?.getNode()
-        EnvVars envVars = context.get(EnvVars)
-        TaskListener listener = context.get(TaskListener)
-        if(node) {
-            return ETInstallation.getAllExecutableNames(envVars, node, listener)
-        } else {
-            return null
-        }
     }
 
     private static final class RunTestCallable extends MasterToSlaveCallable<TestResult, IOException> {
@@ -91,11 +86,11 @@ abstract class AbstractTestBuilder implements Serializable {
         private final ExecutionConfig executionConfig
         private final String testArtifactName
         private final LogConfigUtil configUtil
-        private final ArrayList<String> toolInstallations
+        private final ToolInstallations toolInstallations
 
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
                         ExecutionConfig executionConfig, String testArtifactName, LogConfigUtil configUtil,
-                        ExecutionOrderBuilder executionOrderBuilder, ArrayList<String> toolInstallations) {
+                        ExecutionOrderBuilder executionOrderBuilder, ToolInstallations toolInstallations) {
             this.testCasePath = testCasePath
             this.envVars = envVars
             this.listener = listener
@@ -126,39 +121,14 @@ abstract class AbstractTestBuilder implements Serializable {
                 result = new TestResult(null, 'ERROR', null)
                 listener.logger.println("Executing ${testArtifactName} failed!")
                 if (executionConfig.stopOnError) {
-                    stopToolInstances()
+                    toolInstallations.stopToolInstances(executionConfig.timeout)
                     if (executionConfig.stopUndefinedTools) {
-                        stopTTInstances()
+                        toolInstallations.stopTTInstances(executionConfig.timeout)
                     }
                 }
             }
             listener.logger.println(result.toString())
-
             return result
-        }
-
-        private stopToolInstances() {
-            int timeout = executionConfig.timeout
-            if (toolInstallations) {
-                if (ProcessUtil.killProcesses(toolInstallations, timeout)) {
-                    listener.logger.println('-> Tools stopped successfully.')
-                }
-                else {
-                    throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping tool!")
-                }
-            } else {
-                listener.logger.println("No Tool Installations to stop were found. No processes killed.")
-            }
-        }
-
-        private stopTTInstances() {
-            int timeout = executionConfig.timeout
-            listener.logger.println("Stop TraceTronic tool instances.")
-            if (ProcessUtil.killTTProcesses(timeout)) {
-                listener.logger.println("Stopped TraceTronic tools successfully.")
-            } else {
-                throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping TraceTronic tools!")
-            }
         }
     }
 }

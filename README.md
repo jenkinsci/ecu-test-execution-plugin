@@ -44,8 +44,10 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 ## Features
 
 - Provides an easy integration and control of ECU-TEST and TRACE-CHECK with Jenkins
+- Enables perfoming package and project checks with rules defined in ECU-TEST. 
+  - [Custom-Checks](https://github.com/tracetronic/ecu-test_custom-checks) provides an easy way to configure and import these checks.
 - Enables the execution of ECU-TEST packages and projects with their respective configurations
-- Enable the upload of generated test reports to [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) 
+- Enables the upload of generated test reports to [TEST-GUIDE](https://www.tracetronic.com/products/test-guide/) 
 - Using "pipelines first" approach to improve the automated process and traceability
 
 ## Configuration
@@ -70,6 +72,10 @@ the [Pipeline Snippet Generator](https://github.com/jenkinsci/pipeline-plugin/bl
 node('windows') {
     stage('Start Tools') {
         ttStartTool toolName: 'ECU-TEST', workspaceDir: './workspace', settingsDir: './settings'
+    }
+    stage('Package Checks') {
+      ttCheckPackage testCasePath: 'sample.pkg'
+      ttCheckPackage testCasePath: 'sample.prj'
     }
     stage('Test Execution') {
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]

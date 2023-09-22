@@ -34,6 +34,8 @@ class ETContainerTest extends ContainerTest {
                     "${ET_WS_PATH}/Configurations", BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/Packages", "${ET_WS_PATH}/Packages",
                     BindMode.READ_ONLY)
+            .withClasspathResourceMapping("workspace/UserPyModules", "${ET_WS_PATH}/UserPyModules",
+                    BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
                     BindMode.READ_ONLY)
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
@@ -41,6 +43,123 @@ class ETContainerTest extends ContainerTest {
 
     @Rule
     private GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
+
+    def "Perform check step"() {
+        given: "a test execution pipeline"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttCheckPackage testCasePath: 'test.pkg'
+                    }
+                }
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+    }
+
+    def "Perform check step on non-existing package"() {
+        given: "a test execution pipeline"
+            String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttCheckPackage testCasePath: 'testDoesNotExist.pkg'
+                        }
+                    }
+                    """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                .setInstallations(new ETInstallation('ECU-TEST',
+                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing Package Checks failed!", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("BAD REQUEST", run)
+            jenkins.assertLogContains("-> Tools stopped successfully.", run)
+    }
+
+    def "Perform check on invalid package"() {
+        given: "a test execution pipeline"
+            String script = """
+                        node {
+                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                ttCheckPackage testCasePath: 'invalid_package_desc.pkg'
+                            }
+                        }
+                        """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("-> Tools stopped successfully.", run)
+    }
+
+    def "Perform check on project"() {
+        given: "a test execution pipeline"
+            String script = """
+                            node {
+                                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                    ttCheckPackage testCasePath: 'test.prj'
+                                }
+                            }
+                            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("Executing Package Checks for: test.prj", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+    }
+
+
+    def "Perform check on project with invalid packages"() {
+        given: "a test execution pipeline"
+            String script = """
+                        node {
+                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                ttCheckPackage testCasePath: 'invalid_package_desc.prj'
+                            }
+                        }
+                        """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.prj", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("-> Tools stopped successfully.", run)
+    }
 
     def "Execute test case"() {
         given: "a test execution pipeline"
@@ -62,36 +181,65 @@ class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("result: SUCCESS", run)
-            jenkins.assertLogContains("reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
     def "Execute nonexisting test case"() {
         given: "a test execution pipeline"
-        String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
-                        testConfig: [tbcPath: 'test.tbc', 
-                                     tcfPath: 'test.tcf', 
-                                     forceConfigurationReload: false, 
-                                     constants: [[label: 'test', value: '123']]]
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
+                            testConfig: [tbcPath: 'test.tbc', 
+                                         tcfPath: 'test.tcf', 
+                                         forceConfigurationReload: false, 
+                                         constants: [[label: 'test', value: '123']]]
+                    }
                 }
-            }
-            """.stripIndent()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-        job.setDefinition(new CpsFlowDefinition(script, true))
-        jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                .setInstallations(new ETInstallation('ECU-TEST',
-                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
+                    .setInstallations(new ETInstallation('ECU-TEST',
+                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
-        WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-        jenkins.assertLogContains("result: ERROR", run)
-        jenkins.assertLogContains("Executing package failed!", run)
-        jenkins.assertLogContains("-> Tools stopped successfully.", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("Executing package failed!", run)
+            jenkins.assertLogContains("-> Tools stopped successfully.", run)
+    }
+
+    def "Execute test case including package check"() {
+        given: "a test execution pipeline"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttRunPackage testCasePath: 'invalid_package_desc.pkg', 
+                            executionConfig: [executePackageCheck: true, stopOnError: false],
+                            testConfig: [tbcPath: 'test.tbc', 
+                                         tcfPath: 'test.tcf', 
+                                         forceConfigurationReload: false, 
+                                         constants: [[label: 'test', value: '123']]]
+                    }
+                }
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("Executing package invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
 
     def "Generate report format"() {

@@ -93,7 +93,7 @@ class RunPackageStep extends RunTestStep {
             PackageConfig expPackageConfig = step.packageConfig.expand(envVars)
             AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
 
-            checkPackage(expTestCasePath)
+            checkPackagePath(expTestCasePath)
 
             TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
                     step.executionConfig, context, expPackageConfig, expAnalysisConfig)
@@ -105,7 +105,7 @@ class RunPackageStep extends RunTestStep {
             return result
         }
 
-        private void checkPackage(String packageFile)
+        private void checkPackagePath(String packageFile)
                 throws IOException, InterruptedException, IllegalArgumentException {
             if (IOUtils.isAbsolute(packageFile)) {
                 FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
