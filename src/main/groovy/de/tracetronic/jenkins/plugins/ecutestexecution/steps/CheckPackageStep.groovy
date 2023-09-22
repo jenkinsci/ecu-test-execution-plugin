@@ -168,7 +168,7 @@ class CheckPackageStep extends Step {
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() {
+        CheckPackageResult call() throws ApiException {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             CheckPackageResult result
