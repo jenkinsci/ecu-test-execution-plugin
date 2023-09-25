@@ -13,3 +13,7 @@ updates:
     reviewers:
       - 'TT-S3-D1'
       - 'MartinGroscheTT'
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
