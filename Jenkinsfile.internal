@@ -26,7 +26,7 @@ pipeline {
 
     environment {
         authKey = credentials('TG_authkey_test_report_upload')
-        pipeline_report_dir = "report2TG"
+        pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
     }
 
     stages {
