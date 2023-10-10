@@ -21,7 +21,7 @@ pipeline {
     }
 
     agent {
-        label 'windows && docker'
+        label 'docker'
     }
 
     environment {
@@ -49,7 +49,7 @@ pipeline {
                         }
                         stage('Run Container Tests') {
                             steps {
-                                bat './gradlew clean containerTest -Dspock.skip.sandbox=false'
+                                cmd '"./gradlew" clean containerTest -Dspock.skip.sandbox=false'
                             }
                         }
                     }
