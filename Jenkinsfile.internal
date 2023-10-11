@@ -21,7 +21,7 @@ pipeline {
     }
 
     agent {
-        label 'docker'
+        label 'master'
     }
 
     environment {
@@ -41,6 +41,9 @@ pipeline {
                     }
                 }
                 stage('Container Tests') {
+                    agent {
+                        label 'docker'
+                    }
                     stages {
                         stage('Prepare Resources') {
                             steps {
