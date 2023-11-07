@@ -16,7 +16,7 @@ Prerequisites
 
 pipeline {
     options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(daysToKeep: '14'))
         timestamps()
     }
 
