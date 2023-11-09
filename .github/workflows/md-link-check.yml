@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: gaurav-nelson/github-action-markdown-link-check@1.0.13
+      - uses: gaurav-nelson/github-action-markdown-link-check@1.0.15
 
