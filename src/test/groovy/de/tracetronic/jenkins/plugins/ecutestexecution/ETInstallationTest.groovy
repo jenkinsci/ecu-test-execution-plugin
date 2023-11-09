@@ -107,7 +107,7 @@ class ETInstallationTest extends IntegrationTestBase {
     def 'getAllExecutableNames with installations on agent (Linux)' () {
         given:
             def mockEnvVars = Mock(EnvVars)
-            mockEnvVars.expand(_) >>> ["/bin/ecutest", "/bin/justfortesting/tracecheck"]
+            mockEnvVars.expand(_) >>> ["/bin/ecu-test", "/bin/justfortesting/trace-check"]
             def mockListener = Mock(TaskListener)
             def slave = jenkins.createSlave()
 
@@ -122,8 +122,8 @@ class ETInstallationTest extends IntegrationTestBase {
 
         then:
             allInstallations.size() == 2
-            allInstallations.contains("ecutest")
-            allInstallations.contains("tracecheck")
+            allInstallations.contains("ecu-test")
+            allInstallations.contains("trace-check")
     }
 
     def 'getExeFileNames for TraceTronic tools' () {
