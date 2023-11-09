@@ -19,6 +19,8 @@ import hudson.FilePath
 import hudson.Launcher
 import hudson.model.Computer
 import hudson.model.Node
+import hudson.model.Result
+import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.tools.ToolInstallation
 import hudson.util.ArgumentListBuilder
@@ -130,19 +132,24 @@ class StartToolStep extends Step {
 
         @Override
         protected Void run() throws Exception {
-            EnvVars envVars = context.get(EnvVars.class)
-            FilePath workspace = context.get(FilePath.class)
-            String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
-            String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
+            try {
+                EnvVars envVars = context.get(EnvVars.class)
+                FilePath workspace = context.get(FilePath.class)
+                String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
+                String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
 
-            expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
-            expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
+                expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
+                expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
 
-            checkWorkspace(expWorkspaceDir, expSettingsDir)
+                checkWorkspace(expWorkspaceDir, expSettingsDir)
 
-            return context.get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(getToolInstallation(), expWorkspaceDir, expSettingsDir,
-                            step.timeout, step.keepInstance, step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
+                return context.get(Launcher.class).getChannel().call(
+                        new ExecutionCallable(getToolInstallation(), expWorkspaceDir, expSettingsDir,
+                                step.timeout, step.keepInstance, step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
+            } catch (Exception e) {
+                context.get(TaskListener.class).error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
+            }
         }
 
         private static ETInstallation.DescriptorImpl getToolDescriptor() {
@@ -241,7 +248,7 @@ class StartToolStep extends Step {
          */
         private void checkLicense(String toolName) {
             ArgumentListBuilder args = new ArgumentListBuilder()
-            args.add(installation.getExeFile().absolutePath)
+            args.add(installation.exeFile.absolutePath)
             args.add("--startupAutomated=True")
             args.add("-q")
             Process process = new ProcessBuilder().command(args.toCommandArray()).start()
@@ -281,7 +288,7 @@ class StartToolStep extends Step {
          */
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
-            args.add(installation.getExeFile().absolutePath)
+            args.add(installation.exeFile.absolutePath)
             args.add('--workspaceDir', workspaceDir)
             args.add('-s', settingsDir)
             args.add('--startupAutomated=True')
