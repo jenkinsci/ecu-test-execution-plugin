@@ -15,6 +15,8 @@ import hudson.Functions
 import hudson.Launcher
 import hudson.model.Computer
 import hudson.model.Node
+import hudson.model.Result
+import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.tools.ToolInstallation
 import hudson.util.FormValidation
@@ -88,9 +90,14 @@ class StopToolStep extends Step {
 
         @Override
         protected Void run() throws Exception {
-            return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(getToolInstallation(), step.timeout, step.stopUndefinedTools,
-                            context.get(EnvVars.class), context.get(TaskListener.class)))
+            try {
+                return getContext().get(Launcher.class).getChannel().call(
+                        new ExecutionCallable(getToolInstallation(), step.timeout, step.stopUndefinedTools,
+                                context.get(EnvVars.class), context.get(TaskListener.class)))
+            } catch(Exception e) {
+                context.get(TaskListener.class).error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
+            }
         }
 
         private static ETInstallation.DescriptorImpl getToolDescriptor() {

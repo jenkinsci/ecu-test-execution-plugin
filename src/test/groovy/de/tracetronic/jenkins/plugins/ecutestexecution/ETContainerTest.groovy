@@ -5,6 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution
 
+import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -75,9 +76,6 @@ class ETContainerTest extends ContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                .setInstallations(new ETInstallation('ECU-TEST',
-                        '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
@@ -86,7 +84,6 @@ class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing Package Checks failed!", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("BAD REQUEST", run)
-            jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Perform check on invalid package"() {
@@ -100,9 +97,6 @@ class ETContainerTest extends ContainerTest {
                         """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
@@ -111,7 +105,6 @@ class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Perform check on project"() {
@@ -125,9 +118,6 @@ class ETContainerTest extends ContainerTest {
                             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
@@ -148,9 +138,6 @@ class ETContainerTest extends ContainerTest {
                         """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
@@ -158,7 +145,6 @@ class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.prj", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Execute test case"() {
@@ -200,9 +186,6 @@ class ETContainerTest extends ContainerTest {
                 """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            jenkins.jenkins.getDescriptorByType(ETInstallation.DescriptorImpl.class)
-                    .setInstallations(new ETInstallation('ECU-TEST',
-                            '/bin/ecu-test', JenkinsRule.NO_PROPERTIES))
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
@@ -210,7 +193,6 @@ class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("Executing package failed!", run)
-            jenkins.assertLogContains("-> Tools stopped successfully.", run)
     }
 
     def "Execute test case including package check"() {

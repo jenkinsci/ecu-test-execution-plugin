@@ -15,6 +15,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
+import hudson.Functions
 import spock.lang.IgnoreIf
 
 import java.sql.ResultSet
@@ -24,7 +25,8 @@ class StopToolStepIT extends IntegrationTestBase {
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', 'C:\\ECU-TEST\\ECU-TEST.exe', JenkinsRule.NO_PROPERTIES))
+        String executablePath = Functions.isWindows() ? 'C:\\ECU-TEST\\ECU-TEST.exe' : 'bin/ecu-test'
+        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES))
     }
 
     def 'Default config round trip'() {

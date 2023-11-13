@@ -75,6 +75,20 @@ class ETInstallation extends ToolInstallation implements
     @CheckForNull
     File getExeFile() {
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars)
+        if (!home) {
+            throw new IllegalArgumentException("Tool executable path of '${getName()}' " +
+                    "is not configured for this node!")
+        }
+
+        String exeName = Functions.isWindows() ? home.tokenize("\\")[-1] :
+                home.tokenize("/")[-1]
+        String executables = Functions.isWindows() ? WINDOWS_EXECUTABLES : UNIX_EXECUTABLES
+
+        if (!executables.contains(exeName)) {
+            throw new IllegalArgumentException("Tool executable path of '${getName()}': " +
+                    "'${home}' does not contain a TraceTronic tool!")
+        }
+
         return new File(home)
     }
 
@@ -142,7 +156,7 @@ class ETInstallation extends ToolInstallation implements
             FormValidation returnValue = FormValidation.ok()
             if (StringUtils.isEmpty(value.toString())) {
                 returnValue = FormValidation.warning('Entry is mandatory only if it is intended to execute ECU-TEST ' +
-                        'on the Jenkins master, otherwise configure each individual agent.')
+                        'on the Jenkins controller, otherwise configure each individual agent.')
             }
             return returnValue
         }

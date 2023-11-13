@@ -9,6 +9,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
+import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
@@ -29,10 +30,10 @@ class RunTestFolderStepIT extends IntegrationTestBase {
     File testPackage
 
     def setup() {
-        ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins.
-                getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', 'C:\\ECU-TEST',
-                JenkinsRule.NO_PROPERTIES))
+        ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
+                .getDescriptorByType(ETInstallation.DescriptorImpl.class)
+        String executablePath = Functions.isWindows() ? 'C:\\ECU-TEST\\ECU-TEST.exe' : 'bin/ecu-test'
+        etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES))
     }
 
     def 'Default config round trip'() {
