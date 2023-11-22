@@ -77,7 +77,7 @@ dependencies {
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1180.v04c4e75dce43'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8:tests'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation('org.testcontainers:spock:1.17.6') {
+    testImplementation('org.testcontainers:spock:1.19.3') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
