@@ -41,7 +41,7 @@ jobs:
         id: artifactCopy
         run: ./gradlew publishMavenPublicationToArtifactsRepository
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifactName.outputs.artifact_name }}
           path: |
