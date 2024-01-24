@@ -27,6 +27,10 @@ pipeline {
     environment {
         authKey = credentials('TG_authkey_test_report_upload')
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
+        PRODUCT_NAME = "ecu-test-execution-plugin"
+        grade_properties = readProperties file:"${WORKSPACE}/gradle.properties"
+        PRODUCT_VERSION = grade_properties['version']
+        TEST_LEVEL = "system"
     }
 
     stages {
