@@ -28,12 +28,19 @@ pipeline {
         authKey = credentials('TG_authkey_test_report_upload')
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
-        gradle_properties = readProperties file:"${WORKSPACE}/gradle.properties"
-        PRODUCT_VERSION = ${gradle_properties['version']}
+        PRODUCT_VERSION = ""
         TEST_LEVEL = "system"
     }
 
     stages {
+        stage ('Set Product Version') {
+            steps {
+                script {
+                    gradle_properties = readProperties file:"${WORKSPACE}/gradle.properties"
+                    env.PRODUCT_VERSION = gradle_properties['version']
+                }
+            }
+        }
         stage('Run Parallel') {
             failFast false
             parallel {
