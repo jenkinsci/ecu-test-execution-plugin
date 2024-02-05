@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -10,6 +10,7 @@ import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -23,7 +24,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
     def setup() {
         CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next()
                 .addCredentials(Domain.global(), new UsernamePasswordCredentialsImpl(
-                        CredentialsScope.GLOBAL, 'authKey', 'TEST-GUIDE auth key', '', 'authKey'))
+                        CredentialsScope.GLOBAL, 'authKey', 'test.guide auth key', '', 'authKey'))
     }
 
     def 'Default config round trip'() {
@@ -73,8 +74,12 @@ class UploadReportsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttUploadReports credentialsId: 'authKey', " +
                             "testGuideUrl: 'http://localhost:8085' }", true))
+
+            // assume RestApiClient is available
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Uploading reports to TEST-GUIDE http://localhost:8085...', run)
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
     }
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
@@ -31,8 +36,8 @@ import org.kohsuke.stapler.QueryParameter
 import javax.annotation.Nonnull
 
 /**
- * Step providing the execution of ECU-TEST packages and projects inside a folder.
- * Please note that this step, in its current state, is not suitable for distributed systems and containerized ECU-TEST
+ * Step providing the execution of ecu.test packages and projects inside a folder.
+ * Please note that this step, in its current state, is not suitable for distributed systems and containerized ecu.test
  * versions (see README for an explanation).
  */
 class RunTestFolderStep extends RunTestStep {
@@ -166,11 +171,11 @@ class RunTestFolderStep extends RunTestStep {
             if (IOUtils.isAbsolute(folder)) {
                 FilePath folderPath = new FilePath(context.get(Launcher.class).getChannel(), folder)
                 if (!folderPath.exists()) {
-                    throw new IllegalArgumentException("ECU-TEST folder at ${folderPath.getRemote()} does not extist!")
+                    throw new IllegalArgumentException("ecu.test folder at ${folderPath.getRemote()} does not extist!")
                 }
                 return folderPath.getRemote()
             } else {
-                throw new IllegalArgumentException("Unsupported relative paths for ECU-TEST folder '${folder}'!")
+                throw new IllegalArgumentException("Unsupported relative paths for ecu.test folder '${folder}'!")
             }
         }
     }
@@ -246,7 +251,7 @@ class RunTestFolderStep extends RunTestStep {
 
         @Override
         String getDisplayName() {
-            '[TT] Run an ECU-TEST test folder'
+            '[TT] Run an ecu.test test folder'
         }
 
         static ScanMode getDefaultScanMode() {

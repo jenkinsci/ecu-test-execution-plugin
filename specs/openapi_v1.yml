@@ -1,13 +1,15 @@
-# Copyright (c) 2020-2022 TraceTronic GmbH
+# Copyright (c) 2020-2022 tracetronic GmbH
 # SPDX short identifier: MIT
 openapi: 3.0.3
 info:
-  title: ECU-TEST REST-API
-  version: '1.5.0'
-  description: '**ECU-TEST** is a test automation software for the validation of embedded systems in automotive environments developed by TraceTronic GmbH.
+  title: ecu.test REST-API V1 (deprecated)
+  version: '1.7.0'
+  description: '**ecu.test REST-API V1 is deprecated, please use [REST-API V2](/api/v2/ui/) instead.** 
+  <br> <br>
+  **ecu.test** is a test automation software for the validation of embedded systems in automotive environments developed by tracetronic GmbH.
   This software executes regression tests which are essential for validating complex technical products such as electronic control units (ECUs).
   It supports standardized access to a broad range of test tools and provides an extensive automation of distributed test environments.
-  The API reference for the ECU-TEST Core **enables the execution** of ECU-TEST packages, projects and analysis jobs with their respective configurations.'
+  The API reference for the ecu.test Core **enables the execution** of ecu.test packages, projects and analysis jobs with their respective configurations.'
   contact:
     email: support@tracetronic.com
   license:
@@ -24,6 +26,8 @@ tags:
     description: Endpoints related to test report operations.
   - name: apiStatus
     description: Endpoints for general API status matters.
+  - name: settings
+    description: Endpoints to manipulate program settings.
 components:
   schemas:
     AcceptedCheckExecutionOrder:
@@ -33,7 +37,7 @@ components:
         checkExecutionId:
           type: string
     Execution:
-      description: Represents the sum of all information ECU-TEST needs and provides for a certain test execution.
+      description: Represents the sum of all information ecu.test needs and provides for a certain test execution.
       type: object
       required:
         - status
@@ -66,6 +70,9 @@ components:
             - FINISHED
             - ABORTED
             - ERROR
+        userData:  # arbitrary user data, no description on purpose, see TTS-36781
+          type: object
+          additionalProperties: true
 
     LabeledValue:
       description: Just a value and a representing label.
@@ -108,12 +115,12 @@ components:
           description: 'Optional device name. Required if the recording contains multiple
                 devices and the mapping between device names in the test configuration and device
                 names in the recording cannot be realized by format details.
-                See "Supported file formats" in ECU-TEST help for more information.'
+                See "Supported file formats" in ecu.test help for more information.'
         formatDetails:
           type: string
           description: 'Optional format details. Required if the recording cannot be
                 interpreted with default format details.
-                See "Supported file formats" in ECU-TEST help for more information.'
+                See "Supported file formats" in ecu.test help for more information.'
         recordingNumber:
           type: integer
           description: 'Optional recording number. Required for unique identification of
@@ -162,9 +169,9 @@ components:
           * none: Analyses are not executed at all.
 
           * downstream: Analyses are not executed immediately,
-                        but analysis tasks are created in TEST-GUIDE,
+                        but analysis tasks are created in test.guide,
                         which triggers a downstream analysis.
-                        (TEST-GUIDE has to be configured appropriately in ECU-TEST for this mode.)
+                        (test.guide has to be configured appropriately in ecu.test for this mode.)
 
           * downstream_no_upload: Analyses are not executed, but .ajob.json files are created.
                                   These files can be used to trigger analyses via REST-API.'
@@ -244,6 +251,8 @@ components:
           default: ''
         constants:
           type: array
+          description: 'Add new global constants or overwrite the value of existing global 
+          constants.'
           items:
             $ref: '#/components/schemas/LabeledValue'
           example:
@@ -277,7 +286,7 @@ components:
             type: string
 
     TGUpload:
-      description: Represents the sum of all information ECU-TEST needs and provides for a certain test report upload to TEST-GUIDE.
+      description: Represents the sum of all information ecu.test needs and provides for a certain test report upload to test.guide.
       type: object
       required:
         - status
@@ -292,34 +301,34 @@ components:
           $ref: '#/components/schemas/TGUploadResult'
 
     TGUploadOrder:
-      description: An order to execute a TEST-GUIDE upload.
+      description: An order to execute a test.guide upload.
       type: object
       required:
         - testGuideUrl
       properties:
         testGuideUrl:
           type: string
-          description: The URL to the TEST-GUIDE instance to connect to, e.g. https://myTestGuideHost:1234
+          description: The URL to the test.guide instance to connect to, e.g. https://myTestGuideHost:1234
         authKey:
           type: string
           default: ''
-          description: API authentification key. Needed if authentification is switched on in TEST-GUIDE.
+          description: API authentification key. Needed if authentification is switched on in test.guide.
         projectId:
           type: integer
           default: 0
-          description: The TEST-GUIDE project ID to upload to.
+          description: The test.guide project ID to upload to.
         useSettingsFromServer:
           type: boolean
           default: false
-          description: Get and use upload settings from TEST-GUIDE.
+          description: Get and use upload settings from test.guide.
         additionalSettings:
           type: object
           additionalProperties:
             type: string
-          description: Key-value pairs containing optional settings for the TEST-GUIDE upload. Equivalent to ECU-TEST -> Settings -> TEST-GUIDE -> ATX Generator default settings.
+          description: Key-value pairs containing optional settings for the test.guide upload. Equivalent to ecu.test -> Settings -> test.guide -> ATX Generator default settings.
 
     TGUploadStatus:
-      description: The current upload status of a triggered TEST-GUIDE upload.
+      description: The current upload status of a triggered test.guide upload.
       type: object
       required:
         - message
@@ -338,17 +347,17 @@ components:
             - ERROR
 
     TGUploadResult:
-      description: The result of a triggered TEST-GUIDE upload.
+      description: The result of a triggered test.guide upload.
       type: object
       required:
         - link
       properties:
         link:
           type: string
-          description: Link to the uploaded TEST-GUIDE report.
+          description: Link to the uploaded test.guide report.
 
     ReportGeneration:
-      description: Represents the sum of all information ECU-TEST needs and provides for a certain test report generation via a report generator.
+      description: Represents the sum of all information ecu.test needs and provides for a certain test report generation via a report generator.
       type: object
       required:
         - status
@@ -438,6 +447,20 @@ components:
         size:
           type: integer
 
+    ApplySettingsOrder:
+      description: An order to reload program settings from their respective files.
+      type: object
+      required:
+        - settingNames
+      properties:
+        settingNames:
+          type: array
+          description: 'The names of the settings to be reloaded.'
+          items:
+            type: string
+            enum:
+              - manifest
+
   responses:
     200OK:
       description: OK
@@ -487,7 +510,7 @@ components:
           example:
             _class: "io.jenkins.plugins.analysis.core.restapi.ReportApi"
             issues:
-              - description: "Generated message from ECU-TEST to open the affected Package"
+              - description: "Generated message from ecu.test to open the affected Package"
                 directory: "<Absolute path to the workspace>/Packages"
                 fileName: "Package.pkg"
                 message: "The message from the check"
@@ -517,6 +540,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
     get:
       tags:
         - checks
@@ -525,6 +549,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/CheckExecutionStatusOverview'
+      deprecated: true
 
   /checks/executions/{checkExecutionId}:
     get:
@@ -548,6 +573,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
 
     delete:
       tags:
@@ -572,6 +598,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
 
   /checks/executions/{checkExecutionId}/result:
     get:
@@ -599,6 +626,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
+
   /execution:
     get:
       tags:
@@ -619,12 +648,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
     put:
       tags:
         - execution
       summary: Creates a new execution to run.
-      description: 'Gives ECU-TEST a new execution to run, if no other execution is currently
-      active. Please note that the result will not automatically be uploaded to TEST-GUIDE, even
+      description: 'Gives ecu.test a new execution to run, if no other execution is currently
+      active. Please note that the result will not automatically be uploaded to test.guide, even
       if specified so in the workspace settings.'
       operationId: CreateExecution
       requestBody:
@@ -636,11 +666,12 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '409':
-          description: ECU-TEST already runs a test execution and therefore does not accept another one. Try again later.
+          description: ecu.test already runs a test execution and therefore does not accept another one. Try again later.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
     delete:
       tags:
         - execution
@@ -650,13 +681,14 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200OK'
+      deprecated: true
 
   /reports:
     get:
       tags:
         - report
       summary: Get information about all available test reports.
-      description: Gives information about all test reports currently available in the ECU-TEST report directory.
+      description: Gives information about all test reports currently available in the ecu.test report directory.
       operationId: GetAllReports
       responses:
         '200':
@@ -667,6 +699,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReportInfo'
+      deprecated: true
 
   /reports/{reportId}:
     get:
@@ -689,18 +722,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReportInfo'
         '404':
-          description: No report with the given ID exists in the ECU-TEST report directory.
+          description: No report with the given ID exists in the ecu.test report directory.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
 
   /reports/{reportId}/upload:
     get:
       tags:
         - report
-      summary: Get information about the upload status to TEST-GUIDE.
-      description: Get information about the upload status to TEST-GUIDE.
+      summary: Get information about the upload status to test.guide.
+      description: Get information about the upload status to test.guide.
       operationId: GetCurrentUpload
       parameters:
         - name: reportId
@@ -710,7 +744,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Successfully queried information about the TEST-GUIDE upload status.
+          description: Successfully queried information about the test.guide upload status.
           content:
             application/json:
               schema:
@@ -721,11 +755,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
+
     put:
       tags:
         - report
-      summary: Uploads a report to TEST-GUIDE.
-      description: Triggers the upload of the given report to TEST-GUIDE.
+      summary: Uploads a report to test.guide.
+      description: Triggers the upload of the given report to test.guide.
       operationId: CreateUpload
       parameters:
         - name: reportId
@@ -742,7 +778,7 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '404':
-          description: No report with the given ID exists in the ECU-TEST report directory.
+          description: No report with the given ID exists in the ecu.test report directory.
           content:
             application/json:
               schema:
@@ -753,6 +789,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
 
   /reports/{reportId}/generate:
     get:
@@ -780,6 +817,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
+
     put:
       tags:
         - report
@@ -801,7 +840,7 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '404':
-          description: No report with the given ID exists in the ECU-TEST report directory.
+          description: No report with the given ID exists in the ecu.test report directory.
           content:
             application/json:
               schema:
@@ -812,6 +851,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true
 
   /live:
     get:
@@ -823,3 +863,25 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200OK'
+      deprecated: true
+
+  /settings/reload:
+    put:
+      tags:
+        - settings
+      summary: Reload program settings.
+      description: Triggers jobs for reloading the program settings with the specified names.
+      operationId: CreateReloadSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplySettingsOrder'
+      responses:
+        '200':
+          description: Reload jobs for the specified settings were triggered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
+      deprecated: true

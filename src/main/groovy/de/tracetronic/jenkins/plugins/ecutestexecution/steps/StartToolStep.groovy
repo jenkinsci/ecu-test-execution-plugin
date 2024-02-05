@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,8 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
@@ -17,8 +18,6 @@ import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
 import hudson.Launcher
-import hudson.model.Computer
-import hudson.model.Node
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
@@ -144,35 +143,13 @@ class StartToolStep extends Step {
                 checkWorkspace(expWorkspaceDir, expSettingsDir)
 
                 return context.get(Launcher.class).getChannel().call(
-                        new ExecutionCallable(getToolInstallation(), expWorkspaceDir, expSettingsDir,
-                                step.timeout, step.keepInstance, step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
+                        new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
+                                expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
+                                step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
             }
-        }
-
-        private static ETInstallation.DescriptorImpl getToolDescriptor() {
-            return ToolInstallation.all().get(ETInstallation.DescriptorImpl.class)
-        }
-
-        private ETInstallation getToolInstallation() {
-            String expToolName = context.get(EnvVars.class).expand(step.toolName)
-            ETInstallation installation = getToolDescriptor().getInstallation(expToolName)
-
-            if (installation) {
-                // FIXME: deprecation
-                Computer computer = getContext().get(Launcher).getComputer()
-                final Node node = computer?.getNode()
-                if (node) {
-                    installation = installation.forNode(node, context.get(TaskListener.class))
-                    installation = installation.forEnvironment(context.get(EnvVars.class))
-                }
-            } else {
-                throw new IllegalArgumentException("Tool installation ${expToolName} is not configured for this node!")
-            }
-
-            return installation
         }
 
         private void checkWorkspace(String workspaceDir, String settingsDir)
@@ -180,14 +157,14 @@ class StartToolStep extends Step {
             FilePath workspacePath = new FilePath(context.get(Launcher.class).getChannel(), workspaceDir)
             if (!workspacePath.exists()) {
                 throw new IllegalArgumentException(
-                        "ECU-TEST workspace directory at ${workspacePath.getRemote()} does not exist!")
+                        "ecu.test workspace directory at ${workspacePath.getRemote()} does not exist!")
             }
 
             FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
             if (!settingsPath.exists()) {
                 settingsPath.mkdirs()
                 def listener = context.get(TaskListener.class)
-                listener.logger.println("ECU-TEST settings directory created at ${settingsPath.getRemote()}.")
+                listener.logger.println("ecu.test settings directory created at ${settingsPath.getRemote()}.")
             }
         }
     }
@@ -226,11 +203,11 @@ class StartToolStep extends Step {
                 connectTool(toolName)
             } else {
                 if (stopUndefinedTools) {
-                    listener.logger.println("Stop TraceTronic tool instances.")
+                    listener.logger.println("Stop tracetronic tool instances.")
                     if (ProcessUtil.killTTProcesses(timeout)) {
-                        listener.logger.println("Stopped TraceTronic tools successfully.")
+                        listener.logger.println("Stopped tracetronic tools successfully.")
                     } else {
-                        throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping TraceTronic tools!")
+                        throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!")
                     }
                 }
                 listener.logger.println("Starting ${toolName}...")
@@ -248,7 +225,7 @@ class StartToolStep extends Step {
          */
         private void checkLicense(String toolName) {
             ArgumentListBuilder args = new ArgumentListBuilder()
-            args.add(installation.exeFile.absolutePath)
+            args.add(installation.exeFileOnNode.absolutePath)
             args.add("--startupAutomated=True")
             args.add("-q")
             Process process = new ProcessBuilder().command(args.toCommandArray()).start()
@@ -282,13 +259,13 @@ class StartToolStep extends Step {
         }
 
         /**
-         * Starts the tool (ECU-TEST or TRACE-CHECK) with CLI parameters.
+         * Starts the tool (ecu.test or trace.check) with CLI parameters.
          * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
          * @throws IllegalStateException
          */
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
-            args.add(installation.exeFile.absolutePath)
+            args.add(installation.exeFileOnNode.absolutePath)
             args.add('--workspaceDir', workspaceDir)
             args.add('-s', settingsDir)
             args.add('--startupAutomated=True')
@@ -316,8 +293,9 @@ class StartToolStep extends Step {
          * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
          */
         private void connectTool(String toolName) {
-            RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            if (!apiClient.waitForAlive(timeout)) {
+            try {
+                 RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'), timeout)
+            } catch (ApiException e) {
                 throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}!")
             }
         }
@@ -347,7 +325,7 @@ class StartToolStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Start an ECU-TEST or TRACE-CHECK instance'
+            '[TT] Start an ecu.test or trace.check instance'
         }
 
         @Override

@@ -1,10 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: ECU-TEST-Execution Plugin
-Upstream-Contact: TraceTronic GmbH <info@tracetronic.de>
+Upstream-Name: ecu.test execution plugin
+Upstream-Contact: tracetronic GmbH <info@tracetronic.de>
 Source: https://github.com/tracetronic/ecu-test-execution-plugin
 
 Files: *
-Copyright: 2021-2022 TraceTronic GmbH
+Copyright: 2021-2024 tracetronic GmbH
 License: BSD-3-Clause
 
 Files: gradlew gradlew.bat gradle/wrapper/*
@@ -15,6 +15,10 @@ Files: test/groovy/testSupport/*
 Copyright: 2017 Bill Dennis (macg33zr)
 License: Apache-2.0
 
-Files: specs/openapi.yml
-Copyright: 2020-2022 TraceTronic GmbH
+Files: specs/openapi_v1.yml
+Copyright: 2020-2024 tracetronic GmbH
+License: MIT
+
+Files: specs/openapi_v2.yml
+Copyright: 2020-2024 tracetronic GmbH
 License: MIT

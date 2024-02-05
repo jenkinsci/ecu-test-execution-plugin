@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -32,7 +32,7 @@ import org.kohsuke.stapler.QueryParameter
 import javax.annotation.Nonnull
 
 /**
- * Step providing the execution of ECU-TEST packages.
+ * Step providing the execution of ecu.test packages.
  */
 class RunPackageStep extends RunTestStep {
 
@@ -110,7 +110,7 @@ class RunPackageStep extends RunTestStep {
             if (IOUtils.isAbsolute(packageFile)) {
                 FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
                 if (!packagePath.exists()) {
-                    throw new IllegalArgumentException("ECU-TEST package at ${packagePath.getRemote()} does not exist!")
+                    throw new IllegalArgumentException("ecu.test package at ${packagePath.getRemote()} does not exist!")
                 }
             }
         }
@@ -136,7 +136,7 @@ class RunPackageStep extends RunTestStep {
 
         @Override
         String getDisplayName() {
-            '[TT] Run an ECU-TEST package'
+            '[TT] Run an ecu.test package'
         }
 
         @Override

@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
-import de.tracetronic.cxs.generated.et.client.model.AdditionalSettings
-import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
-import de.tracetronic.cxs.generated.et.client.model.LabeledValue
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.AdditionalSettings
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LabeledValue
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
@@ -31,10 +36,11 @@ class ExecutionOrderBuilder implements Serializable {
      * @param analysisConfig
      */
     ExecutionOrderBuilder(String testCasePath, TestConfig testConfig, PackageConfig packageConfig, AnalysisConfig analysisConfig) {
-        this(testCasePath, testConfig)
+        this.testCasePath = testCasePath
+        this.testConfig = testConfig
         this.packageConfig = packageConfig
         this.analysisConfig = analysisConfig
-        isPackage = true
+        this.isPackage = true
     }
 
     /**
@@ -45,7 +51,9 @@ class ExecutionOrderBuilder implements Serializable {
     ExecutionOrderBuilder(String testCasePath, TestConfig testConfig) {
         this.testCasePath = testCasePath
         this.testConfig = testConfig
-        isPackage = false
+        this.packageConfig = null
+        this.analysisConfig = null
+        this.isPackage = false
     }
 
     /**
@@ -55,24 +63,17 @@ class ExecutionOrderBuilder implements Serializable {
     ExecutionOrder build() {
         AdditionalSettings settings
         if (isPackage) {
-            settings = new AdditionalSettings()
-                .forceConfigurationReload(testConfig.forceConfigurationReload)
-                .packageParameters(packageConfig.packageParameters as List<LabeledValue>)
-                .analysisName(analysisConfig.analysisName)
-                .mapping(analysisConfig.mapping)
-                .recordings(ConverterUtil.recordingConverter(analysisConfig.recordings))
+
+            settings = new AdditionalSettings(analysisConfig.analysisName,
+                    ConverterUtil.recordingConverter(analysisConfig.recordings), analysisConfig.mapping,
+                    testConfig.forceConfigurationReload, ConverterUtil.labeledValueConverter(packageConfig.packageParameters))
         }
         else {
-            settings = new AdditionalSettings()
-                .forceConfigurationReload(testConfig.forceConfigurationReload)
+            settings = new AdditionalSettings(testConfig.forceConfigurationReload)
         }
 
-        ExecutionOrder executionOrder = new ExecutionOrder()
-                .testCasePath(testCasePath)
-                .tbcPath(testConfig.tbcPath)
-                .tcfPath(testConfig.tcfPath)
-                .constants(ConverterUtil.labeledValueConverter(testConfig.constants))
-                .additionalSettings(settings)
+        ExecutionOrder executionOrder = new ExecutionOrder(testCasePath, settings, testConfig.tbcPath,
+                testConfig.tcfPath, testConfig.constants)
 
         return executionOrder
     }

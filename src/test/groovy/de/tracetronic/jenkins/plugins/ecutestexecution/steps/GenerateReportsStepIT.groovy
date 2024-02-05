@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -54,6 +55,10 @@ class GenerateReportsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
+
+            // assume RestApiClient is available
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Generating HTML reports...', run)

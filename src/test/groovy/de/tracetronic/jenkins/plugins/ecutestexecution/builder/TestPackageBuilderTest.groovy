@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
-import de.tracetronic.cxs.generated.et.client.model.ExecutionOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
@@ -58,11 +63,10 @@ class TestPackageBuilderTest extends Specification {
     }
 
     void assertExecutionOrder(ExecutionOrder order) {
-        assert order.additionalSettings != null
-        assert order.getTestCasePath() == 'testFile'
-        assert order.getTbcPath() == ''
-        assert order.getTcfPath() == ''
-        assert order.getConstants() != null
-        assert order.getExecutionId() == ''
+        assert order.additionalSetting != null
+        assert order.testCasePath == 'testFile'
+        assert order.tbcPath == ''
+        assert order.tcfPath == ''
+        assert order.constants != null
     }
 }

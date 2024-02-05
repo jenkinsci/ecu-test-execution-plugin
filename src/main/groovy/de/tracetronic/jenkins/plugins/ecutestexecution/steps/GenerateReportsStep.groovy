@@ -1,19 +1,21 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.model.ReportGeneration
-import de.tracetronic.cxs.generated.et.client.model.ReportGenerationOrder
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
+import hudson.model.Result
+import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.ListBoxModel
 import jenkins.security.MasterToSlaveCallable
@@ -99,9 +101,15 @@ class GenerateReportsStep extends Step {
             List<AdditionalSetting> expSettings = expandSettings(step.additionalSettings, context.get(EnvVars.class))
             Map<String, String> expSettingsMap = toSettingsMap(expSettings)
 
-            return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(step.generatorName, expSettingsMap, step.reportIds,
-                            context.get(EnvVars.class), context.get(TaskListener.class)))
+            try {
+                return getContext().get(Launcher.class).getChannel().call(
+                        new ExecutionCallable(step.generatorName, expSettingsMap, step.reportIds,
+                                context.get(EnvVars.class), context.get(TaskListener.class)))
+            } catch (Exception e) {
+                context.get(TaskListener.class).error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
+                return new GenerationResult("A problem occured during the report generation. See caused exception for more details.", "", null)
+            }
         }
     }
 
@@ -128,24 +136,18 @@ class GenerateReportsStep extends Step {
         @Override
         GenerationResult call() throws IOException {
             GenerationResult result = null
-            RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
-            ReportGenerationOrder generationOrder = new ReportGenerationOrder()
-                    .generatorName(generatorName)
-                    .additionalSettings(additionalSettings)
-
+            ReportGenerationOrder generationOrder = new ReportGenerationOrder(generatorName, additionalSettings)
             listener.logger.println("Generating ${this.generatorName} reports...")
 
             if (reportIds == null || reportIds.isEmpty()) {
                 reportIds = apiClient.getAllReportIds()
             }
+
             reportIds.each { reportId ->
                 listener.logger.println("- Generating ${this.generatorName} report format for report id ${reportId}...")
-
-                ReportGeneration generation = apiClient.generateReport(reportId, generationOrder)
-                result = new GenerationResult(generation.status.key.name(), generation.status.message,
-                        generation.result.outputDir)
-
+                result = apiClient.generateReport(reportId, generationOrder)
                 listener.logger.println(result.toString())
             }
 
@@ -175,7 +177,7 @@ class GenerateReportsStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Generate ECU-TEST reports'
+            '[TT] Generate ecu.test reports'
         }
 
         @Override
