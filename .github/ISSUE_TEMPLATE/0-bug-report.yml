@@ -36,7 +36,7 @@ body:
         examples:
         - Jenkins: LTS 2.332.3
         - Plugin: 3.0
-        - ecu.test: 2022.2
+        - ecu.test: 2023.4
         - test.guide: 1.139.0 (or empty)
       value: |
         - Jenkins:
