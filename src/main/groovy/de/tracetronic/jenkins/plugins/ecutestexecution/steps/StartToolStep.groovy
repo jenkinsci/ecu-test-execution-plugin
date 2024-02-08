@@ -147,8 +147,8 @@ class StartToolStep extends Step {
                                 expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
                                 step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
             } catch (Exception e) {
-                context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
+                throw(e) // there is no friendly option to stop the step execution without an exception
             }
         }
 
@@ -169,7 +169,7 @@ class StartToolStep extends Step {
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<Void, IOException> {
+    private static final class ExecutionCallable extends MasterToSlaveCallable<Void, TimeoutException> {
 
         private static final long serialVersionUID = 1L
 
@@ -196,7 +196,7 @@ class StartToolStep extends Step {
         }
 
         @Override
-        Void call() throws IOException {
+        Void call() throws TimeoutException {
             String toolName = installation.getName()
             if (keepInstance) {
                 listener.logger.println("Re-using running instance ${toolName}...")

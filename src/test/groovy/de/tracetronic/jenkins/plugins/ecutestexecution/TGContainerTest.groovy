@@ -144,7 +144,7 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "NOT FOUND") == 1
             StringUtils.countMatches(jenkins.getLog(run), "404") == 1
             StringUtils.countMatches(jenkins.getLog(run),
                     "no report with the given report ID ${reportID}") == 1
