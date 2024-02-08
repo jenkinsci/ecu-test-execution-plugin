@@ -1,49 +1,33 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution
 
-import hudson.Functions
+
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.junit.Rule
 import org.jvnet.hudson.test.GroovyJenkinsRule
-import org.jvnet.hudson.test.JenkinsRule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils
 import org.testcontainers.spock.Testcontainers
 
-@Testcontainers
-class ETContainerTest extends ContainerTest {
+abstract class ETContainerTest extends ContainerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ETContainerTest.class)
 
-    private GenericContainer etContainer = new GenericContainer<>(ET_IMAGE_NAME)
-            .withExposedPorts(ET_PORT)
-            .withClasspathResourceMapping("workspace/.workspace", "${ET_WS_PATH}/.workspace",
-                    BindMode.READ_ONLY)
-            .withClasspathResourceMapping("workspace/Configurations",
-                    "${ET_WS_PATH}/Configurations", BindMode.READ_ONLY)
-            .withClasspathResourceMapping("workspace/Packages", "${ET_WS_PATH}/Packages",
-                    BindMode.READ_ONLY)
-            .withClasspathResourceMapping("workspace/UserPyModules", "${ET_WS_PATH}/UserPyModules",
-                    BindMode.READ_ONLY)
-            .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
-                    BindMode.READ_ONLY)
-            .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-            .waitingFor(Wait.forHttp("/api/v1/live"))
-
     @Rule
-    private GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
+    protected GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
+
+    protected GenericContainer etContainer = getETContainer()
+
+    abstract GenericContainer getETContainer()
 
     def "Perform check step"() {
         given: "a test execution pipeline"

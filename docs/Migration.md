@@ -27,28 +27,28 @@ basic example pipeline is valid.
 ```groovy
 node('windows') {
     stage('Start Tools') {
-        // start ECU-TEST instance
-        startET toolName: 'ECU-TEST', workspaceDir: 'workspace', settingsDir: 'settings'
+        // start ecu.test instance
+        startET toolName: 'ecu.test', workspaceDir: 'workspace', settingsDir: 'settings'
     }
     stage('Test Execution') {
-        // execute ECU-TEST test folder
+        // execute ecu.test test folder
         testFolder failFast: false, recursiveScan: true, scanMode: 'PROJECTS_ONLY', testFile: 'S:\\ample\\Path'
-        // execute ECU-TEST project (e.g. multiple test packages)
+        // execute ecu.test project (e.g. multiple test packages)
         testProject testConfig: [constants: [[name: 'sample', value: '123']], tbcFile: 'sample.tbc', tcfFile: 'sample.tcf'], testFile: 'sample.prj'
-        // execute single ECU-TEST package
+        // execute single ecu.test package
         testPackage testConfig: [constants: [[name: 'sample', value: '\'samplevalue\'']], forceReload: true, tbcFile: '', tcfFile: ''], testFile: 'sample.pkg'
     }
     stage('Upload Reports') {
-        // upload generated report to TEST-GUIDE
-        publishATX 'TEST-GUIDE'
+        // upload generated report to test.guide
+        publishATX 'test.guide'
         // or publishETLogs failedOnError: true, unstableOnWarning: true
-        // or publishTMS credentialsId: 'YourCredentials', toolName: 'ECU-TEST'
+        // or publishTMS credentialsId: 'YourCredentials', toolName: 'ecu.test'
         // or publishTRF()
-        // or publishUNIT failedThreshold: 2.0, toolName: 'ECU-TEST', unstableThreshold: 1.0
+        // or publishUNIT failedThreshold: 2.0, toolName: 'ecu.test', unstableThreshold: 1.0
     }
     stage('Stop Tools') {
-        // shutdown ECU-TEST instance
-        stopET 'ECU-TEST'
+        // shutdown ecu.test instance
+        stopET 'ecu.test'
     }
 }
 ```
@@ -58,15 +58,15 @@ With plugin version 3.x the basic example pipeline can be migrated as follows:
 ```groovy
 node('windows') {
     stage('Start Tools') {
-        // start ECU-TEST instance
-        ttStartTool toolName: 'ECU-TEST', workspaceDir: 'workspace', settingsDir: 'settings'
+        // start ecu.test instance
+        ttStartTool toolName: 'ecu.test', workspaceDir: 'workspace', settingsDir: 'settings'
     }
     stage('Test Execution') {
-        // execute ECU-TEST test folder
+        // execute ecu.test test folder
         ttRunTestFolder failFast: false, recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: 'S:\\ample\\Path'
-        // execute ECU-TEST project (e.g. multiple test packages)
+        // execute ecu.test project (e.g. multiple test packages)
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
-        // execute single ECU-TEST package
+        // execute single ecu.test package
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
     stage('Generate Reports') {
@@ -74,11 +74,11 @@ node('windows') {
         ttGenerateReports 'HTML'
     }
     stage('Upload Reports') {
-        // upload generated reports into project (projectId) of TEST-GUIDE
+        // upload generated reports into project (projectId) of test.guide
         ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
     }
     stage('Stop Tools') {
-        // shutdown ECU-TEST instance
+        // shutdown ecu.test instance
         ttStopTool 'ECU-TEST'
     }
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.model
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
@@ -17,7 +22,7 @@ class ToolInstallations implements Serializable {
 
     private final StepContext context
     private final TaskListener listener
-    private final ArrayList<String> toolInstallations
+    public final ArrayList<ETInstallation> toolInstallations
 
     ToolInstallations(StepContext context) {
         this.context = context
@@ -32,7 +37,8 @@ class ToolInstallations implements Serializable {
      */
     void stopToolInstances(int timeout) throws TimeoutException {
         if (toolInstallations) {
-            if (ProcessUtil.killProcesses(toolInstallations, timeout)) {
+            List<String> exeFileNames = toolInstallations.collect {it.exeFileOnNode.getName() }
+            if (ProcessUtil.killProcesses(exeFileNames, timeout)) {
                 listener.logger.println('-> Tools stopped successfully.')
             }
             else {
@@ -48,26 +54,26 @@ class ToolInstallations implements Serializable {
      * @return
      */
     void stopTTInstances(int timeout) throws TimeoutException {
-        listener.logger.println("Stop TraceTronic tool instances.")
+        listener.logger.println("Stop tracetronic tool instances.")
         if (ProcessUtil.killTTProcesses(timeout)) {
-            listener.logger.println("Stopped TraceTronic tools successfully.")
+            listener.logger.println("Stopped tracetronic tools successfully.")
         } else {
-            throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping TraceTronic tools!")
+            throw new TimeoutException("Timeout of ${timeout} seconds exceeded for stopping tracetronic tools!")
         }
     }
 
-    private ArrayList<String> getToolInstallationsOnNode() {
+    private ArrayList<ETInstallation> getToolInstallationsOnNode() {
         /**
          * This method gets the executable names of the tool installations on the node given by the context.
-         * @return list of the executable names of the ECU-TEST installations on the respective node (can also be
-         * TRACE-CHECK executables)
+         * @return list of the executable names of the ecu.test installations on the respective node (can also be
+         * trace.check executables)
          */
-        Computer computer = context.get(Launcher).getComputer()
+        Computer computer = context.get(Computer)
         Node node = computer?.getNode()
         EnvVars envVars = context.get(EnvVars)
         TaskListener listener = context.get(TaskListener)
         if (node) {
-            return ETInstallation.getAllExecutableNames(envVars, node, listener)
+            return ETInstallation.getAllETInstallationsOnNode(envVars, node, listener)
         }
         return []
     }

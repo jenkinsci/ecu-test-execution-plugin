@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -51,7 +51,7 @@ final class ProcessUtil implements Serializable {
      * @param timeout the maximum time to wait for process termination, 0 disabled timeout
      * @return {@code true} if all processes have exited in timeout, {@code false} otherwise
      */
-    static boolean killProcesses(ArrayList<String> taskNames, int timeout = 30) {
+    static boolean killProcesses(List<String> taskNames, int timeout = 30) {
         boolean allExitedInTimeout = true
         for (def taskName : taskNames) {
             allExitedInTimeout = killProcess(taskName, timeout) && allExitedInTimeout
@@ -60,7 +60,7 @@ final class ProcessUtil implements Serializable {
     }
 
     /**
-     * Kills all TraceTronic tool processes, even if they are not configured within the Jenkins installations.
+     * Kills all tracetronic tool processes, even if they are not configured within the Jenkins installations.
      * @param timeout the maximum time to wait for process termination, 0 disabled timeout
      * @return {@code true} if all processes have exited in timeout, {@code false} otherwise
      */

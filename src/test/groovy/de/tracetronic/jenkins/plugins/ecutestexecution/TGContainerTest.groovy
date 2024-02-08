@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -52,7 +52,7 @@ class TGContainerTest extends ContainerTest {
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .waitingFor(Wait.forHttp("/api/health/ready").withStartupTimeout(Duration.ofMinutes(15)))
 
-    private GenericContainer etContainer = new GenericContainer<>(ET_IMAGE_NAME)
+    private GenericContainer etContainer = new GenericContainer<>(ET_V2_IMAGE_NAME)
             .withExposedPorts(ET_PORT)
             .withNetwork(network)
             .withClasspathResourceMapping("workspace/.workspace", "${ET_WS_PATH}/.workspace",
@@ -72,7 +72,7 @@ class TGContainerTest extends ContainerTest {
     def setup() {
         CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next()
                 .addCredentials(Domain.global(), new UsernamePasswordCredentialsImpl(
-                        CredentialsScope.GLOBAL, 'authKey', 'TEST-GUIDE auth key', '', TG_AUTH_KEY))
+                        CredentialsScope.GLOBAL, 'authKey', 'test.guide auth key', '', TG_AUTH_KEY))
     }
 
     def "Upload test reports"() {
@@ -144,7 +144,7 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "ApiException") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "NOT FOUND") == 1
             StringUtils.countMatches(jenkins.getLog(run), "404") == 1
             StringUtils.countMatches(jenkins.getLog(run),
                     "no report with the given report ID ${reportID}") == 1
@@ -172,6 +172,6 @@ class TGContainerTest extends ContainerTest {
         then: "expect successful test but upload failed"
             StringUtils.countMatches(jenkins.getLog(run), "ERROR") == 2
             StringUtils.countMatches(jenkins.getLog(run),
-                    "Report upload unstable. Please check pipeline and TEST-GUIDE configuration.") == 1
+                    "Report upload unstable. Please check pipeline and test.guide configuration.") == 1
     }
 }

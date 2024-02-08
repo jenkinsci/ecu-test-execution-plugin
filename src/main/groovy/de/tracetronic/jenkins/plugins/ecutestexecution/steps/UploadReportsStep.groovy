@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,10 +11,9 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.model.TGUpload
-import de.tracetronic.cxs.generated.et.client.model.TGUploadOrder
-import de.tracetronic.cxs.generated.et.client.model.TGUploadStatus
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
@@ -23,6 +22,7 @@ import hudson.Extension
 import hudson.Launcher
 import hudson.model.Item
 import hudson.model.Job
+import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.security.ACL
@@ -151,12 +151,21 @@ class UploadReportsStep extends Step {
             StandardUsernamePasswordCredentials credentials = getCredentials(context.get(Run.class).getParent())
             String authKey = Secret.toString(credentials.getPassword())
 
-            return getContext().get(Launcher.class).getChannel().call(
-                    new ExecutionCallable(step.testGuideUrl, authKey,
-                            step.projectId, step.useSettingsFromServer,
-                            expSettingsMap, step.reportIds,
-                            context.get(EnvVars.class),
-                            context.get(TaskListener.class)))
+            try {
+                return getContext().get(Launcher.class).getChannel().call(
+                        new ExecutionCallable(step.testGuideUrl, authKey,
+                                step.projectId, step.useSettingsFromServer,
+                                expSettingsMap, step.reportIds,
+                                context.get(EnvVars.class),
+                                context.get(TaskListener.class)))
+            } catch (Exception e) {
+                context.get(TaskListener.class).error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
+                return new UploadResult("Report upload failed",
+                        "A problem occured during the report upload. See caused exception for more details.",
+                        null)
+            }
+
         }
 
         @CheckForNull
@@ -196,16 +205,10 @@ class UploadReportsStep extends Step {
         @Override
         UploadResult call() throws IOException {
             UploadResult result = null
-            RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
-            TGUploadOrder uploadOrder = new TGUploadOrder()
-                    .testGuideUrl(testGuideUrl)
-                    .authKey(authKey)
-                    .projectId(projectId)
-                    .useSettingsFromServer(useSettingsFromServer)
-                    .additionalSettings(additionalSettings)
-
-            listener.logger.println("Uploading reports to TEST-GUIDE ${this.testGuideUrl}...")
+            TGUploadOrder uploadOrder = new TGUploadOrder(testGuideUrl,authKey, projectId, useSettingsFromServer, additionalSettings)
+            listener.logger.println("Uploading reports to test.guide ${this.testGuideUrl}...")
 
             if (reportIds == null || reportIds.isEmpty()) {
                 reportIds = apiClient.getAllReportIds()
@@ -215,13 +218,9 @@ class UploadReportsStep extends Step {
             reportIds.each { reportId ->
                 listener.logger.println("- Uploading ATX report for report id ${reportId}...")
 
-                TGUpload upload = apiClient.uploadReport(reportId, uploadOrder)
-                if (upload.result.link) {
-                    result = new UploadResult(upload.status.key.name(), 'Uploaded successfully', upload.result.link)
-                } else {
-                    result = new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
-                            "Report upload for ${reportId} failed", '')
-                    status = 'unstable. Please check pipeline and TEST-GUIDE configuration.'
+                result = apiClient.uploadReport(reportId, uploadOrder)
+                if (result.reportLink == null || result.reportLink.isEmpty()) {
+                    status = 'unstable. Please check pipeline and test.guide configuration.'
                 }
                 listener.logger.println(result.toString())
             }
@@ -242,7 +241,7 @@ class UploadReportsStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Upload ECU-TEST reports to TEST-GUIDE'
+            '[TT] Upload ecu.test reports to test.guide'
         }
 
         @Override

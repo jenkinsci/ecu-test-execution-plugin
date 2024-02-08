@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.cxs.generated.et.client.ApiException
-import de.tracetronic.cxs.generated.et.client.model.CheckFinding
-import de.tracetronic.cxs.generated.et.client.model.CheckReport
-import de.tracetronic.jenkins.plugins.ecutestexecution.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
-import hudson.model.Api
+import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
@@ -30,11 +30,10 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
 
-import java.util.concurrent.TimeoutException
 import javax.annotation.Nonnull
 
 /**
- * Step providing the package checks of ECU-TEST packages or projects.
+ * Step providing the package checks of ecu.test packages or projects.
  */
 class CheckPackageStep extends Step {
 
@@ -119,10 +118,15 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult run() throws Exception {
-            return getContext().get(Launcher.class).getChannel().call(new PackageCheckCallable (
-                    step.testCasePath, context, step.executionConfig
+            try {
+                return getContext().get(Launcher.class).getChannel().call(
+                        new PackageCheckCallable (step.testCasePath, context, step.executionConfig)
                 )
-            )
+            } catch (Exception e) {
+                context.get(TaskListener.class).error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
+                return new CheckPackageResult(null, null)
+            }
         }
     }
 
@@ -170,21 +174,16 @@ class CheckPackageStep extends Step {
         @Override
         CheckPackageResult call() throws ApiException {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
-            RestApiClient apiClient = new RestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+
             CheckPackageResult result
-            def issues = []
             try {
-                CheckReport packageCheck = apiClient.runPackageCheck(testCasePath)
-                for (CheckFinding issue : packageCheck.issues) {
-                    def issueMap = [filename: issue.fileName, message: issue.message]
-                    issues.add(issueMap)
-                }
-                result = new CheckPackageResult(testCasePath, issues)
+                result = apiClient.runPackageCheck(testCasePath)
             }
             catch (ApiException e) {
-                if (e.message.contains("BAD REQUEST")) {
+                if (e.cause.message.contains("BAD REQUEST")) {
                     listener.logger.println('Executing Package Checks failed!')
-                    listener.logger.println(e.message)
+                    listener.logger.println(e.cause.message)
                     result = new CheckPackageResult(null, null)
                 }
                 else {
@@ -221,7 +220,7 @@ class CheckPackageStep extends Step {
          */
         @Override
         String getDisplayName() {
-            '[TT] Check an ECU-TEST package'
+            '[TT] Check an ecu.test package'
         }
 
         /**

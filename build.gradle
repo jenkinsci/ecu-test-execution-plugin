@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2021-2023 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
     id 'idea'
@@ -23,14 +25,14 @@ version = project.properties['version']
 description = 'This plugin enables a platform-independent test execution. Due to the reduced complexity and ' +
         'communication via REST API, ' +
         'it provides an easy and reliable entry into continuous testing. It integrates ' +
-        'ECU-TEST with Jenkins and allows report generation and its upload of ' +
+        'ecu.test with Jenkins and allows report generation and its upload of ' +
         'automated test execution.'
 
 jenkinsPlugin {
     jenkinsVersion = "${project.properties['jenkinsVersion']}"
     shortName = 'ecu-test-execution'
     group = "${group}"
-    displayName = 'TraceTronic ECU-TEST-Execution Plugin'
+    displayName = 'ecu.test execution plugin'
 
     url = 'https://plugins.jenkins.io/ecu-test-execution/'
     gitHubUrl = 'https://github.com/jenkinsci/ecu-test-execution-plugin'
@@ -50,7 +52,7 @@ dependencies {
     implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
 
-    // ecu-test-java-rest-client
+    // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
     api 'com.google.code.gson:gson:2.9.1'
     api 'io.gsonfire:gson-fire:1.8.5'
@@ -261,17 +263,38 @@ codenarcTest {
     ignoreFailures = true
 }
 
-openApiGenerate {
-    inputSpec = "$rootDir/specs/openapi.yml".toString()
+task openApiGenerateV1(type: GenerateTask){
+    inputSpec = "$rootDir/specs/openapi_v1.yml".toString()
     generatorName = "java"
-    id = 'ecu-test-rest-java-client'
-    version = '2021.4.0'
+    id = 'ecu-test-rest-java-client_v1'
+    version = project.version
     groupId = 'de.tracetronic.cxs'
-    outputDir = "$rootDir/generated".toString()
-    packageName = "de.tracetronic.cxs.generated.et.client"
-    apiPackage = 'de.tracetronic.cxs.generated.et.client.api'
-    invokerPackage = 'de.tracetronic.cxs.generated.et.client'
-    modelPackage = 'de.tracetronic.cxs.generated.et.client.model'
+    outputDir = "$rootDir/generated/v1".toString()
+    packageName = "de.tracetronic.cxs.generated.et.client.v1"
+    apiPackage = 'de.tracetronic.cxs.generated.et.client.api.v1'
+    invokerPackage = 'de.tracetronic.cxs.generated.et.client.v1'
+    modelPackage = 'de.tracetronic.cxs.generated.et.client.model.v1'
+    library = 'okhttp-gson'
+    generateModelTests = false
+    generateApiTests = false
+    configOptions = [
+            licenseName: "MIT License",
+            licenseUrl: "https://spdx.org/licenses/MIT.html",
+            dateLibrary: "java${project.properties['javaVersion']}"
+    ]
+}
+
+task openApiGenerateV2(type: GenerateTask){
+    inputSpec = "$rootDir/specs/openapi_v2.yml".toString()
+    generatorName = "java"
+    id = 'ecu-test-rest-java-client_v2'
+    version = project.version
+    groupId = 'de.tracetronic.cxs'
+    outputDir = "$rootDir/generated/v2".toString()
+    packageName = "de.tracetronic.cxs.generated.et.client.v2"
+    apiPackage = 'de.tracetronic.cxs.generated.et.client.api.v2'
+    invokerPackage = 'de.tracetronic.cxs.generated.et.client.v2'
+    modelPackage = 'de.tracetronic.cxs.generated.et.client.model.v2'
     library = 'okhttp-gson'
     generateModelTests = false
     generateApiTests = false
@@ -318,12 +341,14 @@ tasks.register('dependencyCheckEval') {
 sourceSets {
     main {
         java {
-            srcDir(files("${openApiGenerate.outputDir.get()}/src/main/java"))
+            srcDir(files("${openApiGenerateV1.outputDir.get()}/src/main/java"))
+            srcDir(files("${openApiGenerateV2.outputDir.get()}/src/main/java"))
         }
     }
 }
 
-tasks.compileJava.dependsOn tasks.openApiGenerate
+task generateApi {dependsOn openApiGenerateV1, openApiGenerateV2}
+tasks.compileJava.dependsOn generateApi
 
 idea {
     project {

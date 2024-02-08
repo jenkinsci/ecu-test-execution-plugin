@@ -5,7 +5,8 @@ Prerequisites
 * Global environment variables set:
 - EMAIL_RECIPIENTS
 - TG_AUTH_KEY
-- ET_VERSION
+- ET_V1_VERSION
+- ET_V2_VERSION
 - TG_VERSION
 * Jenkins plugins installed:
 - https://plugins.jenkins.io/timestamper

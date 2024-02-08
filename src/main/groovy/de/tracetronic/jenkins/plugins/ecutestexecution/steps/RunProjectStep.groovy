@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -27,7 +27,7 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.QueryParameter
 
 /**
- * Step providing the execution of ECU-TEST projects.
+ * Step providing the execution of ecu.test projects.
  */
 class RunProjectStep extends RunTestStep {
 
@@ -74,7 +74,7 @@ class RunProjectStep extends RunTestStep {
             if (IOUtils.isAbsolute(projectFile)) {
                 FilePath projectPath = new FilePath(context.get(Launcher.class).getChannel(), projectFile)
                 if (!projectPath.exists()) {
-                    throw new IllegalArgumentException("ECU-TEST project at ${projectPath.getRemote()} does not exist!")
+                    throw new IllegalArgumentException("ecu.test project at ${projectPath.getRemote()} does not exist!")
                 }
             }
         }
@@ -98,7 +98,7 @@ class RunProjectStep extends RunTestStep {
 
         @Override
         String getDisplayName() {
-            '[TT] Run an ECU-TEST project'
+            '[TT] Run an ecu.test project'
         }
 
         @Override

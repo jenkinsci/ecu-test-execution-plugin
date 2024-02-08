@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 TraceTronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,8 +13,6 @@ import hudson.EnvVars
 import hudson.Extension
 import hudson.Functions
 import hudson.Launcher
-import hudson.model.Computer
-import hudson.model.Node
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
@@ -92,35 +90,13 @@ class StopToolStep extends Step {
         protected Void run() throws Exception {
             try {
                 return getContext().get(Launcher.class).getChannel().call(
-                        new ExecutionCallable(getToolInstallation(), step.timeout, step.stopUndefinedTools,
-                                context.get(EnvVars.class), context.get(TaskListener.class)))
+                        new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
+                                step.timeout, step.stopUndefinedTools, context.get(EnvVars.class),
+                                context.get(TaskListener.class)))
             } catch(Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
             }
-        }
-
-        private static ETInstallation.DescriptorImpl getToolDescriptor() {
-            return ToolInstallation.all().get(ETInstallation.DescriptorImpl.class)
-        }
-
-        private ETInstallation getToolInstallation() {
-            String expToolName = context.get(EnvVars.class).expand(step.toolName)
-            ETInstallation installation = getToolDescriptor().getInstallation(expToolName)
-
-            if (installation) {
-                // FIXME: deprecation
-                Computer computer = getContext().get(Launcher).getComputer()
-                final Node node = computer?.getNode()
-                if (node) {
-                    installation = installation.forNode(node, context.get(TaskListener.class))
-                    installation = installation.forEnvironment(context.get(EnvVars.class))
-                }
-            } else {
-                throw new IllegalArgumentException("Tool installation ${expToolName} is not configured for this node!")
-            }
-
-            return installation
         }
     }
 
@@ -148,7 +124,7 @@ class StopToolStep extends Step {
             String toolName = installation.getName()
             if (toolName) {
                 listener.logger.println("Stopping ${toolName}...")
-                def exeFilePath = installation.exeFile.toString()
+                def exeFilePath = installation.exeFileOnNode.toString()
                 def exeFileName = Functions.isWindows() ? exeFilePath.tokenize("\\")[-1] :
                         exeFilePath.tokenize("/")[-1]
                 if (ProcessUtil.killProcess(exeFileName, timeout)) {
@@ -159,11 +135,11 @@ class StopToolStep extends Step {
             }
 
             if (stopUndefinedTools) {
-                listener.logger.println("Stop TraceTronic tool instances.")
+                listener.logger.println("Stop tracetronic tool instances.")
                 if (ProcessUtil.killTTProcesses(timeout)) {
-                    listener.logger.println("Stopped TraceTronic tools successfully.")
+                    listener.logger.println("Stopped tracetronic tools successfully.")
                 } else {
-                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping TraceTronic tools!")
+                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!")
                 }
             }
 
@@ -195,7 +171,7 @@ class StopToolStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Stop an ECU-TEST or TRACE-CHECK instance'
+            '[TT] Stop an ecu.test or trace.check instance'
         }
 
         @Override

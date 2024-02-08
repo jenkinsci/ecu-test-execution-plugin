@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Never report security issues on GitHub or other public channels (Gitter/Twitter/etc.).** Follow the instruction from [Jenkins Security](https://jenkins.io/security/) or use our [TraceTronic Support Center](https://support.tracetronic.com).
-        For reporting issues containing NDA relevant information please also use our [TraceTronic Support Center](https://support.tracetronic.com).
+        **Never report security issues on GitHub or other public channels (Gitter/Twitter/etc.).** Follow the instruction from [Jenkins Security](https://jenkins.io/security/) or use our [tracetronic Support Center](https://support.tracetronic.com).
+        For reporting issues containing NDA relevant information please also use our [tracetronic Support Center](https://support.tracetronic.com).
   - type: textarea
     id: description
     attributes:
@@ -36,13 +36,13 @@ body:
         examples:
         - Jenkins: LTS 2.332.3
         - Plugin: 3.0
-        - ECU-TEST: 2022.2
-        - TEST-GUIDE: 1.139.0 (or empty)
+        - ecu.test: 2023.4
+        - test.guide: 1.139.0 (or empty)
       value: |
         - Jenkins:
         - Plugin:
-        - ECU-TEST:
-        - TEST-GUIDE:
+        - ecu.test:
+        - test.guide:
     validations:
       required: true
   - type: textarea
