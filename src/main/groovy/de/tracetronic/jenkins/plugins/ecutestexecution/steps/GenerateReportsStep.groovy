@@ -85,7 +85,7 @@ class GenerateReportsStep extends Step {
         return settings.collectEntries { setting -> [setting.name, setting.value] }
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<GenerationResult> {
+    static class Execution extends SynchronousNonBlockingStepExecution<List<GenerationResult>> {
 
         private static final long serialVersionUID = 1L
 
@@ -97,7 +97,7 @@ class GenerateReportsStep extends Step {
         }
 
         @Override
-        protected GenerationResult run() throws Exception {
+        protected List<GenerationResult> run() throws Exception {
             List<AdditionalSetting> expSettings = expandSettings(step.additionalSettings, context.get(EnvVars.class))
             Map<String, String> expSettingsMap = toSettingsMap(expSettings)
 
@@ -108,12 +108,12 @@ class GenerateReportsStep extends Step {
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
-                return new GenerationResult("A problem occured during the report generation. See caused exception for more details.", "", null)
+                return [ new GenerationResult("A problem occured during the report generation. See caused exception for more details.", "", null) ]
             }
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<GenerationResult, IOException> {
+    private static final class ExecutionCallable extends MasterToSlaveCallable<List<GenerationResult>, IOException> {
         
         private static final long serialVersionUID = 1L
 
@@ -134,8 +134,8 @@ class GenerateReportsStep extends Step {
         }
 
         @Override
-        GenerationResult call() throws IOException {
-            GenerationResult result = null
+        List<GenerationResult> call() throws IOException {
+            List<GenerationResult> result = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
             ReportGenerationOrder generationOrder = new ReportGenerationOrder(generatorName, additionalSettings)
@@ -147,7 +147,7 @@ class GenerateReportsStep extends Step {
 
             reportIds.each { reportId ->
                 listener.logger.println("- Generating ${this.generatorName} report format for report id ${reportId}...")
-                result = apiClient.generateReport(reportId, generationOrder)
+                result.add(apiClient.generateReport(reportId, generationOrder))
                 listener.logger.println(result.toString())
             }
 

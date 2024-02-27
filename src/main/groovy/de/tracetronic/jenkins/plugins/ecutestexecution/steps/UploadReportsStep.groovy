@@ -132,7 +132,7 @@ class UploadReportsStep extends Step {
         return settings.collectEntries { setting -> [setting.name, setting.value] }
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<UploadResult> {
+    static class Execution extends SynchronousNonBlockingStepExecution<List<UploadResult>> {
 
         private static final long serialVersionUID = 1L
 
@@ -144,7 +144,7 @@ class UploadReportsStep extends Step {
         }
 
         @Override
-        protected UploadResult run() throws Exception {
+        protected List<UploadResult> run() throws Exception {
             List<AdditionalSetting> expSettings = expandSettings(step.additionalSettings, context.get(EnvVars.class))
             Map<String, String> expSettingsMap = toSettingsMap(expSettings)
 
@@ -161,9 +161,9 @@ class UploadReportsStep extends Step {
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
-                return new UploadResult("Report upload failed",
+                return [ new UploadResult("Report upload failed",
                         "A problem occured during the report upload. See caused exception for more details.",
-                        null)
+                        null) ]
             }
 
         }
@@ -176,7 +176,7 @@ class UploadReportsStep extends Step {
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<UploadResult, IOException> {
+    private static final class ExecutionCallable extends MasterToSlaveCallable<List<UploadResult>, IOException> {
 
         private static final long serialVersionUID = 1L
 
@@ -203,8 +203,8 @@ class UploadReportsStep extends Step {
         }
 
         @Override
-        UploadResult call() throws IOException {
-            UploadResult result = null
+        List<UploadResult> call() throws IOException {
+            List<UploadResult> result = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
             TGUploadOrder uploadOrder = new TGUploadOrder(testGuideUrl,authKey, projectId, useSettingsFromServer, additionalSettings)
@@ -215,14 +215,15 @@ class UploadReportsStep extends Step {
             }
 
             String status = 'successful'
+
             reportIds.each { reportId ->
                 listener.logger.println("- Uploading ATX report for report id ${reportId}...")
 
-                result = apiClient.uploadReport(reportId, uploadOrder)
-                if (result.reportLink == null || result.reportLink.isEmpty()) {
+                UploadResult uploadResult = apiClient.uploadReport(reportId, uploadOrder)
+                if (uploadResult.reportLink == null || uploadResult.reportLink.isEmpty()) {
                     status = 'unstable. Please check pipeline and test.guide configuration.'
                 }
-                listener.logger.println(result.toString())
+                result.add(uploadResult)
             }
 
             listener.logger.println("Report upload ${status}")
