@@ -28,9 +28,21 @@ pipeline {
     environment {
         authKey = credentials('TG_authkey_test_report_upload')
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
+        PRODUCT_NAME = "ecu-test-execution-plugin"
+        TEST_LEVEL = "system"
     }
 
     stages {
+        stage ('Set Product Version') {
+            steps {
+                script {
+                    echo "Reading properties from gradle.properties"
+                    gradle_properties = readProperties file: 'gradle.properties'
+                    env.PRODUCT_VERSION = gradle_properties['version']
+                    echo "Product Version set to: ${env.PRODUCT_VERSION}"
+                }
+            }
+        }
         stage('Run Parallel') {
             failFast false
             parallel {
