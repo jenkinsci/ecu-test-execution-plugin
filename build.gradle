@@ -210,6 +210,17 @@ test {
     systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
 }
 
+task unitTest(type: Test) {
+    filter {
+        excludeTestsMatching '*ContainerTest'
+        excludeTestsMatching '*IT'
+    }
+    useJUnitPlatform()
+
+    // skip some process tests for ci
+    systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
+}
+
 task containerTest(type: Test) {
     doFirst {
         def propFile = "src/test/resources/containerTest.properties"
