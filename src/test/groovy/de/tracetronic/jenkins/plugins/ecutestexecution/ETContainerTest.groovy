@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase
 import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class ETContainerTest extends ContainerTest {
@@ -70,7 +70,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing Package Checks failed!", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             // ecu.test 2024.1 and newer returns case sensitive messages
-            assertThat(jenkins.getLog(run).toUpperCase(), containsString("BAD REQUEST"))
+            assertThat(jenkins.getLog(run), containsStringIgnoringCase("BAD REQUEST"))
     }
 
     def "Perform check on invalid package"() {
@@ -253,6 +253,6 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "-> FINISHED") == 1
+            jenkins.assertLogContains("-> FINISHED", run)
     }
 }
