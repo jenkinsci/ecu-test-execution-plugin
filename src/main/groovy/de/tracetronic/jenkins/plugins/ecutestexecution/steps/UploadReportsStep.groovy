@@ -214,19 +214,27 @@ class UploadReportsStep extends Step {
                 reportIds = apiClient.getAllReportIds()
             }
 
-            String status = 'successful'
+            Integer cntReports = reportIds.size()
+            Integer cntStable = 0
 
             reportIds.each { reportId ->
                 listener.logger.println("- Uploading ATX report for report id ${reportId}...")
 
                 UploadResult uploadResult = apiClient.uploadReport(reportId, uploadOrder)
-                if (uploadResult.reportLink == null || uploadResult.reportLink.isEmpty()) {
-                    status = 'unstable. Please check pipeline and test.guide configuration.'
+                if (uploadResult.reportLink != null && !uploadResult.reportLink.isEmpty()) {
+                    cntStable += 1
+                    listener.logger.println("  -> Successful")
+                } else {
+                    listener.logger.println("  -> Error! Please check your pipeline or test.guide configuration.")
                 }
                 result.add(uploadResult)
             }
 
-            listener.logger.println("Report upload ${status}")
+            if ( cntReports == cntStable) {
+                listener.logger.println("Report upload(s) successful")
+            } else {
+                listener.logger.println("Report upload(s) unstable. Please see the logging of the uploads.")
+            }
 
             return result
         }
