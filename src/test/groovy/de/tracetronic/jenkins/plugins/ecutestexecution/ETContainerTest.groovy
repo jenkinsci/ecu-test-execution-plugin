@@ -16,7 +16,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils
-import org.testcontainers.spock.Testcontainers
+
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class ETContainerTest extends ContainerTest {
 
@@ -67,7 +69,8 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks failed!", run)
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("BAD REQUEST", run)
+            // ecu.test 2024.1 and newer returns case sensitive messages
+            assertThat(jenkins.getLog(run).toUpperCase(), containsString("BAD REQUEST"))
     }
 
     def "Perform check on invalid package"() {
@@ -109,7 +112,6 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing Package Checks for: test.prj", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
     }
-
 
     def "Perform check on project with invalid packages"() {
         given: "a test execution pipeline"

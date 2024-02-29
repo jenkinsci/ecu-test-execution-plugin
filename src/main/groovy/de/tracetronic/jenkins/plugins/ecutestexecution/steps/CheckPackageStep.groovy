@@ -11,7 +11,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import hudson.EnvVars
 import hudson.Extension
@@ -21,11 +20,7 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
-import org.jenkinsci.plugins.workflow.steps.Step
-import org.jenkinsci.plugins.workflow.steps.StepContext
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor
-import org.jenkinsci.plugins.workflow.steps.StepExecution
-import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
+import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
@@ -181,7 +176,7 @@ class CheckPackageStep extends Step {
                 result = apiClient.runPackageCheck(testCasePath)
             }
             catch (ApiException e) {
-                if (e.cause.message.contains("BAD REQUEST")) {
+                if (e.cause.message.toUpperCase().contains("BAD REQUEST")) {
                     listener.logger.println('Executing Package Checks failed!')
                     listener.logger.println(e.cause.message)
                     result = new CheckPackageResult(null, null)
