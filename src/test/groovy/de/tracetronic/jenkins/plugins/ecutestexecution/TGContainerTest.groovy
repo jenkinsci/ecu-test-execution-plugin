@@ -30,6 +30,9 @@ import spock.lang.Shared
 
 import java.time.Duration
 
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase
+import static org.hamcrest.MatcherAssert.assertThat
+
 @Testcontainers
 class TGContainerTest extends ContainerTest {
 
@@ -63,7 +66,7 @@ class TGContainerTest extends ContainerTest {
                     BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
                     BindMode.READ_ONLY)            .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-            .waitingFor(Wait.forHttp("/api/v1/live"))
+            .waitingFor(Wait.forHttp("/api/v2/live"))
             .dependsOn(tgContainer)
 
     @Rule
@@ -121,8 +124,8 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "-> Uploaded successfully") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "Report upload(s) successful") == 1
+            jenkins.assertLogContains("-> Uploaded successfully", run)
+            jenkins.assertLogContains("Report upload(s) successful", run)
     }
 
     def "Upload an invalid test report"() {
@@ -147,10 +150,10 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "NOT FOUND") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "404") == 1
-            StringUtils.countMatches(jenkins.getLog(run),
-                    "no report with the given report ID ${reportID}") == 1
+            jenkins.assertLogContains("404", run)
+            jenkins.assertLogContains("no report with the given report ID ${reportID}", run)
+            // ecu.test 2024.1 and newer returns case sensitive messages
+            assertThat(jenkins.getLog(run), containsStringIgnoringCase("NOT FOUND"))
     }
 
     def "Upload test report invalid config"() {
@@ -175,7 +178,7 @@ class TGContainerTest extends ContainerTest {
         then: "expect successful test but upload failed"
             StringUtils.countMatches(jenkins.getLog(run), "Report upload for") == 2
             StringUtils.countMatches(jenkins.getLog(run), "failed") == 2
-            StringUtils.countMatches(jenkins.getLog(run),
-                    "Report upload(s) unstable. Please see the logging of the uploads.") == 1
+            jenkins.assertLogContains(
+                    "Report upload(s) unstable. Please see the logging of the uploads.", run)
     }
 }
