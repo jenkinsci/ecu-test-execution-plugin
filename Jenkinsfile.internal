@@ -43,6 +43,45 @@ pipeline {
                 }
             }
         }
+        stage('Unit Tests') {
+            tools {
+                jdk 'JDK11'
+            }
+            agent {
+                label 'java'
+            }
+            steps {
+                script {
+                    try {
+                        cmd '"./gradlew" clean unitTest'
+                    } catch (Exception e) {
+                        unstable(message: "Unit Tests failed")
+                    } finally {
+                        Xml2TG((long) currentBuild.startTimeInMillis, "build/test-results/unitTest/", "JUnit")
+                    }
+                }
+            }
+        }
+        stage('Integration Tests') {
+            tools {
+                jdk 'JDK11'
+            }
+            agent {
+                label 'java'
+            }
+            steps {
+                script {
+                    try {
+                        cmd '"./gradlew" clean integrationTest'
+                    }  catch (Exception e) {
+                        unstable(message: "Integration Tests failed")
+
+                    } finally {
+                        Xml2TG((long) currentBuild.startTimeInMillis, "build/test-results/integrationTest/", "JUnit")
+                    }
+                }
+            }
+        }
         stage('Run Parallel') {
             failFast false
             parallel {
