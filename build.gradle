@@ -195,10 +195,6 @@ tasks.named('server').configure {
 }
 
 test {
-    // exclude code, which can not be instrumented correctly
-    jacoco {
-        excludes = ["com/gargoylesoftware/**"]
-    }
     // exclude tests which have own test tasks
     filter {
         excludeTestsMatching '*ContainerTest'
@@ -206,8 +202,8 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 
-    // skip some process tests for ci
-    systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
+    dependsOn 'unitTest'
+    dependsOn 'integrationTest'
 }
 
 task unitTest(type: Test) {
@@ -222,6 +218,11 @@ task unitTest(type: Test) {
 }
 
 task integrationTest(type: Test) {
+    // exclude code, which can not be instrumented correctly
+    jacoco {
+        excludes = ["com/gargoylesoftware/**"]
+    }
+
     filter {
         excludeTestsMatching '*Test'
     }
