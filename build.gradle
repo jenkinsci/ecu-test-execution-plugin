@@ -195,11 +195,6 @@ tasks.named('server').configure {
 }
 
 test {
-    // exclude tests which have own test tasks
-    filter {
-        excludeTestsMatching '*ContainerTest'
-    }
-    useJUnitPlatform()
     finalizedBy jacocoTestReport
 
     dependsOn 'unitTest'
