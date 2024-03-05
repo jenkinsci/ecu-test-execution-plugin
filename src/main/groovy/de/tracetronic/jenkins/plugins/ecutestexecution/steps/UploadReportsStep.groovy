@@ -223,9 +223,9 @@ class UploadReportsStep extends Step {
                 UploadResult uploadResult = apiClient.uploadReport(reportId, uploadOrder)
                 if (uploadResult.reportLink != null && !uploadResult.reportLink.isEmpty()) {
                     cntStable += 1
-                    listener.logger.println("  -> Successful")
+                    listener.logger.println("  -> Successful! Link to report: ${uploadResult.reportLink}")
                 } else {
-                    listener.logger.println("  -> Error! Please check your pipeline or test.guide configuration.")
+                    listener.logger.println("  -> Error! test.guide returns the message: '${uploadResult.uploadMessage}'")
                 }
                 result.add(uploadResult)
             }
