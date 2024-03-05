@@ -148,7 +148,11 @@ class GenerateReportsStep extends Step {
             reportIds.each { reportId ->
                 listener.logger.println("- Generating ${this.generatorName} report format for report id ${reportId}...")
                 GenerationResult generationResult = apiClient.generateReport(reportId, generationOrder)
-                listener.logger.println(generationResult.toString())
+                String log = "  -> ${generationResult.generationResult}"
+                if (!generationResult.generationMessage.isEmpty()) {
+                    log += " (${generationResult.generationMessage})"
+                }
+                listener.logger.println(log)
                 result.add(generationResult)
             }
 
