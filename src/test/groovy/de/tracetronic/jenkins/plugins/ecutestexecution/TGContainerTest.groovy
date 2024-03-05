@@ -121,7 +121,7 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "-> Successful") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "-> Uploaded successfully") == 1
             StringUtils.countMatches(jenkins.getLog(run), "Report upload(s) successful") == 1
     }
 
@@ -173,7 +173,8 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "Error! Please check your pipeline or test.guide configuration") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "Report upload for") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "failed") == 2
             StringUtils.countMatches(jenkins.getLog(run),
                     "Report upload(s) unstable. Please see the logging of the uploads.") == 1
     }

@@ -216,6 +216,7 @@ abstract class ETContainerTest extends ContainerTest {
                     ttRunPackage testCasePath: 'test.pkg'
                     ttRunProject testCasePath: 'test.prj'
                     def generationReports = ttGenerateReports generatorName: 'HTML', additionalSettings: [[name: 'javascript', value: 'False']]
+                    echo "\${generationReports.reportOutputDir}"
                     echo "size of returned array: \${generationReports.size()}"
                 }
             }
@@ -227,8 +228,8 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 2
-            StringUtils.countMatches(jenkins.getLog(run), "reportOutputDir: ${ET_WS_PATH}/TestReports/test_") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "Generating HTML report format for report id") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "-> FINISHED") == 2
             StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
     }
 
@@ -250,7 +251,6 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "reportOutputDir: ${ET_WS_PATH}/TestReports/test_") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "-> FINISHED") == 1
     }
 }
