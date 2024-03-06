@@ -22,14 +22,18 @@ pipeline {
     }
 
     agent {
-        label 'master'
+        label 'docker'
     }
 
     environment {
         authKey = credentials('TG_authkey_test_report_upload')
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
-        TEST_LEVEL = "system"
+        TEST_LEVEL = "pipeline"
+    }
+
+    tools {
+        jdk 'JDK11'
     }
 
     stages {
@@ -40,6 +44,20 @@ pipeline {
                     gradle_properties = readProperties file: 'gradle.properties'
                     env.PRODUCT_VERSION = gradle_properties['version']
                     echo "Product Version set to: ${env.PRODUCT_VERSION}"
+                }
+            }
+        }
+        stage('Unit Tests') {
+            steps {
+                catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
+                        cmd '"./gradlew" clean unitTest'
+                }
+            }
+        }
+        stage('Integration Tests') {
+            steps {
+                catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
+                    cmd '"./gradlew" integrationTest'
                 }
             }
         }
@@ -54,9 +72,6 @@ pipeline {
                     }
                 }
                 stage('Container Tests') {
-                    agent {
-                        label 'docker'
-                    }
                     stages {
                         stage('Prepare Resources') {
                             steps {
@@ -65,7 +80,9 @@ pipeline {
                         }
                         stage('Run Container Tests') {
                             steps {
-                                cmd '"./gradlew" clean containerTest -Dspock.skip.sandbox=false'
+                                catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
+                                    cmd '"./gradlew" containerTest -Dspock.skip.sandbox=false'
+                                }
                             }
                         }
                     }
@@ -76,15 +93,31 @@ pipeline {
 
     post {
         always {
-            dir("${pipeline_report_dir}") {
-                pipeline2ATX(true)
+            script {
+                catchError(stageResult: 'FAILURE', buildResult: 'FAILURE') {
+                    withEnv(["TEST_LEVEL=unit"]) {
+                    Xml2TG((long) currentBuild.startTimeInMillis, "build/test-results/unitTest/", "JUnit", ,"uploadJson", [:], [:], "${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}")
+
+                    }
+                    withEnv(["TEST_LEVEL=integration"]) {
+                        Xml2TG((long) currentBuild.startTimeInMillis, "build/test-results/integrationTest/", "JUnit", ,"uploadJson", [:], [:], "${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}")
+                    }
+                    withEnv(["TEST_LEVEL=system"]) {
+                        Xml2TG((long) currentBuild.startTimeInMillis, "build/test-results/containerTest/", "JUnit", ,"uploadJson", [:], [:], "${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}")
+                    }
+                }
             }
-            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", '')
         }
         unsuccessful {
             mail to: "${env.EMAIL_RECIPIENTS}",
                 subject: "${JOB_NAME} - Build #${BUILD_NUMBER} - ${currentBuild.currentResult}",
                 body: "Check console output at ${BUILD_URL} to view the results."
+        }
+        cleanup {
+            dir("${pipeline_report_dir}") {
+                    pipeline2ATX(true)
+                }
+                uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", '')
         }
     }
 }

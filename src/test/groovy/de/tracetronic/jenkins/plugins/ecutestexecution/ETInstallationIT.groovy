@@ -12,7 +12,7 @@ import hudson.model.TaskListener
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.IgnoreIf
 
-class ETInstallationTest extends IntegrationTestBase {
+class ETInstallationIT extends IntegrationTestBase {
     def 'getAllETInstallationsOnNode with empty list' () {
         given:
             def mockEnvVars = Mock(EnvVars)
