@@ -215,8 +215,10 @@ abstract class ETContainerTest extends ContainerTest {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                     ttRunPackage testCasePath: 'test.pkg'
                     ttRunProject testCasePath: 'test.prj'
-                    ttGenerateReports generatorName: 'HTML', additionalSettings: [[name: 'javascript', value: 'False']]
-               }
+                    def generationReports = ttGenerateReports generatorName: 'HTML', additionalSettings: [[name: 'javascript', value: 'False']]
+                    echo "\${generationReports.reportOutputDir}"
+                    echo "size of returned array: \${generationReports.size()}"
+                }
             }
             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
@@ -226,8 +228,9 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 2
-            StringUtils.countMatches(jenkins.getLog(run), "reportOutputDir: ${ET_WS_PATH}/TestReports/test_") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "Generating HTML report format for report id") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "-> FINISHED") == 2
+            StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
     }
 
     def "Generate report format for a specific test report"() {
@@ -248,7 +251,6 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 1
-            StringUtils.countMatches(jenkins.getLog(run), "reportOutputDir: ${ET_WS_PATH}/TestReports/test_") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "-> FINISHED") == 1
     }
 }

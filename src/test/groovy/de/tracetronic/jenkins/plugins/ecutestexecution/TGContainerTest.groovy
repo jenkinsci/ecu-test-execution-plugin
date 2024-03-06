@@ -82,8 +82,9 @@ class TGContainerTest extends ContainerTest {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                     ttRunPackage testCasePath: 'test.pkg'
                     ttRunProject testCasePath: 'test.prj'
-                    ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
+                    def uploadReports = ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
                         credentialsId: 'authKey', useSettingsFromServer: false
+                    echo "size of returned array: \${uploadReports.size()}"
                 }
             }
             """.stripIndent()
@@ -95,7 +96,8 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "result: SUCCESS") == 2
+            StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
     }
 
     def "Upload a specific test report"() {
@@ -119,7 +121,8 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test and upload completion"
-            StringUtils.countMatches(jenkins.getLog(run), "result: FINISHED") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "-> Uploaded successfully") == 1
+            StringUtils.countMatches(jenkins.getLog(run), "Report upload(s) successful") == 1
     }
 
     def "Upload an invalid test report"() {
@@ -170,8 +173,9 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "ERROR") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "Report upload for") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "failed") == 2
             StringUtils.countMatches(jenkins.getLog(run),
-                    "Report upload unstable. Please check pipeline and test.guide configuration.") == 1
+                    "Report upload(s) unstable. Please see the logging of the uploads.") == 1
     }
 }
