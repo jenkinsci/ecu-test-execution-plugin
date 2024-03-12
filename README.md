@@ -127,6 +127,7 @@ If the problem still exists search the following list of issues for possible sol
 
 | Version |    latest - 3.1    |        3.0         |
 |:-------:|:------------------:|:------------------:|
+| 2024.1  | :heavy_check_mark: |        :x:         |
 | 2023.4  | :heavy_check_mark: |        :x:         |
 | 2023.3  | :heavy_check_mark: |        :x:         |
 | 2023.2  | :heavy_check_mark: | :heavy_check_mark: |
