@@ -21,15 +21,16 @@ import de.tracetronic.cxs.generated.et.client.model.v1.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.v1.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.v1.ApiClient
 import de.tracetronic.cxs.generated.et.client.v1.Configuration
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
-import org.apache.commons.lang.StringUtils
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+
+import java.util.concurrent.TimeoutException
 
 class RestApiClientV1 implements RestApiClient{
 
@@ -69,32 +70,46 @@ class RestApiClientV1 implements RestApiClient{
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
      * @param testPkgPath the path to the package or project to be checked
+     * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
-     * @throws ApiException on error status codes.
+     * @throws ApiException on error status codes
+     * @throws TimeoutException on timeout exceeded
      */
-    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException {
-        CheckReport checkReport
+    CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
+        def issues = []
         try {
             ChecksApi apiInstance = new ChecksApi(apiClient)
             CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
             String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
+
             Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
                 response?.status in [null, 'WAITING', 'RUNNING']
             }
 
-            while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            CheckExecutionStatus checkPackageStatus
+            long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
+            while (checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+                if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
+                    break
+                }
                 sleep(1000)
             }
-            checkReport = apiInstance.getCheckResult(checkExecutionId)
+
+            println("CheckStatus is:   " + checkPackageStatus.status)
+            if (checkPackageStatus.status != 'FINISHED' ) {
+                throw new TimeoutException("Check package was aborted during timeout after ${timeout} seconds")
+            }
+
+            CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
+            for (CheckFinding issue : checkReport.issues) {
+                def issueMap = [filename: issue.fileName, message: issue.message]
+                issues.add(issueMap)
+            }
         } catch (de.tracetronic.cxs.generated.et.client.v1.ApiException rethrow) {
-            throw new ApiException('An error occurs during runPackageCheck. See stacktrace below', rethrow)
+            throw new ApiException('An error occurs during runPackageCheck. See stacktrace below:\n' +
+                    rethrow.getMessage())
         }
 
-        def issues = []
-        for (CheckFinding issue : checkReport.issues) {
-            def issueMap = [filename: issue.fileName, message: issue.message]
-            issues.add(issueMap)
-        }
         return new CheckPackageResult(testPkgPath, issues)
     }
 

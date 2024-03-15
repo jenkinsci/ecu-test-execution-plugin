@@ -94,6 +94,29 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
     }
 
+    def "Perform check with timeout"() {
+        given: "a test execution pipeline"
+            int timeout = 1
+            String script = """
+                            node {
+                                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                    ttCheckPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: 'invalid_package_desc.pkg'
+                                }
+                            }
+                            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+            when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("Executing Package Checks failed!", run)
+            jenkins.assertLogContains("Check package was aborted during timeout after ${timeout} seconds", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+    }
+
     def "Perform check on project"() {
         given: "a test execution pipeline"
             String script = """

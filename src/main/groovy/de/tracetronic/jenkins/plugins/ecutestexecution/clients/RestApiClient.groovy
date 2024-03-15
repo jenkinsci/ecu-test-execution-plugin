@@ -14,6 +14,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 
+import java.util.concurrent.TimeoutException
+
 interface RestApiClient {
 
     /**
@@ -28,10 +30,12 @@ interface RestApiClient {
     /**
      * This method performs the package check for the given test package or project via REST api.
      * @param testPkgPath the path to the package or project to be checked
+     * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
-     * @throws ApiException on error status codes.
+     * @throws ApiException on error status codes
+     * @throws TimeoutException on timeout exceeded
      */
-    abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException
+    abstract CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
