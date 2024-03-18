@@ -97,7 +97,7 @@ class RestApiClientV1 implements RestApiClient{
 
             println("CheckStatus is:   " + checkPackageStatus.status)
             if (checkPackageStatus.status != 'FINISHED' ) {
-                throw new TimeoutException("Check package was aborted during timeout after ${timeout} seconds")
+                throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
             }
 
             CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)

@@ -97,10 +97,11 @@ abstract class ETContainerTest extends ContainerTest {
     def "Perform check with timeout"() {
         given: "a test execution pipeline"
             int timeout = 1
+            String testPkg = 'invalid_package_desc.pkg'
             String script = """
                             node {
                                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                    ttCheckPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: 'invalid_package_desc.pkg'
+                                    ttCheckPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: '${testPkg}'
                                 }
                             }
                             """.stripIndent()
@@ -113,7 +114,7 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
             jenkins.assertLogContains("Executing Package Checks failed!", run)
-            jenkins.assertLogContains("Check package was aborted during timeout after ${timeout} seconds", run)
+            jenkins.assertLogContains("Timeout: check package '${testPkg}' took longer than ${timeout} seconds", run)
             jenkins.assertLogContains("-> result: ERROR", run)
     }
 
