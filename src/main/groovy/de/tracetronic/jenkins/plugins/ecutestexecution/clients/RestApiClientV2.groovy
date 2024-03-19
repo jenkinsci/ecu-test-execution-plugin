@@ -39,7 +39,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOr
 
 import java.util.concurrent.TimeoutException
 
-class RestApiClientV2 implements RestApiClient{
+class RestApiClientV2 implements RestApiClient {
 
     private ApiClient apiClient
 
@@ -84,17 +84,15 @@ class RestApiClientV2 implements RestApiClient{
      */
     CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
         def issues = []
+        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         try {
             ChecksApi apiInstance = new ChecksApi(apiClient)
             CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
             String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
-
             Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
                 response?.status in [null, 'WAITING', 'RUNNING']
             }
-
             CheckExecutionStatus checkPackageStatus
-            long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
             while (checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
                 if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
                     break
@@ -102,7 +100,7 @@ class RestApiClientV2 implements RestApiClient{
                 sleep(1000)
             }
 
-            if (checkPackageStatus.status != 'FINISHED' ) {
+            if (checkPackageStatus.status != 'FINISHED') {
                 throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
             }
 
@@ -112,8 +110,14 @@ class RestApiClientV2 implements RestApiClient{
                 issues.add(issueMap)
             }
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
-            throw new ApiException('An error occurs during runPackageCheck. See stacktrace below:\n' +
-                    rethrow.getMessage())
+            if (rethrow.code == 409) {
+                sleep(1000)
+                return this.runPackageCheck(testPkgPath, (int) ((endTimeMillis - System.currentTimeMillis()) / 1000))
+            }
+            else {
+                throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
+                        rethrow.getMessage())
+            }
         }
 
         return new CheckPackageResult(testPkgPath, issues)
@@ -127,7 +131,6 @@ class RestApiClientV2 implements RestApiClient{
      * @return ReportInfo with report information about the test execution
      */
     ReportInfo runTest(ExecutionOrder executionOrder, int timeout) {
-
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
 
@@ -145,30 +148,41 @@ class RestApiClientV2 implements RestApiClient{
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
             ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
             if (status.statusCode != 200) {
-                throw new ApiException("Configuration could not be loaded!")
+                throw new ApiException('Configuration could not be loaded!')
             }
         }
 
-        ExecutionApi executionApi = new ExecutionApi(apiClient)
-        executionApi.createExecution(executionOrderV2)
-
-        Closure<Boolean> checkStatus = { Execution execution ->
-            execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
-        }
-
-        Execution execution
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (checkStatus(execution = executionApi.currentExecution)) {
-            if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
-                executionApi.abortExecution()
-                break
+        try {
+            ExecutionApi executionApi = new ExecutionApi(apiClient)
+            executionApi.createExecution(executionOrderV2)
+            Closure<Boolean> checkStatus = { Execution execution ->
+                execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
             }
-            sleep(1000)
-        }
 
-        if (execution.result == null) {
-            // tests are not running
-            return null
+            Execution execution
+
+            while (checkStatus(execution = executionApi.currentExecution)) {
+                if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
+                    executionApi.abortExecution()
+                    break
+                }
+                sleep(1000)
+            }
+
+            if (execution.result == null) {
+                // tests are not running
+                return null
+            }
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
+            if (rethrow.code == 409) {
+                sleep(1000)
+                return this.runTest(executionOrder, (int) ((endTimeMillis - System.currentTimeMillis()) / 1000))
+            }
+            else {
+                throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
+                        rethrow.getMessage())
+            }
         }
         return ReportInfo.fromReportInfo(execution.result)
     }
@@ -181,17 +195,26 @@ class RestApiClientV2 implements RestApiClient{
      */
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
-        ReportApi apiInstance = new ReportApi(apiClient)
-        apiInstance.createReportGeneration(reportId, orderV2)
+        try {
+            ReportApi apiInstance = new ReportApi(apiClient)
+            apiInstance.createReportGeneration(reportId, orderV2)
+            Closure<Boolean> checkStatus = { ReportGeneration generation ->
+                generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
+                                            ReportGenerationStatus.KeyEnum.RUNNING]
+            }
 
-        Closure<Boolean> checkStatus = { ReportGeneration generation ->
-            generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
-                                        ReportGenerationStatus.KeyEnum.RUNNING]
-        }
-
-        ReportGeneration generation
-        while (checkStatus(generation = apiInstance.getCurrentReportGeneration(reportId))) {
-            sleep(1000)
+            while (checkStatus(generation = apiInstance.getCurrentReportGeneration(reportId))) {
+                sleep(1000)
+            }
+        }  catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
+            if (rethrow.code == 409) {
+                sleep(1000)
+                return this.generateReport(reportId, order)
+            }
+            else {
+                throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
+                        rethrow.getMessage())
+            }
         }
 
         return new GenerationResult(generation.status.key.name(), generation.status.message,
@@ -207,20 +230,31 @@ class RestApiClientV2 implements RestApiClient{
     UploadResult uploadReport(String reportId, TGUploadOrder order) {
         de.tracetronic.cxs.generated.et.client.model.v2.TGUploadOrder uploadOrderV2
         uploadOrderV2 = order.toTGUploadOrderV2()
-        ReportApi apiInstance = new ReportApi(apiClient)
-        apiInstance.createUpload(reportId, uploadOrderV2)
+        try {
+            ReportApi apiInstance = new ReportApi(apiClient)
+            apiInstance.createUpload(reportId, uploadOrderV2)
 
-        Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
-        }
+            Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
+            }
 
-        TGUpload upload
-        while (checkStatus(upload = apiInstance.getCurrentUpload(reportId))) {
-            sleep(1000)
-        }
+            TGUpload upload
+            while (checkStatus(upload = apiInstance.getCurrentUpload(reportId))) {
+                sleep(1000)
+            }
 
-        if (upload.result.link) {
-            return new UploadResult(upload.status.key.name(),
-                    'Uploaded successfully', upload.result.link)
+            if (upload.result.link) {
+                return new UploadResult(upload.status.key.name(),
+                        'Uploaded successfully', upload.result.link)
+            }
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
+            if (rethrow.code == 409) {
+                sleep(1000)
+                return this.uploadReport(reportId, order)
+            }
+            else {
+                throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
+                        rethrow.getMessage())
+            }
         }
         return new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
                 "Report upload for ${reportId} failed", '')
