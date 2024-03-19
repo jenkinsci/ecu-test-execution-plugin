@@ -15,6 +15,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 
+import java.util.concurrent.TimeoutException
+
 class TestRestApiClient implements RestApiClient {
 
     @Override
@@ -23,7 +25,7 @@ class TestRestApiClient implements RestApiClient {
     }
 
     @Override
-    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException {
+    CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
         return null
     }
 

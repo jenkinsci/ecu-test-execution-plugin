@@ -26,6 +26,7 @@ import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
 
 import javax.annotation.Nonnull
+import java.util.concurrent.TimeoutException
 
 /**
  * Step providing the package checks of ecu.test packages or projects.
@@ -167,25 +168,26 @@ class CheckPackageStep extends Step {
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws ApiException {
+        CheckPackageResult call() throws Exception {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
             CheckPackageResult result
             try {
-                result = apiClient.runPackageCheck(testCasePath)
+                result = apiClient.runPackageCheck(testCasePath, executionConfig.timeout)
             }
-            catch (ApiException e) {
-                if (e.cause.message.toUpperCase().contains("BAD REQUEST")) {
-                    listener.logger.println('Executing Package Checks failed!')
-                    listener.logger.println(e.cause.message)
+            catch (Exception e) {
+                listener.logger.println('Executing Package Checks failed!')
+                if (e instanceof TimeoutException || e instanceof ApiException) {
+                    listener.logger.println(e.message)
                     result = new CheckPackageResult(null, null)
                 }
                 else {
                     throw e
                 }
             }
-            listener.logger.println(result)
+
+            listener.logger.println(result.toString())
             if (result.result == "ERROR" && executionConfig.stopOnError){
                 toolInstallations.stopToolInstances(executionConfig.timeout)
                 if (executionConfig.stopUndefinedTools) {
