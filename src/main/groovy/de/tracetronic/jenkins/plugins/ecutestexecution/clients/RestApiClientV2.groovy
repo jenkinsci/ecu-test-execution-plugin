@@ -112,7 +112,7 @@ class RestApiClientV2 implements RestApiClient {
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
             if (rethrow.code == 409) {
                 sleep(1000)
-                return this.runPackageCheck(testPkgPath, (int) ((endTimeMillis - System.currentTimeMillis()) / 1000))
+                return this.runPackageCheck(testPkgPath, timeout-1)
             }
             else {
                 throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
@@ -177,7 +177,7 @@ class RestApiClientV2 implements RestApiClient {
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
             if (rethrow.code == 409) {
                 sleep(1000)
-                return this.runTest(executionOrder, (int) ((endTimeMillis - System.currentTimeMillis()) / 1000))
+                return this.runTest(executionOrder, timeout-1)
             }
             else {
                 throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
