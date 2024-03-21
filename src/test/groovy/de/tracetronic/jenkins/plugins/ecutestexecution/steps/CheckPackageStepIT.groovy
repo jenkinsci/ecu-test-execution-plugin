@@ -5,8 +5,12 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
+import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -50,6 +54,31 @@ class CheckPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+    }
+
+    def 'Run pipeline with mocked 409 (busy) response'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
+            boolean firstCall = true
+            GroovySpy(ChecksApi, global: true){
+                createCheckExecutionOrder(*_) >> {
+                    if (firstCall){
+                        firstCall = false
+                        // This should be handled without Exception
+                        throw new ApiException(409, 'ecu.test is busy')
+                    }
+                    throw new ApiException(503, 'This should be thrown!')
+                }
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
+        expect:
+            // expect SUCCESS because stopOnError is false by default
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('This should be thrown!', run)
     }
 
 }
