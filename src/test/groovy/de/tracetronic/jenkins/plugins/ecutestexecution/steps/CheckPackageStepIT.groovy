@@ -56,11 +56,12 @@ class CheckPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
     }
 
-    def 'Run pipeline with mocked 409 (busy) response'() {
+    def 'Run pipeline with initial 409 (busy) response'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             boolean firstCall = true
+            def originalMethod = ChecksApi.metaClass.getMetaMethod("createCheckExecutionOrder", [String] as Class[])
             GroovySpy(ChecksApi, global: true){
                 createCheckExecutionOrder(*_) >> {
                     if (firstCall){
@@ -68,17 +69,32 @@ class CheckPackageStepIT extends IntegrationTestBase {
                         // This should be handled without Exception
                         throw new ApiException(409, 'ecu.test is busy')
                     }
-                    throw new ApiException(503, 'This should be thrown!')
+                    return null
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
         expect:
-            // expect SUCCESS because stopOnError is false by default
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+    }
+
+    def 'Run pipeline with permanent 409 (busy) response'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
+            boolean firstCall = true
+            GroovySpy(ChecksApi, global: true){
+                createCheckExecutionOrder(*_) >> { throw new ApiException(409, 'ecu.test is busy')}
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 20]}", true))
+        expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains('This should be thrown!', run)
+            jenkins.assertLogContains("Timeout: check package test.pkg took longer than 20 seconds", run)
     }
 
 }
