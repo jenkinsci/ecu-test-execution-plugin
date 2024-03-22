@@ -195,10 +195,6 @@ class RunPackageStepIT extends IntegrationTestBase {
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage 'test.pkg' }", true))
-
-            // assume RestApiClient is available
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
