@@ -148,17 +148,16 @@ class RestApiClientV2 implements RestApiClient{
                 .tcf(new TestConfiguration().tcfPath(executionOrder.tcfPath))
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
-
-        if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
-            ConfigurationApi configApi = new ConfigurationApi(apiClient)
-            ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
-            if (status.statusCode != 200) {
-                throw new ApiException("Configuration could not be loaded!")
-            }
-        }
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         while (true) {
             try {
+                if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
+                    ConfigurationApi configApi = new ConfigurationApi(apiClient)
+                    ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
+                    if (status.statusCode != 200) {
+                        throw new ApiException("Configuration could not be loaded!")
+                    }
+                }
                 ExecutionApi executionApi = new ExecutionApi(apiClient)
                 executionApi.createExecution(executionOrderV2)
 
