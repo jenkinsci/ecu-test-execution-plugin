@@ -7,7 +7,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -133,7 +132,7 @@ class StartToolStepIT extends IntegrationTestBase {
             String workspaceDir = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', keepInstance: true }", true))
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', keepInstance: true, timeout: 5 }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Re-using running instance ', run)

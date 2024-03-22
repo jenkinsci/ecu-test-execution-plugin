@@ -61,7 +61,6 @@ class CheckPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             boolean firstCall = true
-            def originalMethod = ChecksApi.metaClass.getMetaMethod("createCheckExecutionOrder", [String] as Class[])
             GroovySpy(ChecksApi, global: true){
                 createCheckExecutionOrder(*_) >> {
                     if (firstCall){
@@ -84,17 +83,16 @@ class CheckPackageStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            boolean firstCall = true
             GroovySpy(ChecksApi, global: true){
                 createCheckExecutionOrder(*_) >> { throw new ApiException(409, 'ecu.test is busy')}
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 20]}", true))
+            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains("Timeout: check package test.pkg took longer than 20 seconds", run)
+            jenkins.assertLogContains("Timeout: check package test.pkg took longer than 2 seconds", run)
     }
 
 }
