@@ -74,7 +74,7 @@ class RestApiClientV2 implements RestApiClient{
     }
 
     /**
-     * Waits until the ecu.test is idle or timeout is reached. It uses the api "StatusApi" to get a simple ping
+     * Waits until the ecu.test is idle by using the api "StatusApi". Also returns if the timeout is reached
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
@@ -90,6 +90,7 @@ class RestApiClientV2 implements RestApiClient{
             if (idle) {
                 break
             }
+            sleep(1000)
         }
         return idle
     }
