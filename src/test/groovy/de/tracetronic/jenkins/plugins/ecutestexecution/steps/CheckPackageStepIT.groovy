@@ -67,6 +67,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
                 ecutestIsIdle(*_) >> {
                     IsIdle idle = new IsIdle()
                     if (firstCall){
+                        firstCall = false
                         idle.setIsIdle(false)
                         return idle
                     }
