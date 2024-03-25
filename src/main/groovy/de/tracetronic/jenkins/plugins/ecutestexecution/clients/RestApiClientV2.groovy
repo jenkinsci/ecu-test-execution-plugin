@@ -49,7 +49,7 @@ class RestApiClientV2 implements RestApiClient{
     }
 
     /**
-     * Waits until the ecu.test API is alive or timeout is reached. It uses the api "apiStatus" to get a simple ping
+     * Waits until the ecu.test API is alive or timeout is reached. It uses the api "StatusApi" to get a simple ping
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
@@ -74,7 +74,7 @@ class RestApiClientV2 implements RestApiClient{
     }
 
     /**
-     * Waits until the ecu.test API is idle or timeout is reached. It uses the api "apiStatus" to get a simple ping
+     * Waits until the ecu.test is idle or timeout is reached. It uses the api "StatusApi" to get a simple ping
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
@@ -97,6 +97,7 @@ class RestApiClientV2 implements RestApiClient{
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
+     * It calls waitForIdle to check whether ecu.test is idle before starting
      * @param testPkgPath the path to the package or project to be checked
      * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
@@ -146,6 +147,7 @@ class RestApiClientV2 implements RestApiClient{
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
+     * It calls waitForIdle to check whether ecu.test is idle before starting
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      *   or project
      * @param timeout Time in seconds until the test execution will be aborted
@@ -206,14 +208,13 @@ class RestApiClientV2 implements RestApiClient{
 
     /**
      * Generates a report for a given report ID. The report has the format defined by the ReportGenerationOrder
+     * It calls waitForIdle to check whether ecu.test is idle before starting
      * @param reportId ID of the test execution which should be reported
      * @param order ReportGenerationOrder with the definition of the report format
      * @return GenerationResult with information about the report generation
      */
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
-        if (!waitForIdle(0)) {
-            throw new TimeoutException("Timeout: check package ${testPkgPath} took longer than ${timeout} seconds")
-        }
+        waitForIdle(0)
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
         try{
             ReportApi apiInstance = new ReportApi(apiClient)
@@ -239,6 +240,7 @@ class RestApiClientV2 implements RestApiClient{
 
     /**
      * Uploads the report to test.guide
+     * It calls waitForIdle to check whether ecu.test is idle before starting
      * @param reportId ID of the test execution which should be uploaded to test.guide
      * @param order TGUploadOrder with the definition of the test.guide instance and project
      * @return UploadResult with information about the upload
