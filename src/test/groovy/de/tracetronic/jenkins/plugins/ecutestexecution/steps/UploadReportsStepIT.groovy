@@ -10,6 +10,8 @@ import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
+import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
+import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
 import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
 import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
@@ -88,20 +90,20 @@ class UploadReportsStepIT extends IntegrationTestBase {
     }
 
 
-    def 'Run pipeline with mocked 409 (busy) response'() {
+    def 'Run pipeline: wait until idle ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             boolean firstCall = true
-            GroovySpy(ReportApi, global: true){
-                getAllReports(*_)>> [new ReportInfo()]
-                createUpload(*_) >> {
+            GroovySpy(StatusApi, global: true){
+                ecutestIsIdle(*_) >> {
+                    IsIdle idle = new IsIdle()
                     if (firstCall){
-                        firstCall = false
-                        // This should be handled without Exception
-                        throw new ApiException(409, 'ecu.test is busy')
+                        idle.setIsIdle(false)
+                        return idle
                     }
-                    throw new ApiException(503, 'This should be thrown!')
+                    idle.setIsIdle(true)
+                    return idle
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -112,7 +114,5 @@ class UploadReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
-            jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains('This should be thrown!', run)
     }
 }

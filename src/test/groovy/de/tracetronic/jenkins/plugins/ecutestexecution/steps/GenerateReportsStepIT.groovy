@@ -6,6 +6,8 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
+import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
+import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
 import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
 import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
@@ -68,20 +70,20 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Generating HTML reports...', run)
     }
 
-    def 'Run pipeline with mocked 409 (busy) response'() {
+    def 'Run pipeline: wait until idle ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             boolean firstCall = true
-            GroovySpy(ReportApi, global: true){
-                getAllReports(*_)>> [new ReportInfo()]
-                createReportGeneration(*_) >> {
+            GroovySpy(StatusApi, global: true){
+                ecutestIsIdle(*_) >> {
+                    IsIdle idle = new IsIdle()
                     if (firstCall){
-                        firstCall = false
-                        // This should be handled without Exception
-                        throw new ApiException(409, 'ecu.test is busy')
+                        idle.setIsIdle(false)
+                        return idle
                     }
-                    throw new ApiException(503, 'This should be thrown!')
+                    idle.setIsIdle(true)
+                    return idle
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -89,8 +91,6 @@ class GenerateReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Generating HTML reports...', run)
-            jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains('This should be thrown!', run)
 
     }
 }
