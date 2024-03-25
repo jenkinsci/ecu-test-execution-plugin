@@ -140,7 +140,7 @@ class RestApiClientV2 implements RestApiClient{
             }
             return new CheckPackageResult(testPkgPath, issues)
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurs during runPackageCheck. See stacktrace below:\n' +
+            throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
                     exception.getMessage())
         }
     }
