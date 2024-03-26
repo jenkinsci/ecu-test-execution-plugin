@@ -36,7 +36,7 @@ class GenerateReportsStepIT extends IntegrationTestBase {
     def 'Config round trip'() {
         given:
             GenerateReportsStep before = new GenerateReportsStep('HTML')
-            before.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
+        before.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
         when:
             GenerateReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -53,32 +53,32 @@ class GenerateReportsStepIT extends IntegrationTestBase {
         when:
             step.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
         then:
-            st.assertRoundTrip(step, "ttGenerateReports additionalSettings: [" +
+            st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
                     "[name: 'javascript', value: 'False']], generatorName: 'HTML'")
     }
 
     def 'Run pipeline'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
+        job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
 
-            // assume RestApiClient is available
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+        // assume RestApiClient is available
+        GroovyMock(RestApiClientFactory, global: true)
+        RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Generating HTML reports...', run)
+        jenkins.assertLogContains('Generating HTML reports...', run)
     }
 
     def 'Run pipeline: wait until idle ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            boolean firstCall = true
-            GroovySpy(StatusApi, global: true){
+        RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('', '')
+        boolean firstCall = true
+        GroovySpy(StatusApi, global: true) {
                 ecutestIsIdle(*_) >> {
                     IsIdle idle = new IsIdle()
-                    if (firstCall){
+                    if (firstCall) {
                         firstCall = false
                         idle.setIsIdle(false)
                         return idle
@@ -86,12 +86,12 @@ class GenerateReportsStepIT extends IntegrationTestBase {
                     idle.setIsIdle(true)
                     return idle
                 }
-            }
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
+        }
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+        job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Generating HTML reports...', run)
-
+        jenkins.assertLogContains('Generating HTML reports...', run)
     }
+
 }

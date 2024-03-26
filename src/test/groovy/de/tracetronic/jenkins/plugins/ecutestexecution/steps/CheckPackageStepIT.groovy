@@ -90,7 +90,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
                 ecutestIsIdle(*_) >> {
                     IsIdle idle = new IsIdle()
                     idle.setIsIdle(false)
-                    return  idle
+                    return idle
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')

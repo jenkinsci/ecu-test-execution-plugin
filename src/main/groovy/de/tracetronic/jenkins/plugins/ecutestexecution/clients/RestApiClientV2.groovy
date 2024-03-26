@@ -39,7 +39,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOr
 
 import java.util.concurrent.TimeoutException
 
-class RestApiClientV2 implements RestApiClient{
+class RestApiClientV2 implements RestApiClient {
 
     private ApiClient apiClient
 
@@ -130,7 +130,7 @@ class RestApiClientV2 implements RestApiClient{
                 sleep(1000)
             }
 
-            if (checkPackageStatus.status != 'FINISHED' ) {
+            if (checkPackageStatus.status != 'FINISHED') {
                 throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
             }
 
@@ -177,8 +177,11 @@ class RestApiClientV2 implements RestApiClient{
                 ConfigurationApi configApi = new ConfigurationApi(apiClient)
                 ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
                 if (status.statusCode != 200) {
-                    throw new ApiException("Configuration could not be loaded!")
+                    throw new ApiException('Configuration could not be loaded!')
                 }
+            }
+            if (!waitForIdle(timeout)) {
+                throw new TimeoutException("Timeout: run ${executionOrder.testCasePath} waited ${timeout} seconds for ecu.test to become idle")
             }
             ExecutionApi executionApi = new ExecutionApi(apiClient)
             executionApi.createExecution(executionOrderV2)
@@ -202,7 +205,7 @@ class RestApiClientV2 implements RestApiClient{
             }
             return ReportInfo.fromReportInfo(execution.result)
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-                throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
+            throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
                         exception.getMessage())
         }
     }
@@ -217,7 +220,7 @@ class RestApiClientV2 implements RestApiClient{
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
         waitForIdle(0)
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
-        try{
+        try {
             ReportApi apiInstance = new ReportApi(apiClient)
             apiInstance.createReportGeneration(reportId, orderV2)
 
@@ -233,8 +236,8 @@ class RestApiClientV2 implements RestApiClient{
 
             return new GenerationResult(generation.status.key.name(), generation.status.message,
                     generation.result.outputDir)
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception){
-                throw new ApiException('An error occurred during generateReport. See stacktrace below:\n' +
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
+            throw new ApiException('An error occurred during generateReport. See stacktrace below:\n' +
                         exception.getMessage())
         }
     }
@@ -272,7 +275,6 @@ class RestApiClientV2 implements RestApiClient{
             throw new ApiException('An error occurred during uploadReport. See stacktrace below:\n' +
                     exception.getMessage())
         }
-
     }
 
     /**
@@ -284,4 +286,5 @@ class RestApiClientV2 implements RestApiClient{
         List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reports = apiInstance.getAllReports()
         return reports*.testReportId
     }
+
 }
