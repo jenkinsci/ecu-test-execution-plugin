@@ -80,7 +80,7 @@ class RestApiClientV2 implements RestApiClient {
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
      */
-    boolean waitForIdle(int timeout = 60) {
+    boolean waitForIdle(int timeout) {
         StatusApi statusApi = new StatusApi(apiClient)
 
         boolean idle = false
@@ -178,7 +178,7 @@ class RestApiClientV2 implements RestApiClient {
             try {
                 status = configApi.manageConfigurationWithHttpInfo(configOrder)
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-                throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
+                throw new ApiException('An error occurred in runTest during manageConfiguration. See stacktrace below:\n' +
                         exception.getMessage())
             }
             if (status.statusCode != 200) {
@@ -192,7 +192,7 @@ class RestApiClientV2 implements RestApiClient {
         try {
             executionApi.createExecution(executionOrderV2)
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
+            throw new ApiException('An error occurred in runTest during createExecution. See stacktrace below:\n' +
                     exception.getMessage())
         }
         Closure<Boolean> checkStatus = { Execution execution ->
