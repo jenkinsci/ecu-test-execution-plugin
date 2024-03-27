@@ -98,7 +98,7 @@ class RestApiClientV2 implements RestApiClient {
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
-     * It calls waitForIdle to check whether ecu.test is idle before starting
+     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param testPkgPath the path to the package or project to be checked
      * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
@@ -143,12 +143,11 @@ class RestApiClientV2 implements RestApiClient {
             issues.add(issueMap)
         }
         return new CheckPackageResult(testPkgPath, issues)
-
     }
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
-     * It calls waitForIdle to check whether ecu.test is idle before starting
+     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      *   or project
      * @param timeout Time in seconds until the test execution will be aborted
@@ -177,7 +176,7 @@ class RestApiClientV2 implements RestApiClient {
             }
             ApiResponse<SimpleMessage> status
             try {
-                 status = configApi.manageConfigurationWithHttpInfo(configOrder)
+                status = configApi.manageConfigurationWithHttpInfo(configOrder)
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
                 throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
                         exception.getMessage())
@@ -218,7 +217,7 @@ class RestApiClientV2 implements RestApiClient {
 
     /**
      * Generates a report for a given report ID. The report has the format defined by the ReportGenerationOrder
-     * It calls waitForIdle to check whether ecu.test is idle before starting
+     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param reportId ID of the test execution which should be reported
      * @param order ReportGenerationOrder with the definition of the report format
      * @return GenerationResult with information about the report generation
@@ -249,7 +248,7 @@ class RestApiClientV2 implements RestApiClient {
 
     /**
      * Uploads the report to test.guide
-     * It calls waitForIdle to check whether ecu.test is idle before starting
+     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param reportId ID of the test execution which should be uploaded to test.guide
      * @param order TGUploadOrder with the definition of the test.guide instance and project
      * @return UploadResult with information about the upload
