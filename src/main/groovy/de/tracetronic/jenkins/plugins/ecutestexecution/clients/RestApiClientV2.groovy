@@ -73,32 +73,27 @@ class RestApiClientV2 implements RestApiClient {
         return alive
     }
 
-    /**
-     * Waits until the ecu.test is idle by using the api "StatusApi". Also returns if the timeout is reached
-     * @param timeout time in seconds to wait for alive check
-     * @return boolean:
-     *   true, if the the ecu.test API sends an alive signal within the timeout range
-     *   false, otherwise
-     */
-    boolean waitForIdle(int timeout) {
-        StatusApi statusApi = new StatusApi(apiClient)
 
-        boolean idle = false
+    private static handleApiCall(Closure apiCall, int timeout){
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (timeout == 0 || System.currentTimeMillis() < endTimeMillis) {
-            idle = statusApi.ecutestIsIdle().getIsIdle()
-            if (idle) {
-                break
+        while (timeout == 0 || System.currentTimeMillis() < endTimeMillis){
+            try {
+                return apiCall()
+            } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
+                if (exception.code != 409){
+                    throw new ApiException("An error occurred during apiCall ${apiCall.toString()} . See stacktrace below:\n" +
+                            exception.getMessage())
+                }
+                sleep(1000)
             }
-            sleep(1000)
         }
-        return idle
+        throw new TimeoutException("Timeout: apiCall ${apiCall.toString()} timed out while waiting for ecu.test to become idle")
+
     }
 
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
-     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param testPkgPath the path to the package or project to be checked
      * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
@@ -111,16 +106,8 @@ class RestApiClientV2 implements RestApiClient {
 
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
-        if (!waitForIdle(timeout)) {
-            throw new TimeoutException("Timeout: check package ${testPkgPath} waited ${timeout} seconds for ecu.test to become idle")
-        }
         String checkExecutionId
-        try {
-            checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
-                    exception.getMessage())
-        }
+        checkExecutionId = handleApiCall({apiInstance.createCheckExecutionOrder(order)},timeout).getCheckExecutionId()
         Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
             response?.status in [null, 'WAITING', 'RUNNING']
         }
@@ -147,7 +134,6 @@ class RestApiClientV2 implements RestApiClient {
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
-     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      *   or project
      * @param timeout Time in seconds until the test execution will be aborted
@@ -171,30 +157,14 @@ class RestApiClientV2 implements RestApiClient {
 
         if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
-            if (!waitForIdle(timeout)) {
-                throw new TimeoutException("Timeout: run ${executionOrder.testCasePath} waited ${timeout} seconds for ecu.test to become idle")
-            }
             ApiResponse<SimpleMessage> status
-            try {
-                status = configApi.manageConfigurationWithHttpInfo(configOrder)
-            } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-                throw new ApiException('An error occurred in runTest during manageConfiguration. See stacktrace below:\n' +
-                        exception.getMessage())
-            }
+            status = handleApiCall({configApi.manageConfigurationWithHttpInfo(configOrder)}, timeout)
             if (status.statusCode != 200) {
                 throw new ApiException('Configuration could not be loaded!')
             }
         }
         ExecutionApi executionApi = new ExecutionApi(apiClient)
-        if (!waitForIdle(timeout)) {
-            throw new TimeoutException("Timeout: run ${executionOrder.testCasePath} waited ${timeout} seconds for ecu.test to become idle")
-        }
-        try {
-            executionApi.createExecution(executionOrderV2)
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurred in runTest during createExecution. See stacktrace below:\n' +
-                    exception.getMessage())
-        }
+        handleApiCall({executionApi.createExecution(executionOrderV2)},0)
         Closure<Boolean> checkStatus = { Execution execution ->
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
@@ -217,7 +187,6 @@ class RestApiClientV2 implements RestApiClient {
 
     /**
      * Generates a report for a given report ID. The report has the format defined by the ReportGenerationOrder
-     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param reportId ID of the test execution which should be reported
      * @param order ReportGenerationOrder with the definition of the report format
      * @return GenerationResult with information about the report generation
@@ -225,13 +194,7 @@ class RestApiClientV2 implements RestApiClient {
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
         ReportApi apiInstance = new ReportApi(apiClient)
-        waitForIdle(0)
-        try {
-            apiInstance.createReportGeneration(reportId, orderV2)
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurred during generateReport. See stacktrace below:\n' +
-                    exception.getMessage())
-        }
+        handleApiCall({apiInstance.createReportGeneration(reportId, orderV2)},0)
         Closure<Boolean> checkStatus = { ReportGeneration generation ->
             generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
                                             ReportGenerationStatus.KeyEnum.RUNNING]
@@ -248,7 +211,6 @@ class RestApiClientV2 implements RestApiClient {
 
     /**
      * Uploads the report to test.guide
-     * It calls waitForIdle to check whether ecu.test is idle before calling the api
      * @param reportId ID of the test execution which should be uploaded to test.guide
      * @param order TGUploadOrder with the definition of the test.guide instance and project
      * @return UploadResult with information about the upload
@@ -258,13 +220,7 @@ class RestApiClientV2 implements RestApiClient {
         uploadOrderV2 = order.toTGUploadOrderV2()
 
         ReportApi apiInstance = new ReportApi(apiClient)
-        waitForIdle(0)
-        try {
-            apiInstance.createUpload(reportId, uploadOrderV2)
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-            throw new ApiException('An error occurred during create uploadReport. See stacktrace below:\n' +
-                        exception.getMessage())
-        }
+        handleApiCall({apiInstance.createUpload(reportId, uploadOrderV2)},0)
         Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
         }
 

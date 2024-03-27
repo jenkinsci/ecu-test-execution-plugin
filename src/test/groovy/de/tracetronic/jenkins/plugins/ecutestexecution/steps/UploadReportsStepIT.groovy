@@ -95,16 +95,13 @@ class UploadReportsStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             boolean firstCall = true
-            GroovySpy(StatusApi, global: true){
-                ecutestIsIdle(*_) >> {
-                    IsIdle idle = new IsIdle()
+            GroovySpy(ReportApi, global: true){
+                createUpload(*_) >> {
                     if (firstCall){
                         firstCall = false
-                        idle.setIsIdle(false)
-                        return idle
+                        throw new ApiException(409, "ecu.test is busy")
                     }
-                    idle.setIsIdle(true)
-                    return idle
+                return null
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -115,5 +112,6 @@ class UploadReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
     }
 }
