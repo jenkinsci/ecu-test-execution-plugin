@@ -111,11 +111,12 @@ class RestApiClientV2 implements RestApiClient {
 
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
+        if (!waitForIdle(timeout)) {
+            throw new TimeoutException("Timeout: check package ${testPkgPath} waited ${timeout} seconds for ecu.test to become idle")
+        }
+        String checkExecutionId
         try {
-            if (!waitForIdle(timeout)) {
-                throw new TimeoutException("Timeout: check package ${testPkgPath} waited ${timeout} seconds for ecu.test to become idle")
-            }
-            String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
+            checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
             throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
                     exception.getMessage())
@@ -174,14 +175,15 @@ class RestApiClientV2 implements RestApiClient {
             if (!waitForIdle(timeout)) {
                 throw new TimeoutException("Timeout: run ${executionOrder.testCasePath} waited ${timeout} seconds for ecu.test to become idle")
             }
+            ApiResponse<SimpleMessage> status
             try {
-                ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
-                if (status.statusCode != 200) {
-                    throw new ApiException('Configuration could not be loaded!')
-                }
+                 status = configApi.manageConfigurationWithHttpInfo(configOrder)
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
                 throw new ApiException('An error occurred during runTest. See stacktrace below:\n' +
                         exception.getMessage())
+            }
+            if (status.statusCode != 200) {
+                throw new ApiException('Configuration could not be loaded!')
             }
         }
         ExecutionApi executionApi = new ExecutionApi(apiClient)
@@ -222,9 +224,9 @@ class RestApiClientV2 implements RestApiClient {
      * @return GenerationResult with information about the report generation
      */
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
-        waitForIdle(0)
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
         ReportApi apiInstance = new ReportApi(apiClient)
+        waitForIdle(0)
         try {
             apiInstance.createReportGeneration(reportId, orderV2)
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
@@ -260,7 +262,7 @@ class RestApiClientV2 implements RestApiClient {
         waitForIdle(0)
         try {
             apiInstance.createUpload(reportId, uploadOrderV2)
-            } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
             throw new ApiException('An error occurred during create uploadReport. See stacktrace below:\n' +
                         exception.getMessage())
         }
