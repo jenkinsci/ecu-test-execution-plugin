@@ -5,10 +5,13 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
+import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
@@ -181,20 +184,24 @@ class RunPackageStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> new ApiResponse(200,[:],[])
-            }
             boolean firstCall = true
-            GroovySpy(StatusApi, global: true){
-                ecutestIsIdle(*_) >> {
-                    IsIdle idle = new IsIdle()
-                    if (firstCall){
+            GroovySpy(ConfigurationApi, global: true){
+                manageConfigurationWithHttpInfo(*_) >> {
+                    if (firstCall) {
                         firstCall = false
-                        idle.setIsIdle(false)
-                        return idle
+                        throw new ApiException(409, 'ecu.test is busy')
                     }
-                    idle.setIsIdle(true)
-                    return idle
+                    new ApiResponse(200,[:],[])
+                }
+            }
+            firstCall = true
+            GroovySpy(ExecutionApi, global: true){
+                createExecution(*_) >> {
+                    if (firstCall) {
+                        firstCall = false
+                        throw new ApiException(409, 'ecu.test is busy')
+                    }
+                    return new SimpleMessage("")
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -209,24 +216,18 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> { throw new ApiException(409, 'ecu.test is busy') }
+                manageConfigurationWithHttpInfo(_) >> { throw new ApiException(409, 'ecu.test is busy') }
             }
             GroovySpy(ExecutionApi, global: true){
-                createExecution(*_) >> {throw new ApiException(409, 'ecu.test is busy')}
-            }
-            GroovySpy(StatusApi, global: true){
-                ecutestIsIdle(*_) >> {
-                    IsIdle idle = new IsIdle()
-                    idle.setIsIdle(false)
-                    return idle
-                }
+                createExecution(_) >> {throw new ApiException(409, 'ecu.test is busy')}
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage  testCasePath:'test.pkg', executionConfig:[timeout: 2]}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
-            jenkins.assertLogContains("Timeout: run test.pkg waited 2 seconds for ecu.test to become idle", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains("Timeout: apiCall", run)
 
     }
 }
