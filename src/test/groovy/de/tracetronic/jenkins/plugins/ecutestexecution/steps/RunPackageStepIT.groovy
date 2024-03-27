@@ -209,7 +209,10 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> new ApiResponse(200,[:],[])
+                manageConfigurationWithHttpInfo(*_) >> { throw new ApiException(409, 'ecu.test is busy') }
+            }
+            GroovySpy(ExecutionApi, global: true){
+                createExecution(*_) >> {throw new ApiException(409, 'ecu.test is busy')}
             }
             GroovySpy(StatusApi, global: true){
                 ecutestIsIdle(*_) >> {

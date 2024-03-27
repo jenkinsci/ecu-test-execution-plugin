@@ -86,7 +86,10 @@ class CheckPackageStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            GroovySpy(StatusApi, global: true){
+            GroovySpy(ChecksApi, global: true){
+                createCheckExecutionOrder(*_) >> { throw new ApiException(409, 'ecu.test is busy')}
+            }
+            GroovySpy(StatusApi, global: true) {
                 ecutestIsIdle(*_) >> {
                     IsIdle idle = new IsIdle()
                     idle.setIsIdle(false)
@@ -98,6 +101,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains("Timeout: check package test.pkg waited 2 seconds for ecu.test to become idle", run)
     }
 
