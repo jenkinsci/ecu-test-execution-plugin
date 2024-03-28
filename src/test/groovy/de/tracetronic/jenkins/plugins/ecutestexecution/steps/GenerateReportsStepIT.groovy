@@ -5,9 +5,15 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-
+import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
+import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
+import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
+import de.tracetronic.cxs.generated.et.client.v2.ApiException
+import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -47,7 +53,7 @@ class GenerateReportsStepIT extends IntegrationTestBase {
         when:
             step.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
         then:
-            st.assertRoundTrip(step, "ttGenerateReports additionalSettings: [" +
+            st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
                     "[name: 'javascript', value: 'False']], generatorName: 'HTML'")
     }
 
@@ -61,6 +67,29 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Generating HTML reports...', run)
+        jenkins.assertLogContains('Generating HTML reports...', run)
     }
+
+    def 'Run pipeline: wait until idle ecu.test'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('', '')
+            boolean firstCall = true
+            GroovySpy(ReportApi, global: true) {
+                createReportGeneration(*_) >> {
+                    if (firstCall) {
+                        firstCall = false
+                        throw new ApiException(409,"ecu.test is busy")
+                    }
+                    return null
+                }
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Generating HTML reports...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+    }
+
 }

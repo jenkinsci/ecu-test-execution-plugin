@@ -9,8 +9,14 @@ import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
+import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
+import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
+import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
+import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -81,5 +87,31 @@ class UploadReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+    }
+
+
+    def 'Run pipeline: wait until idle ecu.test'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
+            boolean firstCall = true
+            GroovySpy(ReportApi, global: true){
+                createUpload(*_) >> {
+                    if (firstCall){
+                        firstCall = false
+                        throw new ApiException(409, "ecu.test is busy")
+                    }
+                return null
+                }
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085' }", true))
+
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
     }
 }
