@@ -73,14 +73,19 @@ class RestApiClientV2 implements RestApiClient {
         return alive
     }
 
-
-    private static handleApiCall(Closure apiCall, int timeout){
+    /**
+    * Executes given apiCall and handles ecu.test idle state
+    * If ecu.test is busy, it will retry to execute after 1 sec
+    * @param timeout: retry to execute apiCall until timeout is reached
+    * @return: return closure apiCall
+    */
+    private static handleApiCall(Closure apiCall, int timeout) {
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (timeout == 0 || System.currentTimeMillis() < endTimeMillis){
+        while (timeout == 0 || System.currentTimeMillis() < endTimeMillis) {
             try {
                 return apiCall()
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
-                if (exception.code != 409){
+                if (exception.code != 409) {
                     throw new ApiException("An error occurred during apiCall ${apiCall.toString()} . See stacktrace below:\n" +
                             exception.getMessage())
                 }
@@ -88,7 +93,6 @@ class RestApiClientV2 implements RestApiClient {
             }
         }
         throw new TimeoutException("Timeout: apiCall ${apiCall.toString()} timed out while waiting for ecu.test to become idle")
-
     }
 
     /**
@@ -107,7 +111,7 @@ class RestApiClientV2 implements RestApiClient {
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
         String checkExecutionId
-        checkExecutionId = handleApiCall({apiInstance.createCheckExecutionOrder(order)},timeout).getCheckExecutionId()
+        checkExecutionId = handleApiCall({ apiInstance.createCheckExecutionOrder(order) }, timeout).getCheckExecutionId()
         Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
             response?.status in [null, 'WAITING', 'RUNNING']
         }
@@ -158,13 +162,13 @@ class RestApiClientV2 implements RestApiClient {
         if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
             ApiResponse<SimpleMessage> status
-            status = handleApiCall({configApi.manageConfigurationWithHttpInfo(configOrder)}, timeout)
+            status = handleApiCall({ configApi.manageConfigurationWithHttpInfo(configOrder) }, timeout)
             if (status.statusCode != 200) {
                 throw new ApiException('Configuration could not be loaded!')
             }
         }
         ExecutionApi executionApi = new ExecutionApi(apiClient)
-        handleApiCall({executionApi.createExecution(executionOrderV2)},0)
+        handleApiCall({ executionApi.createExecution(executionOrderV2) }, 0)
         Closure<Boolean> checkStatus = { Execution execution ->
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
@@ -194,7 +198,7 @@ class RestApiClientV2 implements RestApiClient {
     GenerationResult generateReport(String reportId, ReportGenerationOrder order) {
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
         ReportApi apiInstance = new ReportApi(apiClient)
-        handleApiCall({apiInstance.createReportGeneration(reportId, orderV2)},0)
+        handleApiCall({ apiInstance.createReportGeneration(reportId, orderV2) }, 0)
         Closure<Boolean> checkStatus = { ReportGeneration generation ->
             generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
                                             ReportGenerationStatus.KeyEnum.RUNNING]
@@ -220,7 +224,7 @@ class RestApiClientV2 implements RestApiClient {
         uploadOrderV2 = order.toTGUploadOrderV2()
 
         ReportApi apiInstance = new ReportApi(apiClient)
-        handleApiCall({apiInstance.createUpload(reportId, uploadOrderV2)},0)
+        handleApiCall({ apiInstance.createUpload(reportId, uploadOrderV2) }, 0)
         Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
         }
 
