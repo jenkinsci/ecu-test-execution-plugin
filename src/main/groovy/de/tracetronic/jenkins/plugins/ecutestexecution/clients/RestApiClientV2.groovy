@@ -74,11 +74,12 @@ class RestApiClientV2 implements RestApiClient {
     }
 
     /**
-    * Executes given apiCall and handles ecu.test idle state
-    * If ecu.test is busy, it will retry to execute after 1 sec
-    * @param timeout: retry to execute apiCall until timeout is reached
-    * @return: return closure apiCall
-    */
+     * Executes given apiCall and handles ecu.test idle state
+     * If ecu.test is busy, it will retry to execute after 1 sec
+     * @param apiCall: Closure of the apiCall to be executed
+     * @param timeout: retry to execute apiCall until timeout is reached
+     * @return: return closure apiCall
+     */
     private static handleApiCall(Closure apiCall, int timeout) {
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         while (timeout == 0 || System.currentTimeMillis() < endTimeMillis) {
