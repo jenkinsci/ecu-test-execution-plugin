@@ -22,7 +22,7 @@ pipeline {
     }
 
     agent {
-        label 'docker'
+        label 'docker && !TT-DDVS345'
     }
 
     environment {
