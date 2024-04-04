@@ -80,9 +80,8 @@ class RestApiClientV2 implements RestApiClient {
      * @param timeout: retry to execute apiCall until timeout is reached
      * @return: return closure apiCall
      */
-    private static handleApiCall(Closure apiCall, int timeout) {
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (timeout == 0 || System.currentTimeMillis() < endTimeMillis) {
+    private static handleApiCall(Closure apiCall, long endTimeMillis) {
+        while (endTimeMillis == 0 || System.currentTimeMillis() < endTimeMillis) {
             try {
                 return apiCall()
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException exception) {
@@ -106,13 +105,13 @@ class RestApiClientV2 implements RestApiClient {
      * @throws TimeoutException on timeout exceeded
      */
     CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         def issues = []
 
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
         String checkExecutionId
-        checkExecutionId = handleApiCall({ apiInstance.createCheckExecutionOrder(order) }, timeout).getCheckExecutionId()
+        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
+        checkExecutionId = handleApiCall({ apiInstance.createCheckExecutionOrder(order) }, endTimeMillis).getCheckExecutionId()
         Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
             response?.status in [null, 'WAITING', 'RUNNING']
         }
@@ -145,7 +144,6 @@ class RestApiClientV2 implements RestApiClient {
      * @return ReportInfo with report information about the test execution
      */
     ReportInfo runTest(ExecutionOrder executionOrder, int timeout) {
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
 
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
@@ -160,16 +158,14 @@ class RestApiClientV2 implements RestApiClient {
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
 
+        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
             ApiResponse<SimpleMessage> status
-            status = handleApiCall({ configApi.manageConfigurationWithHttpInfo(configOrder) }, timeout)
-            if (status.statusCode != 200) {
-                throw new ApiException('Configuration could not be loaded!')
-            }
+            handleApiCall({ configApi.manageConfigurationWithHttpInfo(configOrder) }, endTimeMillis)
         }
         ExecutionApi executionApi = new ExecutionApi(apiClient)
-        handleApiCall({ executionApi.createExecution(executionOrderV2) }, 0)
+        handleApiCall({ executionApi.createExecution(executionOrderV2) }, endTimeMillis)
         Closure<Boolean> checkStatus = { Execution execution ->
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
@@ -226,7 +222,8 @@ class RestApiClientV2 implements RestApiClient {
 
         ReportApi apiInstance = new ReportApi(apiClient)
         handleApiCall({ apiInstance.createUpload(reportId, uploadOrderV2) }, 0)
-        Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
+        Closure<Boolean> checkStatus = { TGUpload upload ->
+            upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
         }
 
         TGUpload upload

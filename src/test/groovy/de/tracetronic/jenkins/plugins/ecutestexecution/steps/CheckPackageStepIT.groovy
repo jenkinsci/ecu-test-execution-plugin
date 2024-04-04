@@ -63,14 +63,11 @@ class CheckPackageStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            boolean firstCall = true
             GroovySpy(ChecksApi, global: true){
-                createCheckExecutionOrder(*_) >> {
-                    if (firstCall) {
-                        firstCall = false
-                        throw new ApiException(409, 'ecu.test is busy')
-                    }
-                    return new AcceptedCheckExecutionOrder().checkExecutionId(1)
+                createCheckExecutionOrder(_) >> {
+                    throw new ApiException(409, 'ecu.test is busy')
+                } >> {
+                    return new AcceptedCheckExecutionOrder().checkExecutionId("1")
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -78,6 +75,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
     }
 
     def 'Run pipeline: timeout by busy ecu.test'() {

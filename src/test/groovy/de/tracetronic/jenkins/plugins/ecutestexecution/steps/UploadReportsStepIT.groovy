@@ -94,14 +94,11 @@ class UploadReportsStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            boolean firstCall = true
             GroovySpy(ReportApi, global: true){
                 createUpload(*_) >> {
-                    if (firstCall){
-                        firstCall = false
-                        throw new ApiException(409, "ecu.test is busy")
-                    }
-                return null
+                    throw new ApiException(409, "ecu.test is busy")
+                } >> {
+                    return null
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')

@@ -67,20 +67,17 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains('Generating HTML reports...', run)
+            jenkins.assertLogContains('Generating HTML reports...', run)
     }
 
     def 'Run pipeline: wait until idle ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('', '')
-            boolean firstCall = true
             GroovySpy(ReportApi, global: true) {
                 createReportGeneration(*_) >> {
-                    if (firstCall) {
-                        firstCall = false
-                        throw new ApiException(409,"ecu.test is busy")
-                    }
+                    throw new ApiException(409,"ecu.test is busy")
+                } >> {
                     return null
                 }
             }

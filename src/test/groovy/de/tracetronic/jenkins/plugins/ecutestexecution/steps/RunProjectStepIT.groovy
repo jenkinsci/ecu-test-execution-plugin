@@ -9,6 +9,7 @@ import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
 import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
@@ -116,14 +117,14 @@ class RunProjectStepIT extends IntegrationTestBase {
 
     def 'Run pipeline with package check'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { " +
-                "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",
-                true)
-        )
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { " +
+                    "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",
+                    true)
+            )
         expect:
-        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains('Executing Package Checks for: test.prj ...', run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Executing Package Checks for: test.prj ...', run)
     }
 
     def 'Run pipeline: wait until idle ecu.test'() {
@@ -131,19 +132,17 @@ class RunProjectStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
             GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> new ApiResponse(200,[:],[])
+                manageConfigurationWithHttpInfo(*_) >> {
+                    throw new ApiException(409, 'ecu.test is busy')
+                } >> {
+                    new ApiResponse(200,[:],[])
+                }
             }
-            boolean firstCall = true
-            GroovySpy(StatusApi, global: true){
-                ecutestIsIdle(*_) >> {
-                    IsIdle idle = new IsIdle()
-                    if (firstCall){
-                        firstCall = false
-                        idle.setIsIdle(false)
-                        return idle
-                    }
-                    idle.setIsIdle(true)
-                    return idle
+            GroovySpy(ExecutionApi, global: true){
+                createExecution(_) >> {
+                    throw new ApiException(409, 'ecu.test is busy')
+                } >> {
+                    return new SimpleMessage("")
                 }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -151,5 +150,6 @@ class RunProjectStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing project test.prj...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
     }
 }

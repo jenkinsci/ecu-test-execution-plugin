@@ -184,23 +184,17 @@ class RunPackageStepIT extends IntegrationTestBase {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
-            boolean firstCall = true
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
-                    if (firstCall) {
-                        firstCall = false
                         throw new ApiException(409, 'ecu.test is busy')
-                    }
+                } >> {
                     new ApiResponse(200,[:],[])
                 }
             }
-            firstCall = true
             GroovySpy(ExecutionApi, global: true){
-                createExecution(*_) >> {
-                    if (firstCall) {
-                        firstCall = false
-                        throw new ApiException(409, 'ecu.test is busy')
-                    }
+                createExecution(_) >> {
+                    throw new ApiException(409, 'ecu.test is busy')
+                } >> {
                     return new SimpleMessage("")
                 }
             }
@@ -209,6 +203,7 @@ class RunPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
     }
 
     def 'Run pipeline: timeout by busy ecu.test'() {
