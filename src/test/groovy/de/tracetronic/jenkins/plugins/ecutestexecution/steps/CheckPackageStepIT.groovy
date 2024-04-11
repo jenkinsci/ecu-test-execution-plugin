@@ -5,22 +5,27 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import com.google.gson.reflect.TypeToken
 import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
-import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
 import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
-import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
-import de.tracetronic.cxs.generated.et.client.v2.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import hudson.Functions
 import hudson.model.Result
+import okhttp3.Call
+import okhttp3.MediaType
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
+import org.jetbrains.annotations.NotNull
 import org.jvnet.hudson.test.JenkinsRule
 
 class CheckPackageStepIT extends IntegrationTestBase {
@@ -59,39 +64,61 @@ class CheckPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
     }
 
-    def 'Run pipeline: wait until idle ecu.test'() {
+    def 'Run pipeline: with 409 handling'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> getResponseBusy() >> getResponseUnauthorized()
             GroovySpy(ChecksApi, global: true){
-                createCheckExecutionOrder(_) >> {
-                    throw new ApiException(409, 'ecu.test is busy')
-                } >> {
-                    return new AcceptedCheckExecutionOrder().checkExecutionId("1")
-                }
+                createCheckExecutionOrder(_) >> {restApiClient.apiClient.execute(mockCall,  new TypeToken<AcceptedCheckExecutionOrder>(){}.getType())}
             }
+
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
-        expect:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('unauthorized', run)
+
     }
 
     def 'Run pipeline: timeout by busy ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(*_) >> new RestApiClientV2('','')
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> getResponseBusy()
+
             GroovySpy(ChecksApi, global: true){
-                createCheckExecutionOrder(_) >> { throw new ApiException(409, 'ecu.test is busy')}
+                createCheckExecutionOrder(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
         expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains("Timeout: apiCall", run)
+            jenkins.assertLogContains("Timeout: task", run)
     }
 
+    Response ResponseUnauthorized =  new Response.Builder()
+            .request(new Request.Builder().url('http://example.com').build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(401).message('unauthorized')
+            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
+            )).build()
+
+    Response ResponseBusy = new Response.Builder()
+            .request(new Request.Builder().url('http://example.com').build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(409).message('ecu.test is busy')
+            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
+            )).build()
 }
