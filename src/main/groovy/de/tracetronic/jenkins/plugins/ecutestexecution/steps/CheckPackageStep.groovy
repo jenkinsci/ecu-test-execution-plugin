@@ -8,6 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.TimeoutMasterToSlaveCallable
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -18,7 +19,6 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.DataBoundConstructor
@@ -129,7 +129,7 @@ class CheckPackageStep extends Step {
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class PackageCheckCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
+    private  static final class PackageCheckCallable extends TimeoutMasterToSlaveCallable<CheckPackageResult,Exception> {
 
         private static final long serialVersionUID = 1L
 
@@ -152,6 +152,7 @@ class CheckPackageStep extends Step {
          * ArrayList of strings containing tool installations, which depending on execution cfg will be stopped
          */
         PackageCheckCallable(String testCasePath, StepContext context, ExecutionConfig executionConfig) {
+            super(executionConfig.timeout, context.get(TaskListener.class))
             this.testCasePath = testCasePath
             this.context = context
             this.envVars = context.get(EnvVars.class)
@@ -168,7 +169,7 @@ class CheckPackageStep extends Step {
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws Exception {
+        CheckPackageResult execute() throws Exception {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 

@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.TimeoutMasterToSlaveCallable
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
@@ -90,7 +91,7 @@ abstract class AbstractTestBuilder implements Serializable {
         }
     }
 
-    private static final class RunTestCallable extends MasterToSlaveCallable<TestResult, IOException> {
+    private static final class RunTestCallable extends TimeoutMasterToSlaveCallable<TestResult, IOException> {
  
         private static final long serialVersionUID = 1L 
 
@@ -106,6 +107,7 @@ abstract class AbstractTestBuilder implements Serializable {
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
                         ExecutionConfig executionConfig, String testArtifactName, LogConfigUtil configUtil,
                         ExecutionOrderBuilder executionOrderBuilder, ToolInstallations toolInstallations) {
+            super(executionConfig.timeout, listener)
             this.testCasePath = testCasePath
             this.envVars = envVars
             this.listener = listener
@@ -117,7 +119,7 @@ abstract class AbstractTestBuilder implements Serializable {
         }
 
         @Override
-        TestResult call() throws IOException {
+        TestResult execute() throws IOException {
             ExecutionOrder executionOrder = executionOrderBuilder.build()
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
