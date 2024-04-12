@@ -231,7 +231,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains("Timeout: executing package 'test.pkg' took longer than 2 seconds")
+            jenkins.assertLogContains("Timeout: executing package 'test.pkg' took longer than 2 seconds", run)
     }
 
     Response ResponseUnauthorized =  new Response.Builder()
