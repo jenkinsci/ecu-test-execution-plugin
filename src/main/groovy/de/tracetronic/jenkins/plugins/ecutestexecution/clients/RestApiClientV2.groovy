@@ -80,7 +80,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         def issues = []
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
-        String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
+        String checkExecutionId
+        try{
+            checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
+            throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
+                    rethrow.getMessage())
+        }
 
         Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
             response?.status in [null, 'WAITING', 'RUNNING']
