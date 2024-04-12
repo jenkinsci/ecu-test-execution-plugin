@@ -79,7 +79,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
         when:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
         then:
             jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
