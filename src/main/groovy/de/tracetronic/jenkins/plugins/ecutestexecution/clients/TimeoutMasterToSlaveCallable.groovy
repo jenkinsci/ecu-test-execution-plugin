@@ -4,6 +4,7 @@ import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import jenkins.util.Timer
 
+import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
@@ -27,7 +28,7 @@ abstract class TimeoutMasterToSlaveCallable<V, T extends Throwable> extends Mast
     @Override
     V call() throws T {
         ScheduledExecutorService exe = Timer.get()
-        Future future = exe.submit {execute()}
+        Future<V> future = exe.schedule({execute()} as Callable<V>,0,TimeUnit.SECONDS)
         try {
             return future.get(timeout, TimeUnit.SECONDS)
         } catch (TimeoutException e ) {
