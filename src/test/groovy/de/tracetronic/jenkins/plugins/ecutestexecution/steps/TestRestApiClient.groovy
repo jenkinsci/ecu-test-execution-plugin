@@ -25,7 +25,7 @@ class TestRestApiClient implements RestApiClient {
     }
 
     @Override
-    CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         return null
     }
 

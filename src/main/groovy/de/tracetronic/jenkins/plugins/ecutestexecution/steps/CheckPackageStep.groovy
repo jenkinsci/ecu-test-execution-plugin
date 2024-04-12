@@ -114,15 +114,25 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult run() throws Exception {
+            CheckPackageResult result
+            TaskListener listener = context.get(TaskListener.class)
             try {
-                return getContext().get(Launcher.class).getChannel().call(
-                        new PackageCheckCallable (step.testCasePath, context, step.executionConfig)
+                result = getContext().get(Launcher.class).getChannel().call(
+                        new PackageCheckCallable(step.testCasePath, context, step.executionConfig)
                 )
             } catch (Exception e) {
-                context.get(TaskListener.class).error(e.message)
-                context.get(Run.class).setResult(Result.FAILURE)
-                return new CheckPackageResult(null, null)
+                listener.logger.println('Executing Package Checks failed!')
+                if (e instanceof TimeoutException) {
+                    listener.logger.println("Timeout: check package '${step.testCasePath}' took longer than ${step.executionConfig.timeout} seconds")
+                }
+                else{
+                    listener.error(e.message)
+                    context.get(Run.class).setResult(Result.FAILURE)
+                }
+                result = new CheckPackageResult(null, null)
             }
+            listener.logger.println(result.toString())
+            return result
         }
     }
 
@@ -175,11 +185,11 @@ class CheckPackageStep extends Step {
 
             CheckPackageResult result
             try {
-                result = apiClient.runPackageCheck(testCasePath, executionConfig.timeout)
+                result = apiClient.runPackageCheck(testCasePath)
             }
             catch (Exception e) {
                 listener.logger.println('Executing Package Checks failed!')
-                if (e instanceof TimeoutException || e instanceof ApiException) {
+                if (e instanceof ApiException) {
                     listener.logger.println(e.message)
                     result = new CheckPackageResult(null, null)
                 }
@@ -187,8 +197,6 @@ class CheckPackageStep extends Step {
                     throw e
                 }
             }
-
-            listener.logger.println(result.toString())
             if (result.result == "ERROR" && executionConfig.stopOnError){
                 toolInstallations.stopToolInstances(executionConfig.timeout)
                 if (executionConfig.stopUndefinedTools) {

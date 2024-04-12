@@ -76,7 +76,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * @throws ApiException on error status codes
      * @throws TimeoutException on timeout exceeded
      */
-    CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         def issues = []
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
@@ -93,12 +93,8 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         }
 
         CheckExecutionStatus checkPackageStatus
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
 
-        while (checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
-            if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
-                break
-            }
+        while (!Thread.currentThread().isInterrupted() && checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
             sleep(1000)
         }
 
@@ -149,7 +145,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         }
 
         Execution execution
-        while (checkStatus(execution = executionApi.currentExecution)) {
+        while (!Thread.currentThread().isInterrupted() && checkStatus(execution = executionApi.currentExecution)) {
             if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
                 executionApi.abortExecution()
                 break

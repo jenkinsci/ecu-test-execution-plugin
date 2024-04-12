@@ -28,6 +28,8 @@ import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
 
+import java.util.concurrent.TimeoutException
+
 /**
  * Common base class for all test related steps implemented in this plugin.
  */
@@ -85,9 +87,12 @@ abstract class AbstractTestBuilder implements Serializable {
                     context.get(EnvVars.class), listener, executionConfig,
                     getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
         } catch (Exception e) {
+            if (e instanceof TimeoutException) {
+                listener.logger.println("Timeout: executing package '${testCasePath}' took longer than ${executionConfig.timeout} seconds")
+            }
             context.get(TaskListener.class).error(e.message)
             context.get(Run.class).setResult(Result.FAILURE)
-            return new TestResult(null, "A problem occured during the report generation. See caused exception for more details.", null)
+            return new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
         }
     }
 

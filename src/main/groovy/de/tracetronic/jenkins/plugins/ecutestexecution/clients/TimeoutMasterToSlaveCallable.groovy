@@ -4,6 +4,7 @@ import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import jenkins.util.Timer
 
+import java.sql.Time
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
@@ -31,12 +32,10 @@ abstract class TimeoutMasterToSlaveCallable<V, T extends Throwable> extends Mast
         Future<V> future = exe.schedule({execute()} as Callable<V>,0,TimeUnit.SECONDS)
         try {
             return future.get(timeout, TimeUnit.SECONDS)
-        } catch (TimeoutException e ) {
-            listener.logger.println("Timeout: task did not complete within the timeout of ${timeout}")
-            future.cancel(true)
-            throw e
-        } catch (InterruptedException | ExecutionException e) {
-            listener.logger.println("Task execution failed. ${e.message}")
+        } catch (Exception e) {
+            if (e instanceof TimeoutException){
+                future.cancel(true)
+            }
             throw e
         }
     }

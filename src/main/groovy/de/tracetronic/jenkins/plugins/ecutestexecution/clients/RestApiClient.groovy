@@ -35,7 +35,7 @@ interface RestApiClient {
      * @throws ApiException on error status codes
      * @throws TimeoutException on timeout exceeded
      */
-    abstract CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException
+    abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
