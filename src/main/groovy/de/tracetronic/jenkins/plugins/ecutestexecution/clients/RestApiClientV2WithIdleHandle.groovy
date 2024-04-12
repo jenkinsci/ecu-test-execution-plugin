@@ -16,7 +16,7 @@ class RestApiClientV2WithIdleHandle {
             <T> ApiResponse<T> execute(Call call, Type returnType) throws ApiException {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        return super.execute(call, returnType)
+                        return super.execute(call.clone(), returnType)
                     } catch (ApiException e) {
                         if (e.code != 409) {
                             throw e
