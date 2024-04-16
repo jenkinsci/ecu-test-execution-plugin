@@ -109,12 +109,12 @@ abstract class ETContainerTest extends ContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
 
             when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
             jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
             jenkins.assertLogContains("Executing Package Checks failed!", run)
-            jenkins.assertLogContains("Timeout: check package '${testPkg}' took longer than ${timeout} seconds", run)
+            jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
             jenkins.assertLogContains("-> result: ERROR", run)
     }
 
@@ -233,6 +233,31 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> result: SUCCESS", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
+
+    def "Execute package with timeout"() {
+        given: "a test execution pipeline"
+            int timeout = 1
+            String testPkg = 'invalid_package_desc.pkg'
+            String script = """
+                                node {
+                                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                        ttCheckPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: '${testPkg}'
+                                    }
+                                }
+                                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+
+        then: "expect error"
+            jenkins.assertLogContains("Executing package ${testPkg}", run)
+            jenkins.assertLogContains("Executing ${testPkg} failed!", run)
+
+            jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+        }
 
     def "Generate report format"() {
         given: "a test execution and report generation pipeline"

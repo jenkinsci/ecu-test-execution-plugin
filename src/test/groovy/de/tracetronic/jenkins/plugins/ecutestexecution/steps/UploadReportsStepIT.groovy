@@ -5,30 +5,18 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import util.ExampleApiResponse
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
-import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
-import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
-import de.tracetronic.cxs.generated.et.client.api.v2.StatusApi
-import de.tracetronic.cxs.generated.et.client.model.v2.IsIdle
-import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
-import de.tracetronic.cxs.generated.et.client.v2.ApiClient
-import de.tracetronic.cxs.generated.et.client.v2.ApiException
-import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
 import okhttp3.Call
-import okhttp3.MediaType
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -107,7 +95,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> getResponseBusy() >> getResponseUnauthorized()
+            mockCall.execute() >> ExampleApiResponse.getResponseBusy() >> ExampleApiResponse.getResponseUnauthorized()
             GroovySpy(ReportApi, global: true){
                 createUpload(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
                 getAllReports(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
@@ -123,18 +111,4 @@ class UploadReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
     }
-
-    Response ResponseUnauthorized =  new Response.Builder()
-            .request(new Request.Builder().url('http://example.com').build())
-            .protocol(Protocol.HTTP_1_1)
-            .code(401).message('unauthorized')
-            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
-            )).build()
-
-    Response ResponseBusy = new Response.Builder()
-            .request(new Request.Builder().url('http://example.com').build())
-            .protocol(Protocol.HTTP_1_1)
-            .code(409).message('ecu.test is busy')
-            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
-            )).build()
 }

@@ -5,6 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import util.ExampleApiResponse
 import com.google.gson.reflect.TypeToken
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
@@ -13,7 +14,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
@@ -24,11 +24,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.Functions
 import hudson.model.Result
 import okhttp3.Call
-import okhttp3.MediaType
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -189,7 +184,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> getResponseBusy() >> getResponseUnauthorized()
+            mockCall.execute() >> ExampleApiResponse.getResponseBusy() >> ExampleApiResponse.getResponseUnauthorized()
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
                     restApiClient.apiClient.execute(mockCall,new TypeToken<SimpleMessage>(){}.getType())
@@ -216,7 +211,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> getResponseBusy()
+            mockCall.execute() >> ExampleApiResponse.getResponseBusy()
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
                     restApiClient.apiClient.execute(mockCall, null)
@@ -231,20 +226,6 @@ class RunPackageStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Executing package test.pkg...', run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains("Timeout: executing package 'test.pkg' took longer than 2 seconds", run)
+            jenkins.assertLogContains("Timeout: step execution took longer than 2 seconds", run)
     }
-
-    Response ResponseUnauthorized =  new Response.Builder()
-            .request(new Request.Builder().url('http://example.com').build())
-            .protocol(Protocol.HTTP_1_1)
-            .code(401).message('unauthorized')
-            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
-            )).build()
-
-    Response ResponseBusy = new Response.Builder()
-            .request(new Request.Builder().url('http://example.com').build())
-            .protocol(Protocol.HTTP_1_1)
-            .code(409).message('ecu.test is busy')
-            .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
-            )).build()
 }

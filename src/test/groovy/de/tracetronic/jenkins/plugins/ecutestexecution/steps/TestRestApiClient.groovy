@@ -30,7 +30,7 @@ class TestRestApiClient implements RestApiClient {
     }
 
     @Override
-    ReportInfo runTest(ExecutionOrder executionOrder, int timeout) {
+    ReportInfo runTest(ExecutionOrder executionOrder) {
         return null
     }
 
