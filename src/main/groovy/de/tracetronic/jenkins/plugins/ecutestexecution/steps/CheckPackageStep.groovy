@@ -8,7 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.TimeoutMasterToSlaveCallable
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -26,7 +26,6 @@ import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
 
 import javax.annotation.Nonnull
-import java.util.concurrent.TimeoutException
 
 /**
  * Step providing the package checks of ecu.test packages or projects.
@@ -122,15 +121,11 @@ class CheckPackageStep extends Step {
                 )
             } catch (Exception e) {
                 listener.logger.println('Executing Package Checks failed!')
-                if (e instanceof TimeoutException) {
-                    listener.logger.println("Timeout: check package '${step.testCasePath}' took longer than ${step.executionConfig.timeout} seconds")
-                }
-                else{
-                    listener.error(e.message)
-                    context.get(Run.class).setResult(Result.FAILURE)
-                }
+                listener.error(e.message)
+                context.get(Run.class).setResult(Result.FAILURE)
                 result = new CheckPackageResult(null, null)
             }
+
             listener.logger.println(result.toString())
             return result
         }
@@ -139,7 +134,7 @@ class CheckPackageStep extends Step {
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class PackageCheckCallable extends TimeoutMasterToSlaveCallable<CheckPackageResult,Exception> {
+    private  static final class PackageCheckCallable extends TimeoutControllerToAgentCallable<CheckPackageResult,Exception> {
 
         private static final long serialVersionUID = 1L
 
