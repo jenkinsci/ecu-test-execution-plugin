@@ -12,6 +12,18 @@ class RestApiClientV2WithIdleHandle {
 
     RestApiClientV2WithIdleHandle(String hostName, String port) {
         apiClient = new ApiClient() {
+            /**
+             * Execute HTTP call and handle the status 409 (ecu.test is busy) by waiting and trying again.
+             * Run until success or the thread is interrupted from the outside
+             * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
+             * @param returnType: The return type used to deserialize HTTP response body
+             * @param call Call
+             * @return ApiResponse object containing response status, headers and
+             *   data, which is a Java object deserialized from response body and would be null
+             *   when returnType is null.
+             * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or
+             * timeout by thread interrupt)
+             */
             @Override
             <T> ApiResponse<T> execute(Call call, Type returnType) throws ApiException {
                 while (!Thread.currentThread().isInterrupted()) {

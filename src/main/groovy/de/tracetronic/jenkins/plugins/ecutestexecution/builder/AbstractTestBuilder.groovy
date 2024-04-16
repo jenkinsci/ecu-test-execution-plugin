@@ -7,14 +7,12 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.TimeoutMasterToSlaveCallable
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import de.tracetronic.jenkins.plugins.ecutestexecution.steps.CheckPackageStep
@@ -24,7 +22,6 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
 
@@ -87,16 +84,14 @@ abstract class AbstractTestBuilder implements Serializable {
                     context.get(EnvVars.class), listener, executionConfig,
                     getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
         } catch (Exception e) {
-            if (e instanceof TimeoutException) {
-                listener.logger.println("Timeout: executing package '${testCasePath}' took longer than ${executionConfig.timeout} seconds")
-            }
+            listener.logger.println("Executing ${testArtifactName} failed!")
             context.get(TaskListener.class).error(e.message)
             context.get(Run.class).setResult(Result.FAILURE)
             return new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
         }
     }
 
-    private static final class RunTestCallable extends TimeoutMasterToSlaveCallable<TestResult, IOException> {
+    private static final class RunTestCallable extends TimeoutControllerToAgentCallable<TestResult, IOException> {
  
         private static final long serialVersionUID = 1L 
 
@@ -131,7 +126,7 @@ abstract class AbstractTestBuilder implements Serializable {
             listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             configUtil.log()
 
-            ReportInfo reportInfo = apiClient.runTest(executionOrder, executionConfig.timeout)
+            ReportInfo reportInfo = apiClient.runTest(executionOrder)
 
             TestResult result
             if (reportInfo) {

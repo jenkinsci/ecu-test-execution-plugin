@@ -70,13 +70,14 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
+     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
+     * timeout from outside this class.
+     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param testPkgPath the path to the package or project to be checked
-     * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
-     * @throws ApiException on error status codes
-     * @throws TimeoutException on timeout exceeded
+     * @throws @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      */
-    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException {
         def issues = []
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
@@ -112,12 +113,15 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
+     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
+     * timeout from outside this class.
+     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
-     *   or project
-     * @param timeout Time in seconds until the test execution will be aborted
+     * or project
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      * @return ReportInfo with report information about the test execution
      */
-    ReportInfo runTest(ExecutionOrder executionOrder, int timeout) {
+    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException {
 
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
@@ -132,7 +136,6 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
 
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
         if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
             ApiResponse<SimpleMessage> status
@@ -146,13 +149,11 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         Execution execution
         while (!Thread.currentThread().isInterrupted() && checkStatus(execution = executionApi.currentExecution)) {
-            if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
-                executionApi.abortExecution()
-                break
-            }
             sleep(1000)
         }
-
+        if (Thread.currentThread().isInterrupted()){
+            executionApi.abortExecution()
+        }
         if (execution.result == null) {
             // tests are not running
             return null
