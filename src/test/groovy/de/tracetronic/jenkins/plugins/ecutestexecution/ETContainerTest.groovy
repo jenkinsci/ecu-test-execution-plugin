@@ -241,7 +241,7 @@ abstract class ETContainerTest extends ContainerTest {
             String script = """
                                 node {
                                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                        ttCheckPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: '${testPkg}'
+                                        ttRunPackage executionConfig: [stopOnError: false, stopUndefinedTools: false, timeout: ${timeout}], testCasePath: '${testPkg}'
                                     }
                                 }
                                 """.stripIndent()
@@ -254,7 +254,6 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing package ${testPkg}", run)
             jenkins.assertLogContains("Executing ${testPkg} failed!", run)
-
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
             jenkins.assertLogContains("-> result: ERROR", run)
         }
