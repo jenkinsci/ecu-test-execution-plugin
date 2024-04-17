@@ -84,7 +84,7 @@ abstract class AbstractTestBuilder implements Serializable {
                     context.get(EnvVars.class), listener, executionConfig,
                     getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
         } catch (Exception e) {
-            listener.logger.println("Executing ${testArtifactName} ${testCasePath} failed!")
+            listener.logger.println("Executing ${testArtifactName} failed!")
             context.get(TaskListener.class).error(e.message)
             context.get(Run.class).setResult(Result.FAILURE)
             return new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
