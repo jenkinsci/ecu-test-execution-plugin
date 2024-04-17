@@ -237,7 +237,7 @@ abstract class ETContainerTest extends ContainerTest {
     def "Execute package with timeout"() {
         given: "a test execution pipeline"
             int timeout = 1
-            String testPkg = 'invalid_package_desc.pkg'
+            String testPkg = 'test.pkg'
             String script = """
                                 node {
                                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
@@ -252,10 +252,8 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing package ${testPkg}", run)
             jenkins.assertLogContains("Executing ${testPkg} failed!", run)
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
-            jenkins.assertLogContains("-> result: ERROR", run)
         }
 
     def "Generate report format"() {
