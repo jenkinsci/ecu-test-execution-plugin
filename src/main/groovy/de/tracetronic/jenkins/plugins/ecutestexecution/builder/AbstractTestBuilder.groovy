@@ -84,8 +84,8 @@ abstract class AbstractTestBuilder implements Serializable {
                     context.get(EnvVars.class), listener, executionConfig,
                     getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
         } catch (Exception e) {
-            listener.logger.println("Executing ${testArtifactName} failed!")
-            context.get(TaskListener.class).error(e.message)
+            listener.logger.println("Executing ${testArtifactName} ${testCasePath} failed!")
+            listener.error(e.message)
             context.get(Run.class).setResult(Result.FAILURE)
             return new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
         }
@@ -120,10 +120,10 @@ abstract class AbstractTestBuilder implements Serializable {
 
         @Override
         TestResult execute() throws IOException {
+            listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             ExecutionOrder executionOrder = executionOrderBuilder.build()
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
-            listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             configUtil.log()
 
             ReportInfo reportInfo = apiClient.runTest(executionOrder)
@@ -134,7 +134,7 @@ abstract class AbstractTestBuilder implements Serializable {
                 listener.logger.println("${StringUtils.capitalize(testArtifactName)} executed successfully.")
             } else {
                 result = new TestResult(null, 'ERROR', null)
-                listener.logger.println("Executing ${testArtifactName} failed!")
+                listener.logger.println("Executing ${testArtifactName} ${testCasePath} failed!")
                 if (executionConfig.stopOnError) {
                     toolInstallations.stopToolInstances(executionConfig.timeout)
                     if (executionConfig.stopUndefinedTools) {

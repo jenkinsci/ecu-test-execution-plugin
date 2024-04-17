@@ -44,6 +44,7 @@ abstract class TimeoutControllerToAgentCallable<V, T extends Throwable> extends 
         } catch (Exception e) {
             if (e instanceof TimeoutException){
                 listener.logger.println("Timeout: step execution took longer than ${timeout} seconds")
+                listener.logger.flush()
                 future.cancel(true)
             }
             throw e

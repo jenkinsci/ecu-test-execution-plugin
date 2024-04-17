@@ -202,7 +202,7 @@ abstract class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("Executing package failed!", run)
+            jenkins.assertLogContains("Executing package testDoesNotExist.pkg failed!", run)
     }
 
     def "Execute test case including package check"() {
@@ -253,7 +253,7 @@ abstract class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("Executing package ${testPkg}", run)
-            jenkins.assertLogContains("Executing package failed!", run)
+            jenkins.assertLogContains("Executing package ${testPkg} failed!", run)
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
         }
 

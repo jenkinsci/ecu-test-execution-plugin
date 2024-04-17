@@ -54,7 +54,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         boolean alive = false
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (System.currentTimeMillis() < endTimeMillis) {
+        while (System.currentTimeMillis() < endTimeMillis && !Thread.currentThread().isInterrupted()) {
             try {
                 alive = statusApi.isAlive().message == 'Alive'
                 if (alive) {
@@ -95,12 +95,8 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         CheckExecutionStatus checkPackageStatus
 
-        while (!Thread.currentThread().isInterrupted() && checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+        while (!Thread.currentThread().isInterrupted() && checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
             sleep(1000)
-        }
-
-        if (checkPackageStatus.status != 'FINISHED') {
-            throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
         }
 
         CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
