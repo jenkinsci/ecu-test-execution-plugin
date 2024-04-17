@@ -252,7 +252,8 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing ${testPkg} failed!", run)
+            jenkins.assertLogContains("Executing package ${testPkg}", run)
+            jenkins.assertLogContains("Executing package failed!", run)
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
         }
 
