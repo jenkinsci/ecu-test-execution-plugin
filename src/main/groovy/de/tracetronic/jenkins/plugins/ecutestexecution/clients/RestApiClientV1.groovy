@@ -133,7 +133,7 @@ class RestApiClientV1 implements RestApiClient{
 
         try{
             Execution execution
-            while (checkStatus(apiInstance.currentExecution)) {
+            while (checkStatus(execution=apiInstance.currentExecution)) {
                 sleep(1000)
             }
             if (execution.result == null) {
