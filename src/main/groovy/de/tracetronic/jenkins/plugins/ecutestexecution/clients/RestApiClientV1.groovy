@@ -132,25 +132,27 @@ class RestApiClientV1 implements RestApiClient{
         }
 
         try{
-            while (checkStatus(executionApi.currentExecution)) {
+            Execution execution
+            while (checkStatus(apiInstance.currentExecution)) {
                 sleep(1000)
             }
+            if (execution.result == null) {
+                // tests are not running
+                return null
+            }
+            return ReportInfo.fromReportInfo(execution.result)
         } catch (TimeoutException e) {
             if(executionTimedOut) {
                 executionTimedOut = false
                 //TODO
-                if (executionApi.currentExecution.order == executionOrderV1){
+                if (apiInstance.currentExecution.order == executionOrderV1){
                     apiInstance.abortExecution()
                 }
                 throw e
             }
         }
 
-        if (execution.result == null) {
-            // tests are not running
-            return null
-        }
-        return ReportInfo.fromReportInfo(execution.result)
+
     }
 
     /**

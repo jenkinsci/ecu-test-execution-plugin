@@ -149,9 +149,15 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         }
 
         try{
-            while (checkStatus(executionApi.currentExecution)) {
+            Execution execution
+            while (checkStatus(execution=executionApi.currentExecution)) {
                 sleep(1000)
             }
+            if (execution.result == null) {
+                // tests are not running
+                return null
+            }
+            return ReportInfo.fromReportInfo(execution.result)
         } catch (TimeoutException e) {
             if(executionTimedOut) {
                 executionTimedOut = false
@@ -163,11 +169,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             }
         }
 
-        if (execution.result == null) {
-            // tests are not running
-            return null
-        }
-        return ReportInfo.fromReportInfo(execution.result)
+
     }
 
     /**
