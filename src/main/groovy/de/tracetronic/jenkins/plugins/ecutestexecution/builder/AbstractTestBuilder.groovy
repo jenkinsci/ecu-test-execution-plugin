@@ -5,9 +5,10 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
+
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
@@ -91,7 +92,7 @@ abstract class AbstractTestBuilder implements Serializable {
         }
     }
 
-    private static final class RunTestCallable extends TimeoutControllerToAgentCallable<TestResult, IOException> {
+    private static final class RunTestCallable extends ControllerToAgentCallableWithTimeout<TestResult, IOException> {
  
         private static final long serialVersionUID = 1L 
 
@@ -103,6 +104,7 @@ abstract class AbstractTestBuilder implements Serializable {
         private final String testArtifactName
         private final LogConfigUtil configUtil
         private final ToolInstallations toolInstallations
+        private RestApiClient apiClient
 
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
                         ExecutionConfig executionConfig, String testArtifactName, LogConfigUtil configUtil,
@@ -116,13 +118,14 @@ abstract class AbstractTestBuilder implements Serializable {
             this.configUtil = configUtil
             this.executionOrderBuilder = executionOrderBuilder
             this.toolInstallations = toolInstallations
+
         }
 
         @Override
         TestResult execute() throws IOException {
             listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             ExecutionOrder executionOrder = executionOrderBuilder.build()
-            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
             configUtil.log()
 
@@ -144,6 +147,10 @@ abstract class AbstractTestBuilder implements Serializable {
             }
             listener.logger.println(result.toString())
             return result
+        }
+        @Override
+        void cancel() {
+            apiClient.setTimedOut()
         }
     }
 }

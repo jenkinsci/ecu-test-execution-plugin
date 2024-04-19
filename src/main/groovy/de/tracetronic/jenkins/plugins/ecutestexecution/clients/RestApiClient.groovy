@@ -18,6 +18,7 @@ import java.util.concurrent.TimeoutException
 
 interface RestApiClient {
 
+    abstract void setTimedOut()
     /**
      * Waits until the ecu.test REST api is alive or timeout is reached.
      * @param timeout time in seconds to wait for alive check
@@ -35,8 +36,9 @@ interface RestApiClient {
      * @param testPkgPath the path to the package or project to be checked
      * @return CheckPackageResult with the result of the check
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if executionTimedOut is set to true by
      */
-    abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException
+    abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
@@ -45,10 +47,11 @@ interface RestApiClient {
      * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      *   or project
-     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      * @return ReportInfo with report information about the test execution
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if executionTimedOut is set to true by
      */
-    abstract ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException
+    abstract ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException
 
     /**
      * Generates a report for a given report ID. The report has the format defined by the ReportGenerationOrder

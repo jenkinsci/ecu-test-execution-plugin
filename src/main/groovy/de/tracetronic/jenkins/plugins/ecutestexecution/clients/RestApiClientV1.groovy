@@ -35,10 +35,15 @@ import java.util.concurrent.TimeoutException
 class RestApiClientV1 implements RestApiClient{
 
     private ApiClient apiClient
+    private boolean executionTimedOut = false
 
     RestApiClientV1(String hostName, String port) {
         apiClient = Configuration.getDefaultApiClient()
         apiClient.setBasePath(String.format('http://%s:%s/api/v1', hostName, port))
+    }
+
+    void setTimedOut() {
+        executionTimedOut = true
     }
 
     /**
@@ -76,7 +81,7 @@ class RestApiClientV1 implements RestApiClient{
      * @return CheckPackageResult with the result of the check
      * @throws ApiException on error status codes
      */
-    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         def issues = []
         try {
             ChecksApi apiInstance = new ChecksApi(apiClient)
@@ -87,15 +92,10 @@ class RestApiClientV1 implements RestApiClient{
                 response?.status in [null, 'WAITING', 'RUNNING']
             }
 
-            CheckExecutionStatus checkPackageStatus
-            while (!Thread.currentThread().isInterrupted() && checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
                 sleep(1000)
             }
 
-            println("CheckStatus is:   " + checkPackageStatus.status)
-            if (checkPackageStatus.status != 'FINISHED' ) {
-                throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
-            }
 
             CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
             for (CheckFinding issue : checkReport.issues) {
@@ -120,7 +120,7 @@ class RestApiClientV1 implements RestApiClient{
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      * @return ReportInfo with report information about the test execution
      */
-    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException {
+    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
 
         de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder executionOrderV1
         executionOrderV1 = executionOrder.toExecutionOrderV1()
@@ -131,13 +131,21 @@ class RestApiClientV1 implements RestApiClient{
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
 
-        Execution execution
-        while (!Thread.currentThread().isInterrupted() && checkStatus(execution = apiInstance.currentExecution)) {
-            sleep(1000)
+        try{
+            while (checkStatus(executionApi.currentExecution)) {
+                sleep(1000)
+            }
+        } catch (TimeoutException e) {
+            if(executionTimedOut) {
+                executionTimedOut = false
+                //TODO
+                if (executionApi.currentExecution.order == executionOrderV1){
+                    apiInstance.abortExecution()
+                }
+                throw e
+            }
         }
-        if (Thread.currentThread().isInterrupted()){
-            apiInstance.abortExecution()
-        }
+
         if (execution.result == null) {
             // tests are not running
             return null

@@ -8,7 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -26,6 +26,7 @@ import org.kohsuke.stapler.DataBoundSetter
 import org.springframework.lang.NonNull
 
 import javax.annotation.Nonnull
+import java.util.concurrent.TimeoutException
 
 /**
  * Step providing the package checks of ecu.test packages or projects.
@@ -134,7 +135,7 @@ class CheckPackageStep extends Step {
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class PackageCheckCallable extends TimeoutControllerToAgentCallable<CheckPackageResult,Exception> {
+    private  static final class PackageCheckCallable extends ControllerToAgentCallableWithTimeout<CheckPackageResult,Exception> {
 
         private static final long serialVersionUID = 1L
 
@@ -144,6 +145,7 @@ class CheckPackageStep extends Step {
         private final TaskListener listener
         private final ExecutionConfig executionConfig
         private final ToolInstallations toolInstallations
+        private RestApiClient apiClient
         /**
          * Instantiates a new [ExecutionCallable].
          *
@@ -176,15 +178,15 @@ class CheckPackageStep extends Step {
         @Override
         CheckPackageResult execute() throws Exception {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
-            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
             CheckPackageResult result
             try {
                 result = apiClient.runPackageCheck(testCasePath)
             }
             catch (Exception e) {
-                listener.logger.println('Executing Package Checks failed!')
                 if (e instanceof ApiException) {
+                    listener.logger.println('Executing Package Checks failed!')
                     listener.logger.println(e.message)
                     result = new CheckPackageResult(null, null)
                 }
@@ -199,6 +201,11 @@ class CheckPackageStep extends Step {
                 }
             }
             return result
+        }
+
+        @Override
+        void cancel() {
+            apiClient.setTimedOut()
         }
     }
 

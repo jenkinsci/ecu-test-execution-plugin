@@ -10,6 +10,7 @@ import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
+import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
@@ -34,12 +35,21 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+
+import java.sql.Time
 import java.util.concurrent.TimeoutException
 
 class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiClient {
 
     RestApiClientV2(String hostName, String port) {
        super(hostName, port)
+    }
+
+    /**
+     * Sets the executionTimedOut to true, which will stop the execution of ApiCalls and throw a TimeoutException
+     */
+    void setTimedOut() {
+        executionTimedOut = true
     }
 
     /**
@@ -54,7 +64,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         boolean alive = false
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (System.currentTimeMillis() < endTimeMillis && !Thread.currentThread().isInterrupted()) {
+        while (System.currentTimeMillis() < endTimeMillis) {
             try {
                 alive = statusApi.isAlive().message == 'Alive'
                 if (alive) {
@@ -70,14 +80,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
-     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
-     * timeout from outside this class.
-     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param testPkgPath the path to the package or project to be checked
      * @return CheckPackageResult with the result of the check
-     * @throws @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if executionTimedOut is set to true by
+
      */
-    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         def issues = []
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
@@ -93,9 +102,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             response?.status in [null, 'WAITING', 'RUNNING']
         }
 
-        CheckExecutionStatus checkPackageStatus
-
-        while (!Thread.currentThread().isInterrupted() && checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+        while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
             sleep(1000)
         }
 
@@ -109,15 +116,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
-     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
-     * timeout from outside this class.
-     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      * or project
-     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      * @return ReportInfo with report information about the test execution
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if executionTimedOut is set to true by
      */
-    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException {
+    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
 
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
@@ -143,13 +148,21 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
 
-        Execution execution
-        while (!Thread.currentThread().isInterrupted() && checkStatus(execution = executionApi.currentExecution)) {
-            sleep(1000)
+        try{
+            while (checkStatus(executionApi.currentExecution)) {
+                sleep(1000)
+            }
+        } catch (TimeoutException e) {
+            if(executionTimedOut) {
+                executionTimedOut = false
+                //TODO
+                if (executionApi.currentExecution.order == executionOrderV2){
+                    executionApi.abortExecution()
+                }
+                throw e
+            }
         }
-        if (Thread.currentThread().isInterrupted()){
-            executionApi.abortExecution()
-        }
+
         if (execution.result == null) {
             // tests are not running
             return null
