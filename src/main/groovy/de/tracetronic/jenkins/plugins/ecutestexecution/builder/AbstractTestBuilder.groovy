@@ -104,6 +104,7 @@ abstract class AbstractTestBuilder implements Serializable {
         private final String testArtifactName
         private final LogConfigUtil configUtil
         private final ToolInstallations toolInstallations
+        private boolean timedOut = false
         private RestApiClient apiClient
 
         RunTestCallable(final String testCasePath, EnvVars envVars, TaskListener listener,
@@ -126,7 +127,9 @@ abstract class AbstractTestBuilder implements Serializable {
             listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
             ExecutionOrder executionOrder = executionOrderBuilder.build()
             this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-
+            if (timedOut){
+                throw new TimeoutException()
+            }
             configUtil.log()
 
             ReportInfo reportInfo = apiClient.runTest(executionOrder)
@@ -150,7 +153,10 @@ abstract class AbstractTestBuilder implements Serializable {
         }
         @Override
         void cancel() {
+            listener.logger.println("Timeout: canceling ${testArtifactName} execution!")
+            timedOut = true
             apiClient.setTimedOut()
+
         }
     }
 }

@@ -92,8 +92,11 @@ class RestApiClientV1 implements RestApiClient{
                 response?.status in [null, 'WAITING', 'RUNNING']
             }
 
-            while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            while (!executionTimedOut && checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
                 sleep(1000)
+            }
+            if (executionTimedOut){
+                throw new TimeoutException()
             }
 
 
