@@ -18,7 +18,10 @@ import java.util.concurrent.TimeoutException
 
 interface RestApiClient {
 
-    abstract void setTimedOut()
+    /**
+     * Sets the executionTimedOut to true, which will stop the execution at the next check
+     */
+    abstract void toggleExecutionTimeout()
     /**
      * Waits until the ecu.test REST api is alive or timeout is reached.
      * @param timeout time in seconds to wait for alive check

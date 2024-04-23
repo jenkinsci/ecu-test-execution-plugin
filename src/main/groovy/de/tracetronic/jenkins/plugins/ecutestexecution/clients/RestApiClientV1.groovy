@@ -42,7 +42,10 @@ class RestApiClientV1 implements RestApiClient{
         apiClient.setBasePath(String.format('http://%s:%s/api/v1', hostName, port))
     }
 
-    void setTimedOut() {
+    /**
+     * Sets the executionTimedOut to true, which will stop the execution at the next check
+     */
+    void toggleExecutionTimeout() {
         executionTimedOut = true
     }
 
@@ -58,7 +61,7 @@ class RestApiClientV1 implements RestApiClient{
 
         boolean alive = false
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (System.currentTimeMillis() < endTimeMillis) {
+        while (System.currentTimeMillis() < endTimeMillis && !executionTimedOut) {
             try {
                 alive = statusApi.isAlive().message == 'Alive'
                 if (alive) {
@@ -67,6 +70,9 @@ class RestApiClientV1 implements RestApiClient{
             } catch (de.tracetronic.cxs.generated.et.client.v1.ApiException ignored) {
                 sleep(1000)
             }
+        }
+        if(executionTimedOut){
+            throw new TimeoutException()
         }
         return alive
     }

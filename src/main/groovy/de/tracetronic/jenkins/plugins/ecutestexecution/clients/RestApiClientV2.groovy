@@ -48,7 +48,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     /**
      * Sets the executionTimedOut to true, which will stop the execution of ApiCalls and throw a TimeoutException
      */
-    void setTimedOut() {
+    void toggleExecutionTimeout() {
         executionTimedOut = true
     }
 
@@ -161,7 +161,6 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         } catch (TimeoutException e) {
             if(executionTimedOut) {
                 executionTimedOut = false
-                //TODO
                 if (executionApi.currentExecution.order == executionOrderV2){
                     executionApi.abortExecution()
                 }

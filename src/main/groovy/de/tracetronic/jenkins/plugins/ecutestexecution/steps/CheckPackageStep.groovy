@@ -145,7 +145,6 @@ class CheckPackageStep extends Step {
         private final TaskListener listener
         private final ExecutionConfig executionConfig
         private final ToolInstallations toolInstallations
-        private boolean timedOut = false
         private RestApiClient apiClient
         /**
          * Instantiates a new [ExecutionCallable].
@@ -180,9 +179,6 @@ class CheckPackageStep extends Step {
         CheckPackageResult execute() throws Exception {
             listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
             this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            if (timedOut){
-                throw new TimeoutException("Timeout")
-            }
             CheckPackageResult result
             try {
                 result = apiClient.runPackageCheck(testCasePath)
@@ -208,9 +204,11 @@ class CheckPackageStep extends Step {
 
         @Override
         void cancel() {
-            listener.logger.println("Timeout: canceling package check execution!")
-            timedOut = true
-            apiClient.setTimedOut()
+            listener.logger.println("Timeout: canceling execution!")
+            if (apiClient == null){
+                RestApiClientFactory.toggleExecutionTimeout()
+            }
+            apiClient.toggleExecutionTimeout()
         }
     }
 

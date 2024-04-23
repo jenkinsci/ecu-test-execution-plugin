@@ -20,9 +20,7 @@ import java.util.concurrent.TimeoutException
 class TestRestApiClient implements RestApiClient {
 
     @Override
-    void setTimedOut() {
-        return
-    }
+    void toggleExecutionTimeout() {}
 
     @Override
     boolean waitForAlive(int timeout) {
