@@ -114,7 +114,7 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("Executing package checks failed!", run)
-            jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
+            jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
             jenkins.assertLogContains("-> result: ERROR", run)
     }
 
@@ -254,7 +254,7 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing package '${testPkg}'", run)
             jenkins.assertLogContains("Executing package '${testPkg}' failed!", run)
-            jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
+            jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
         }
 
     def "Generate report format"() {
