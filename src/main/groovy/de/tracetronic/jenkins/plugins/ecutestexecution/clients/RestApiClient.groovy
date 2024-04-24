@@ -19,17 +19,18 @@ import java.util.concurrent.TimeoutException
 interface RestApiClient {
 
     /**
-     * Sets the executionTimedOut to true, which will stop the execution at the next check
+     * Sets the timeoutExceeded to true, which will stop the execution at the next check
      */
-    abstract void toggleExecutionTimeout()
+    abstract void setTimeoutExceeded()
     /**
      * Waits until the ecu.test REST api is alive or timeout is reached.
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
-    abstract boolean waitForAlive(int timeout)
+    abstract boolean waitForAlive(int timeout) throws TimeoutException
 
     /**
      * This method performs the package check for the given test package or project via REST api.
@@ -39,7 +40,7 @@ interface RestApiClient {
      * @param testPkgPath the path to the package or project to be checked
      * @return CheckPackageResult with the result of the check
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
-     * @throws TimeoutException during api calls if executionTimedOut is set to true by
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
     abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException
 
@@ -52,7 +53,7 @@ interface RestApiClient {
      *   or project
      * @return ReportInfo with report information about the test execution
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
-     * @throws TimeoutException during api calls if executionTimedOut is set to true by
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
     abstract ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException
 

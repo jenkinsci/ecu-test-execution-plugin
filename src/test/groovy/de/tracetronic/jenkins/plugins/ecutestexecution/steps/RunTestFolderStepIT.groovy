@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
@@ -179,13 +180,13 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Found 1 package(s)', run)
             jenkins.assertLogContains('Found 1 project(s)', run)
             // packages will be execute first
-            jenkins.assertLogContains("Executing package ${testPackage.getAbsolutePath()}...", run)
+            jenkins.assertLogContains("Executing package '${testPackage.getAbsolutePath()}'", run)
     }
 
     def 'Run recursive scan pipeline'() {
@@ -199,13 +200,13 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Found 3 package(s)', run)
             jenkins.assertLogContains('Found 3 project(s)', run)
             // packages in subfolder will be execute first
-            jenkins.assertLogContains("Executing package ${subPackage.getAbsolutePath()}...", run)
+            jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
     }
 
     def 'Run scan mode pipeline'() {
@@ -219,14 +220,14 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogNotContains('No packages found!', run)
             jenkins.assertLogNotContains('Found 1 packages(s)', run)
             jenkins.assertLogContains('Found 1 project(s)', run)
             // packages will be execute first
-            jenkins.assertLogContains("Executing project ${testProject.getAbsolutePath()}...", run)
+            jenkins.assertLogContains("Executing project '${testProject.getAbsolutePath()}'", run)
     }
 
     void setupTestFolder() {

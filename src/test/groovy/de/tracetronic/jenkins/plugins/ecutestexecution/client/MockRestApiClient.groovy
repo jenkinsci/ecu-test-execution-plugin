@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-package de.tracetronic.jenkins.plugins.ecutestexecution.steps
+package de.tracetronic.jenkins.plugins.ecutestexecution.client
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
@@ -17,10 +17,10 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 
 import java.util.concurrent.TimeoutException
 
-class TestRestApiClient implements RestApiClient {
+class MockRestApiClient implements RestApiClient {
 
     @Override
-    void toggleExecutionTimeout() {}
+    void setTimeoutExceeded() {}
 
     @Override
     boolean waitForAlive(int timeout) {

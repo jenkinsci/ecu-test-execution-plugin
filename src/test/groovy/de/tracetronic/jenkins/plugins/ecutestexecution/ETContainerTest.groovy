@@ -47,7 +47,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("Executing Package Checks for: test.pkg", run)
+            jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
@@ -67,7 +67,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing Package Checks failed!", run)
+            jenkins.assertLogContains("Executing package checks failed!", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             // ecu.test 2024.1 and newer returns case sensitive messages
             assertThat(jenkins.getLog(run), containsStringIgnoringCase("BAD REQUEST"))
@@ -89,7 +89,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
     }
@@ -112,8 +112,8 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
-            jenkins.assertLogContains("Executing Package Checks failed!", run)
+            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
+            jenkins.assertLogContains("Executing package checks failed!", run)
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
             jenkins.assertLogContains("-> result: ERROR", run)
     }
@@ -133,7 +133,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("Executing Package Checks for: test.prj", run)
+            jenkins.assertLogContains("Executing package checks for 'test.prj'", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
@@ -152,7 +152,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.prj", run)
+            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.prj'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
     }
@@ -202,7 +202,7 @@ abstract class ETContainerTest extends ContainerTest {
 
         then: "expect error"
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("Executing package testDoesNotExist.pkg failed!", run)
+            jenkins.assertLogContains("Executing package 'testDoesNotExist.pkg' failed!", run)
     }
 
     def "Execute test case including package check"() {
@@ -226,10 +226,10 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("Executing Package Checks for: invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("Executing package invalid_package_desc.pkg", run)
+            jenkins.assertLogContains("Executing package 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
@@ -252,8 +252,8 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect error"
-            jenkins.assertLogContains("Executing package ${testPkg}", run)
-            jenkins.assertLogContains("Executing package ${testPkg} failed!", run)
+            jenkins.assertLogContains("Executing package '${testPkg}'", run)
+            jenkins.assertLogContains("Executing package '${testPkg}' failed!", run)
             jenkins.assertLogContains("Timeout: step execution took longer than ${timeout} seconds", run)
         }
 

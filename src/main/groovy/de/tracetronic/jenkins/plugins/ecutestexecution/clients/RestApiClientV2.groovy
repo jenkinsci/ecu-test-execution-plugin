@@ -10,7 +10,6 @@ import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
-import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionOrder
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
@@ -36,20 +35,19 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 
-import java.sql.Time
 import java.util.concurrent.TimeoutException
 
 class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiClient {
 
     RestApiClientV2(String hostName, String port) {
-       super(hostName, port)
+        super(hostName, port)
     }
 
     /**
-     * Sets the executionTimedOut to true, which will stop the execution of ApiCalls and throw a TimeoutException
+     * Sets the timeoutExceeded to true, which will stop the execution of ApiCalls and throw a TimeoutException
      */
-    void toggleExecutionTimeout() {
-        executionTimedOut = true
+    void setTimeoutExceeded() {
+        timeoutExceeded = true
     }
 
     /**
@@ -58,8 +56,9 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
-    boolean waitForAlive(int timeout = 60) {
+    boolean waitForAlive(int timeout = 60) throws TimeoutException {
         StatusApi statusApi = new StatusApi(apiClient)
 
         boolean alive = false
@@ -72,6 +71,8 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 }
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignored) {
                 sleep(1000)
+            } catch (TimeoutException e) {
+                throw new TimeoutException("Could not find a ecu.test REST api for host: ${apiClient.getBasePath()}")
             }
         }
         return alive
@@ -83,7 +84,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * @param testPkgPath the path to the package or project to be checked
      * @return CheckPackageResult with the result of the check
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
-     * @throws TimeoutException during api calls if executionTimedOut is set to true by
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
 
      */
     CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
@@ -91,7 +92,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         ChecksApi apiInstance = new ChecksApi(apiClient)
         CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
         String checkExecutionId
-        try{
+        try {
             checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
             throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
@@ -120,7 +121,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * or project
      * @return ReportInfo with report information about the test execution
      * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
-     * @throws TimeoutException during api calls if executionTimedOut is set to true by
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
     ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
 
@@ -148,9 +149,9 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
 
-        try{
+        try {
             Execution execution
-            while (checkStatus(execution=executionApi.currentExecution)) {
+            while (checkStatus(execution = executionApi.currentExecution)) {
                 sleep(1000)
             }
             if (execution.result == null) {
@@ -159,16 +160,14 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             }
             return ReportInfo.fromReportInfo(execution.result)
         } catch (TimeoutException e) {
-            if(executionTimedOut) {
-                executionTimedOut = false
-                if (executionApi.currentExecution.order == executionOrderV2){
+            if (timeoutExceeded) {
+                timeoutExceeded = false
+                if (executionApi.currentExecution.order.testCasePath == executionOrderV2.testCasePath) {
                     executionApi.abortExecution()
                 }
                 throw e
             }
         }
-
-
     }
 
     /**
@@ -183,7 +182,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         apiInstance.createReportGeneration(reportId, orderV2)
         Closure<Boolean> checkStatus = { ReportGeneration generation ->
             generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
-                                            ReportGenerationStatus.KeyEnum.RUNNING]
+                                        ReportGenerationStatus.KeyEnum.RUNNING]
         }
 
         ReportGeneration generation
@@ -192,7 +191,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         }
 
         return new GenerationResult(generation.status.key.name(), generation.status.message,
-                    generation.result.outputDir)
+                generation.result.outputDir)
     }
 
     /**
@@ -218,10 +217,10 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         if (upload.result.link) {
             return new UploadResult(upload.status.key.name(),
-                        'Uploaded successfully', upload.result.link)
+                    'Uploaded successfully', upload.result.link)
         }
         return new UploadResult(TGUploadStatus.KeyEnum.ERROR.name(),
-                    "Report upload for ${reportId} failed", '')
+                "Report upload for ${reportId} failed", '')
     }
 
     /**

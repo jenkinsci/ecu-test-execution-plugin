@@ -5,7 +5,8 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-import util.ExampleApiResponse
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.google.gson.reflect.TypeToken
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
@@ -24,6 +25,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.Functions
 import hudson.model.Result
 import okhttp3.Call
+import okhttp3.HttpUrl
+import okhttp3.Request
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -159,10 +162,10 @@ class RunPackageStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing package test.pkg...', run)
+            jenkins.assertLogContains("Executing package 'test.pkg'", run)
     }
 
     def 'Run pipeline with package check'(){
@@ -174,7 +177,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             )
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing Package Checks for: test.pkg ...', run)
+            jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
     }
 
     def 'Run pipeline: with 409 handling'() {
@@ -184,7 +187,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> ExampleApiResponse.getResponseBusy() >> ExampleApiResponse.getResponseUnauthorized()
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
                     restApiClient.apiClient.execute(mockCall,new TypeToken<SimpleMessage>(){}.getType())
@@ -198,7 +201,7 @@ class RunPackageStepIT extends IntegrationTestBase {
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains('Executing package test.pkg...', run)
+            jenkins.assertLogContains("Executing package 'test.pkg'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
 
@@ -210,8 +213,11 @@ class RunPackageStepIT extends IntegrationTestBase {
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
+            mockCall.request() >> GroovyMock(Request)
+            mockCall.request().method() >> "GET"
+            mockCall.request().url() >> GroovyMock(HttpUrl)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> ExampleApiResponse.getResponseBusy()
+            mockCall.execute() >> MockApiResponse.getResponseBusy()
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
                     restApiClient.apiClient.execute(mockCall, null)
@@ -224,8 +230,8 @@ class RunPackageStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage  testCasePath:'test.pkg', executionConfig:[timeout: 2]}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing package test.pkg...', run)
+            jenkins.assertLogContains("Executing package 'test.pkg'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
-            jenkins.assertLogContains("Timeout: step execution took longer than 2 seconds", run)
+            jenkins.assertLogContains("Execution has exceeded the configured timeout of 2 seconds", run)
     }
 }

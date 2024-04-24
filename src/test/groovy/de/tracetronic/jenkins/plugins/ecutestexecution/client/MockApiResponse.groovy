@@ -1,4 +1,4 @@
-package util
+package de.tracetronic.jenkins.plugins.ecutestexecution.client
 
 import okhttp3.MediaType
 import okhttp3.Protocol
@@ -6,7 +6,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody
 
-class ExampleApiResponse {
+class MockApiResponse {
     static Response getResponseUnauthorized(){
         return new Response.Builder()
                 .request(new Request.Builder().url('http://example.com').build())

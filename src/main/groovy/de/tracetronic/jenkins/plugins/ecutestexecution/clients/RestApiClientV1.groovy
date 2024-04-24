@@ -32,10 +32,10 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 
 import java.util.concurrent.TimeoutException
 
-class RestApiClientV1 implements RestApiClient{
+class RestApiClientV1 implements RestApiClient {
 
     private ApiClient apiClient
-    private boolean executionTimedOut = false
+    private boolean timeoutExceeded = false
 
     RestApiClientV1(String hostName, String port) {
         apiClient = Configuration.getDefaultApiClient()
@@ -43,10 +43,10 @@ class RestApiClientV1 implements RestApiClient{
     }
 
     /**
-     * Sets the executionTimedOut to true, which will stop the execution at the next check
+     * Sets the timeoutExceeded to true, which will stop the execution at the next check
      */
-    void toggleExecutionTimeout() {
-        executionTimedOut = true
+    void setTimeoutExceeded() {
+        timeoutExceeded = true
     }
 
     /**
@@ -55,13 +55,14 @@ class RestApiClientV1 implements RestApiClient{
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
-    boolean waitForAlive(int timeout = 60) {
+    boolean waitForAlive(int timeout = 60) throws TimeoutException {
         ApiStatusApi statusApi = new ApiStatusApi(apiClient)
 
         boolean alive = false
         long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (System.currentTimeMillis() < endTimeMillis && !executionTimedOut) {
+        while (System.currentTimeMillis() < endTimeMillis && !timeoutExceeded) {
             try {
                 alive = statusApi.isAlive().message == 'Alive'
                 if (alive) {
@@ -71,8 +72,8 @@ class RestApiClientV1 implements RestApiClient{
                 sleep(1000)
             }
         }
-        if(executionTimedOut){
-            throw new TimeoutException()
+        if (timeoutExceeded) {
+            throw new TimeoutException("Could not find a ecu.test REST api for host: ${apiClient.getBasePath()}")
         }
         return alive
     }
@@ -80,12 +81,10 @@ class RestApiClientV1 implements RestApiClient{
     /**
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
-     * * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
-     * timeout from outside this class.
-     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param testPkgPath the path to the package or project to be checked
      * @return CheckPackageResult with the result of the check
      * @throws ApiException on error status codes
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
     CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         def issues = []
@@ -98,11 +97,11 @@ class RestApiClientV1 implements RestApiClient{
                 response?.status in [null, 'WAITING', 'RUNNING']
             }
 
-            while (!executionTimedOut && checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            while (!timeoutExceeded && checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
                 sleep(1000)
             }
-            if (executionTimedOut){
-                throw new TimeoutException()
+            if (timeoutExceeded) {
+                throw new TimeoutException("Timeout exceeded during: runPackageCheck '${testPkgPath}'")
             }
 
 
@@ -121,16 +120,13 @@ class RestApiClientV1 implements RestApiClient{
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
-     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
-     * timeout from outside this class.
-     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      * or project
-     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
      * @return ReportInfo with report information about the test execution
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
     ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
-
         de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder executionOrderV1
         executionOrderV1 = executionOrder.toExecutionOrderV1()
         ExecutionApi apiInstance = new ExecutionApi(apiClient)
@@ -141,14 +137,14 @@ class RestApiClientV1 implements RestApiClient{
         }
 
         Execution execution
-        while (!executionTimedOut && checkStatus(execution=apiInstance.currentExecution)) {
+        while (!timeoutExceeded && checkStatus(execution = apiInstance.currentExecution)) {
             sleep(1000)
         }
-        if (executionTimedOut){
-            if (apiInstance.currentExecution.order == executionOrderV1){
+        if (timeoutExceeded) {
+            if (apiInstance.currentExecution.order.testCasePath == executionOrderV1.testCasePath) {
                 apiInstance.abortExecution()
             }
-            throw new TimeoutException()
+            throw new TimeoutException("Timeout exceeded during: runTest '${executionOrder.testCasePath}'")
         }
         if (execution.result == null) {
             // tests are not running

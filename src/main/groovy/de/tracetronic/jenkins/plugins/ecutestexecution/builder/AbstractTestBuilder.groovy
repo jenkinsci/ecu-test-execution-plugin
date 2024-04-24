@@ -38,7 +38,9 @@ abstract class AbstractTestBuilder implements Serializable {
     final StepContext context
 
     protected abstract String getTestArtifactName()
+
     protected abstract LogConfigUtil getLogConfig()
+
     protected abstract ExecutionOrderBuilder getExecutionOrderBuilder()
 
     AbstractTestBuilder(String testCasePath, TestConfig testConfig, ExecutionConfig executionConfig,
@@ -68,33 +70,37 @@ abstract class AbstractTestBuilder implements Serializable {
         TaskListener listener = context.get(TaskListener.class)
         ToolInstallations toolInstallations = new ToolInstallations(context)
 
-        if (executionConfig.executePackageCheck){
+        if (executionConfig.executePackageCheck) {
             CheckPackageStep step = new CheckPackageStep(testCasePath)
             step.setExecutionConfig(executionConfig)
             CheckPackageResult check_result = step.start(context).run()
             if (executionConfig.stopOnError && check_result.result == "ERROR") {
                 listener.logger.println(
-                        "Skipping execution of ${testArtifactName} ${testCasePath} due to failed package checks"
+                        "Skipping execution of ${testArtifactName} '${testCasePath}' due to failed package checks"
                 )
-                return new TestResult(null, "ERROR",null)
+                listener.logger.flush()
+                return new TestResult(null, "ERROR", null)
             }
         }
 
+        TestResult result
         try {
-            return context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
+            result = context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
                     context.get(EnvVars.class), listener, executionConfig,
                     getTestArtifactName(), getLogConfig(), getExecutionOrderBuilder(), toolInstallations))
         } catch (Exception e) {
-            listener.logger.println("Executing ${testArtifactName} ${testCasePath} failed!")
+            listener.logger.println("Executing ${testArtifactName} '${testCasePath}' failed!")
             listener.error(e.message)
             context.get(Run.class).setResult(Result.FAILURE)
-            return new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
+            result = new TestResult(null, "A problem occurred during the report generation. See caused exception for more details.", null)
         }
+        listener.logger.flush()
+        return result
     }
 
     private static final class RunTestCallable extends ControllerToAgentCallableWithTimeout<TestResult, IOException> {
- 
-        private static final long serialVersionUID = 1L 
+
+        private static final long serialVersionUID = 1L
 
         private final String testCasePath
         private final EnvVars envVars
@@ -123,7 +129,7 @@ abstract class AbstractTestBuilder implements Serializable {
 
         @Override
         TestResult execute() throws IOException {
-            listener.logger.println("Executing ${testArtifactName} ${testCasePath}...")
+            listener.logger.println("Executing ${testArtifactName} '${testCasePath}'...")
             ExecutionOrder executionOrder = executionOrderBuilder.build()
             this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             configUtil.log()
@@ -136,7 +142,7 @@ abstract class AbstractTestBuilder implements Serializable {
                 listener.logger.println("${StringUtils.capitalize(testArtifactName)} executed successfully.")
             } else {
                 result = new TestResult(null, 'ERROR', null)
-                listener.logger.println("Executing ${testArtifactName} ${testCasePath} failed!")
+                listener.logger.println("Executing ${testArtifactName} '${testCasePath}' failed!")
                 if (executionConfig.stopOnError) {
                     toolInstallations.stopToolInstances(executionConfig.timeout)
                     if (executionConfig.stopUndefinedTools) {
@@ -145,15 +151,19 @@ abstract class AbstractTestBuilder implements Serializable {
                 }
             }
             listener.logger.println(result.toString())
+            listener.logger.flush()
             return result
         }
+
+        /**
+         * Cancels the package check because it exceeded the configured timeout
+         * If the RestApiClientFactory has not return an apiClient for this class yet, it will be canceled there
+         */
         @Override
         void cancel() {
-            listener.logger.println("Timeout: canceling ${testArtifactName} execution!")
-            if (apiClient == null){
-                RestApiClientFactory.toggleExecutionTimeout()
-            }
-            apiClient.toggleExecutionTimeout()
+            listener.logger.println("Canceling package execution!")
+            !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
+
         }
     }
 }

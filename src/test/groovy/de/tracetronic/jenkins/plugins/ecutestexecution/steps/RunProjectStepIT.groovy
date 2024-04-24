@@ -5,7 +5,8 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-import util.ExampleApiResponse
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
 import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
@@ -106,10 +107,10 @@ class RunProjectStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing project test.prj...', run)
+            jenkins.assertLogContains("Executing project 'test.prj'", run)
     }
 
     def 'Run pipeline with package check'() {
@@ -121,7 +122,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             )
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing Package Checks for: test.prj ...', run)
+            jenkins.assertLogContains("Executing package checks for 'test.prj'", run)
     }
 
     def 'Run pipeline: with 409 handling'() {
@@ -131,7 +132,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> ExampleApiResponse.getResponseBusy() >> ExampleApiResponse.getResponseUnauthorized()
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
             GroovySpy(ConfigurationApi, global: true){
                 manageConfigurationWithHttpInfo(*_) >> {
                     restApiClient.apiClient.execute(mockCall, null)
@@ -144,7 +145,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttRunProject 'test.prj' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing project test.prj...', run)
+            jenkins.assertLogContains("Executing project 'test.prj'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
     }

@@ -121,13 +121,14 @@ class CheckPackageStep extends Step {
                         new PackageCheckCallable(step.testCasePath, context, step.executionConfig)
                 )
             } catch (Exception e) {
-                listener.logger.println('Executing Package Checks failed!')
+                listener.logger.println('Executing package checks failed!')
                 listener.error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
                 result = new CheckPackageResult(null, null)
             }
 
             listener.logger.println(result.toString())
+            listener.logger.flush()
             return result
         }
     }
@@ -135,7 +136,7 @@ class CheckPackageStep extends Step {
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class PackageCheckCallable extends ControllerToAgentCallableWithTimeout<CheckPackageResult,Exception> {
+    private static final class PackageCheckCallable extends ControllerToAgentCallableWithTimeout<CheckPackageResult, Exception> {
 
         private static final long serialVersionUID = 1L
 
@@ -177,7 +178,7 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult execute() throws Exception {
-            listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
+            listener.logger.println("Executing package checks for '${testCasePath}'...")
             this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             CheckPackageResult result
             try {
@@ -185,15 +186,14 @@ class CheckPackageStep extends Step {
             }
             catch (Exception e) {
                 if (e instanceof ApiException) {
-                    listener.logger.println('Executing Package Checks failed!')
-                    listener.logger.println(e.message)
+                    listener.logger.println('Executing package checks failed!')
+                    listener.error(e.message)
                     result = new CheckPackageResult(null, null)
-                }
-                else {
+                } else {
                     throw e
                 }
             }
-            if (result.result == "ERROR" && executionConfig.stopOnError){
+            if (result.result == "ERROR" && executionConfig.stopOnError) {
                 toolInstallations.stopToolInstances(executionConfig.timeout)
                 if (executionConfig.stopUndefinedTools) {
                     toolInstallations.stopTTInstances(executionConfig.timeout)
@@ -202,13 +202,14 @@ class CheckPackageStep extends Step {
             return result
         }
 
+        /**
+         * Cancels the package checks because it exceeded the configured timeout
+         * If the RestApiClientFactory has not return an apiClient for this class yet, it will be canceled there
+         */
         @Override
         void cancel() {
-            listener.logger.println("Timeout: canceling execution!")
-            if (apiClient == null){
-                RestApiClientFactory.toggleExecutionTimeout()
-            }
-            apiClient.toggleExecutionTimeout()
+            listener.logger.println("Canceling package checks execution!")
+            !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
         }
     }
 

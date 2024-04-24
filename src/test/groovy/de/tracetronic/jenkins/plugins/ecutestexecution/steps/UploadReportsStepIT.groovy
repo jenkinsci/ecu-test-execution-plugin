@@ -5,7 +5,8 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-import util.ExampleApiResponse
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
@@ -81,7 +82,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
@@ -95,7 +96,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
-            mockCall.execute() >> ExampleApiResponse.getResponseBusy() >> ExampleApiResponse.getResponseUnauthorized()
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
             GroovySpy(ReportApi, global: true){
                 createUpload(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
                 getAllReports(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
