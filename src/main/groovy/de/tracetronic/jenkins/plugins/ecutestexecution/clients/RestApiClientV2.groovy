@@ -71,7 +71,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 }
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignored) {
                 sleep(1000)
-            } catch (TimeoutException e) {
+            } catch (TimeoutException ignored) {
                 throw new TimeoutException("Could not find a ecu.test REST api for host: ${apiClient.getBasePath()}")
             }
         }
@@ -159,13 +159,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 return null
             }
             return ReportInfo.fromReportInfo(execution.result)
-        } catch (TimeoutException e) {
+        } catch (TimeoutException ignored) {
             if (timeoutExceeded) {
                 timeoutExceeded = false
                 if (executionApi.currentExecution.order == executionOrderV2) {
                     executionApi.abortExecution()
                 }
-                throw e
+                throw new TimeoutException("Timeout exceeded during: runTest '${executionOrder.testCasePath}'")
             }
         }
     }
