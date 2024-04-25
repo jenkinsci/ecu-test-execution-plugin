@@ -161,9 +161,8 @@ abstract class AbstractTestBuilder implements Serializable {
          */
         @Override
         void cancel() {
-            listener.logger.println("Canceling package execution!")
+            listener.logger.println("Canceling ${testArtifactName} execution!")
             !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
-
         }
     }
 }

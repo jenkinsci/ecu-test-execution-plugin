@@ -141,7 +141,7 @@ class RestApiClientV1 implements RestApiClient {
             sleep(1000)
         }
         if (timeoutExceeded) {
-            if (apiInstance.currentExecution.order.testCasePath == executionOrderV1.testCasePath) {
+            if (apiInstance.currentExecution.order == executionOrderV1) {
                 apiInstance.abortExecution()
             }
             throw new TimeoutException("Timeout exceeded during: runTest '${executionOrder.testCasePath}'")

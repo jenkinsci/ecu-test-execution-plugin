@@ -91,9 +91,6 @@ class CheckPackageStepIT extends IntegrationTestBase {
             def restApiClient = new RestApiClientV2('', '')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             def mockCall = Mock(Call)
-            mockCall.request() >> GroovyMock(Request)
-            mockCall.request().method() >> "GET"
-            mockCall.request().url() >> GroovyMock(HttpUrl)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy()
 
