@@ -36,6 +36,13 @@ pipeline {
         jdk 'JDK11'
     }
 
+    parameters {
+        string(name: 'ET_VERSION', defaultValue: '2023.4.0', description: 'The specified ecu.test version to use for testing.')
+        string(name: 'ET_V1_VERSION', defaultValue: '2023.3.0', description: 'The specified ecu.test v1 version to use for testing.')
+        string(name: 'ET_V2_VERSION', defaultValue: '2024.1.0', description: 'The specified ecu.test v2 version to use for testing.')
+        string(name: 'TG_VERSION', defaultValue: '1.142.0', description: 'The specified test.guide version to use for testing.')
+    }
+
     stages {
         stage ('Set Product Version') {
             steps {
@@ -75,7 +82,17 @@ pipeline {
                     stages {
                         stage('Prepare Resources') {
                             steps {
-                                copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
+                                script {
+                                    catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
+                                        copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
+                                    }
+                                    def properties = readFile('src/test/resources/containerTest.properties')
+                                        .replaceAll(/ET_VERSION=.*/, "ET_VERSION=${params.ET_VERSION}")
+                                        .replaceAll(/ET_V1_VERSION=.*/, "ET_V1_VERSION=${params.ET_V1_VERSION}")
+                                        .replaceAll(/ET_V2_VERSION=.*/, "ET_V2_VERSION=${params.ET_V2_VERSION}")
+                                        .replaceAll(/TG_VERSION=.*/, "TG_VERSION=${params.TG_VERSION}")
+                                    writeFile(file: 'src/test/resources/containerTest.properties', text: properties)
+                                }
                             }
                         }
                         stage('Run Container Tests') {
@@ -116,8 +133,8 @@ pipeline {
         cleanup {
             dir("${pipeline_report_dir}") {
                     pipeline2ATX(true)
-                }
-                uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", '')
+            }
+            uploadJson2TG("${TESTGUIDE_url}", "${authKey}", "${TESTGUIDE_projectID}", "${pipeline_report_dir}/**", '')
         }
     }
 }
