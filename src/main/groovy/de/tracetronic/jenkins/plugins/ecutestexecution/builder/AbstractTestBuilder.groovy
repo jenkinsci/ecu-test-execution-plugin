@@ -126,6 +126,7 @@ abstract class AbstractTestBuilder implements Serializable {
             if (executionConfig.executePackageCheck) {
                 listener.logger.println("Executing package checks for '${testCasePath}'")
                 CheckPackageResult check_result = apiClient.runPackageCheck(testCasePath)
+                listener.logger.println(check_result.toString())
                 if (executionConfig.stopOnError && check_result.result == "ERROR") {
                     listener.logger.println(
                             "Skipping execution of ${testArtifactName} '${testCasePath}' due to failed package checks"
@@ -133,7 +134,6 @@ abstract class AbstractTestBuilder implements Serializable {
                     listener.logger.flush()
                     return new TestResult(null, "ERROR", null)
                 }
-                listener.logger.println("Package checks for ${testArtifactName} '${testCasePath}' executed successfully.")
             }
             ExecutionOrder executionOrder = executionOrderBuilder.build()
             configUtil.log()
