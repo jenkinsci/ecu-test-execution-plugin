@@ -165,7 +165,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 if (executionApi.currentExecution.order == executionOrderV2) {
                     executionApi.abortExecution()
                 }
-                throw new TimeoutException("Timeout exceeded during: runTest '${executionOrder.testCasePath}'")
+                throw new TimeoutException("Timeout exceeded during the execution of '${executionOrder.testCasePath}'")
             }
         }
     }

@@ -115,6 +115,9 @@ class RunProjectStepIT extends IntegrationTestBase {
 
     def 'Run pipeline with package check'() {
         given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { " +
                     "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",

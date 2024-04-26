@@ -25,6 +25,7 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
+import org.jenkinsci.plugins.workflow.steps.StepExecution
 
 import java.util.concurrent.TimeoutException
 
@@ -61,28 +62,13 @@ abstract class AbstractTestBuilder implements Serializable {
     }
 
     /**
-     * Performs CheckPackageStep if executePackageCheck option was set in the execution config and calls the execution
-     * of the package.
+     * Calls the execution of the package.
      * @return TestResult
      * results of the test execution
      */
     TestResult runTest() {
         TaskListener listener = context.get(TaskListener.class)
         ToolInstallations toolInstallations = new ToolInstallations(context)
-
-        if (executionConfig.executePackageCheck) {
-            CheckPackageStep step = new CheckPackageStep(testCasePath)
-            step.setExecutionConfig(executionConfig)
-            CheckPackageResult check_result = step.start(context).run()
-            if (executionConfig.stopOnError && check_result.result == "ERROR") {
-                listener.logger.println(
-                        "Skipping execution of ${testArtifactName} '${testCasePath}' due to failed package checks"
-                )
-                listener.logger.flush()
-                return new TestResult(null, "ERROR", null)
-            }
-        }
-
         TestResult result
         try {
             result = context.get(Launcher.class).getChannel().call(new RunTestCallable(testCasePath,
@@ -127,11 +113,29 @@ abstract class AbstractTestBuilder implements Serializable {
 
         }
 
+        /**
+         * Performs CheckPackageStep if executePackageCheck option was set in the execution config and
+         * executes the package
+         * @return TestResult results of the test execution
+         * @throws IOException
+         */
         @Override
         TestResult execute() throws IOException {
             listener.logger.println("Executing ${testArtifactName} '${testCasePath}'...")
+            apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            if (executionConfig.executePackageCheck) {
+                listener.logger.println("Executing package checks for '${testCasePath}'")
+                CheckPackageResult check_result = apiClient.runPackageCheck(testCasePath)
+                if (executionConfig.stopOnError && check_result.result == "ERROR") {
+                    listener.logger.println(
+                            "Skipping execution of ${testArtifactName} '${testCasePath}' due to failed package checks"
+                    )
+                    listener.logger.flush()
+                    return new TestResult(null, "ERROR", null)
+                }
+                listener.logger.println("Package checks for ${testArtifactName} '${testCasePath}' executed successfully.")
+            }
             ExecutionOrder executionOrder = executionOrderBuilder.build()
-            this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             configUtil.log()
 
             ReportInfo reportInfo = apiClient.runTest(executionOrder)

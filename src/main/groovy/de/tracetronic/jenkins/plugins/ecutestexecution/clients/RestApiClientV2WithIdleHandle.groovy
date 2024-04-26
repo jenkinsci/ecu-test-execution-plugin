@@ -39,7 +39,7 @@ class RestApiClientV2WithIdleHandle {
                         sleep(1000)
                     }
                 }
-                throw new TimeoutException("Timeout exceeded")
+                throw new TimeoutException("ecu.test could not process the request within the timeout")
             }
         }
         apiClient.setBasePath(String.format('http://%s:%s/api/v2', hostName, port))

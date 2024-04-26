@@ -179,7 +179,7 @@ class CheckPackageStep extends Step {
         @Override
         CheckPackageResult execute() throws Exception {
             listener.logger.println("Executing package checks for '${testCasePath}'...")
-            this.apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+            apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             CheckPackageResult result
             try {
                 result = apiClient.runPackageCheck(testCasePath)

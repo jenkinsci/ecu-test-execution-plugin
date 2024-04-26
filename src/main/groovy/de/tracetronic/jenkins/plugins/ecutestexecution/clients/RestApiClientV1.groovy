@@ -101,7 +101,7 @@ class RestApiClientV1 implements RestApiClient {
                 sleep(1000)
             }
             if (timeoutExceeded) {
-                throw new TimeoutException("Timeout exceeded during: runPackageCheck '${testPkgPath}'")
+                throw new TimeoutException("Timeout exceeded during the package checks execution of '${testPkgPath}'")
             }
 
 
@@ -144,7 +144,7 @@ class RestApiClientV1 implements RestApiClient {
             if (apiInstance.currentExecution.order == executionOrderV1) {
                 apiInstance.abortExecution()
             }
-            throw new TimeoutException("Timeout exceeded during: runTest '${executionOrder.testCasePath}'")
+            throw new TimeoutException("Timeout exceeded during the execution of '${executionOrder.testCasePath}'")
         }
         if (execution.result == null) {
             // tests are not running
