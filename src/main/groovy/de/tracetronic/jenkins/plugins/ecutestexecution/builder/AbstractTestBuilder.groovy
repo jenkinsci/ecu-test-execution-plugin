@@ -16,7 +16,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
-import de.tracetronic.jenkins.plugins.ecutestexecution.steps.CheckPackageStep
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.LogConfigUtil
 import hudson.EnvVars
 import hudson.Launcher
@@ -25,9 +24,7 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
-import org.jenkinsci.plugins.workflow.steps.StepExecution
 
-import java.util.concurrent.TimeoutException
 
 /**
  * Common base class for all test related steps implemented in this plugin.
