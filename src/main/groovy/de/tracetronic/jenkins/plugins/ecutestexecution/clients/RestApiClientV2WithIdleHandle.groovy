@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 
 import de.tracetronic.cxs.generated.et.client.v2.ApiClient
