@@ -25,9 +25,7 @@ import de.tracetronic.cxs.generated.et.client.model.v2.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.TestConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.TestbenchConfiguration
-import de.tracetronic.cxs.generated.et.client.v2.ApiClient
 import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
-import de.tracetronic.cxs.generated.et.client.v2.Configuration
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
@@ -39,23 +37,28 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOr
 
 import java.util.concurrent.TimeoutException
 
-class RestApiClientV2 implements RestApiClient{
-
-    private ApiClient apiClient
+class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiClient {
 
     RestApiClientV2(String hostName, String port) {
-        apiClient = Configuration.getDefaultApiClient()
-        apiClient.setBasePath(String.format('http://%s:%s/api/v2', hostName, port))
+        super(hostName, port)
     }
 
     /**
-     * Waits until the ecu.test API is alive or timeout is reached. It uses the api "apiStatus" to get a simple ping
+     * Sets the timeoutExceeded to true, which will stop the execution of ApiCalls and throw a TimeoutException
+     */
+    void setTimeoutExceeded() {
+        timeoutExceeded = true
+    }
+
+    /**
+     * Waits until the ecu.test API is alive or timeout is reached. It uses the api "StatusApi" to get a simple ping
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
-    boolean waitForAlive(int timeout = 60) {
+    boolean waitForAlive(int timeout = 60) throws TimeoutException {
         StatusApi statusApi = new StatusApi(apiClient)
 
         boolean alive = false
@@ -68,6 +71,8 @@ class RestApiClientV2 implements RestApiClient{
                 }
             } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignored) {
                 sleep(1000)
+            } catch (TimeoutException ignored) {
+                throw new TimeoutException("Could not find a ecu.test REST api for host: ${apiClient.getBasePath()}")
             }
         }
         return alive
@@ -77,56 +82,48 @@ class RestApiClientV2 implements RestApiClient{
      * This method performs the package check for the given test package or project. It creates a check execution order
      * to get the execution ID and execute the package check for this ID.
      * @param testPkgPath the path to the package or project to be checked
-     * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
-     * @throws ApiException on error status codes
-     * @throws TimeoutException on timeout exceeded
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
+
      */
-    CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException {
+    CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException {
         def issues = []
+        ChecksApi apiInstance = new ChecksApi(apiClient)
+        CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
+        String checkExecutionId
         try {
-            ChecksApi apiInstance = new ChecksApi(apiClient)
-            CheckExecutionOrder order = new CheckExecutionOrder().filePath(testPkgPath)
-            String checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
-
-            Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
-                response?.status in [null, 'WAITING', 'RUNNING']
-            }
-
-            CheckExecutionStatus checkPackageStatus
-            long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-            while (checkStatus(checkPackageStatus = apiInstance.getCheckExecutionStatus(checkExecutionId))) {
-                if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
-                    break
-                }
-                sleep(1000)
-            }
-
-            if (checkPackageStatus.status != 'FINISHED' ) {
-                throw new TimeoutException("Timeout: check package '${testPkgPath}' took longer than ${timeout} seconds")
-            }
-
-            CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
-            for (CheckFinding issue : checkReport.issues) {
-                def issueMap = [filename: issue.fileName, message: issue.message]
-                issues.add(issueMap)
-            }
+            checkExecutionId = apiInstance.createCheckExecutionOrder(order).getCheckExecutionId()
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException rethrow) {
-            throw new ApiException('An error occurs during runPackageCheck. See stacktrace below:\n' +
+            throw new ApiException('An error occurred during runPackageCheck. See stacktrace below:\n' +
                     rethrow.getMessage())
         }
 
+        Closure<Boolean> checkStatus = { CheckExecutionStatus response ->
+            response?.status in [null, 'WAITING', 'RUNNING']
+        }
+
+        while (checkStatus(apiInstance.getCheckExecutionStatus(checkExecutionId))) {
+            sleep(1000)
+        }
+
+        CheckReport checkReport = apiInstance.getCheckResult(checkExecutionId)
+        for (CheckFinding issue : checkReport.issues) {
+            def issueMap = [filename: issue.fileName, message: issue.message]
+            issues.add(issueMap)
+        }
         return new CheckPackageResult(testPkgPath, issues)
     }
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
-     *   or project
-     * @param timeout Time in seconds until the test execution will be aborted
+     * or project
      * @return ReportInfo with report information about the test execution
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
-    ReportInfo runTest(ExecutionOrder executionOrder, int timeout) {
+    ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
 
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
@@ -143,34 +140,34 @@ class RestApiClientV2 implements RestApiClient{
 
         if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
-            ApiResponse<SimpleMessage> status = configApi.manageConfigurationWithHttpInfo(configOrder)
-            if (status.statusCode != 200) {
-                throw new ApiException("Configuration could not be loaded!")
-            }
+            ApiResponse<SimpleMessage> status
+            configApi.manageConfigurationWithHttpInfo(configOrder)
         }
-
         ExecutionApi executionApi = new ExecutionApi(apiClient)
         executionApi.createExecution(executionOrderV2)
-
         Closure<Boolean> checkStatus = { Execution execution ->
             execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
         }
 
-        Execution execution
-        long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-        while (checkStatus(execution = executionApi.currentExecution)) {
-            if (timeout > 0 && System.currentTimeMillis() > endTimeMillis) {
-                executionApi.abortExecution()
-                break
+        try {
+            Execution execution
+            while (checkStatus(execution = executionApi.currentExecution)) {
+                sleep(1000)
             }
-            sleep(1000)
+            if (execution.result == null) {
+                // tests are not running
+                return null
+            }
+            return ReportInfo.fromReportInfo(execution.result)
+        } catch (TimeoutException ignored) {
+            if (timeoutExceeded) {
+                timeoutExceeded = false
+                if (executionApi.currentExecution.order == executionOrderV2) {
+                    executionApi.abortExecution()
+                }
+                throw new TimeoutException("Timeout exceeded during the execution of '${executionOrder.testCasePath}'")
+            }
         }
-
-        if (execution.result == null) {
-            // tests are not running
-            return null
-        }
-        return ReportInfo.fromReportInfo(execution.result)
     }
 
     /**
@@ -183,7 +180,6 @@ class RestApiClientV2 implements RestApiClient{
         de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationOrder orderV2 = order.toReportGenerationOrderV2()
         ReportApi apiInstance = new ReportApi(apiClient)
         apiInstance.createReportGeneration(reportId, orderV2)
-
         Closure<Boolean> checkStatus = { ReportGeneration generation ->
             generation?.status?.key in [null, ReportGenerationStatus.KeyEnum.WAITING,
                                         ReportGenerationStatus.KeyEnum.RUNNING]
@@ -207,10 +203,11 @@ class RestApiClientV2 implements RestApiClient{
     UploadResult uploadReport(String reportId, TGUploadOrder order) {
         de.tracetronic.cxs.generated.et.client.model.v2.TGUploadOrder uploadOrderV2
         uploadOrderV2 = order.toTGUploadOrderV2()
+
         ReportApi apiInstance = new ReportApi(apiClient)
         apiInstance.createUpload(reportId, uploadOrderV2)
-
-        Closure<Boolean> checkStatus = { TGUpload upload -> upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
+        Closure<Boolean> checkStatus = { TGUpload upload ->
+            upload?.status?.key in [null, TGUploadStatus.KeyEnum.WAITING, TGUploadStatus.KeyEnum.RUNNING]
         }
 
         TGUpload upload
@@ -235,4 +232,5 @@ class RestApiClientV2 implements RestApiClient{
         List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reports = apiInstance.getAllReports()
         return reports*.testReportId
     }
+
 }

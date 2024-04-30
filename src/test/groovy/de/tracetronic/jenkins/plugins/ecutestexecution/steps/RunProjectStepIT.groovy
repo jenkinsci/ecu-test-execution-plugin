@@ -5,14 +5,20 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
+import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
+import de.tracetronic.cxs.generated.et.client.api.v2.ExecutionApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import hudson.Functions
 import hudson.model.Result
+import okhttp3.Call
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -101,21 +107,49 @@ class RunProjectStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Executing project test.prj...', run)
+            jenkins.assertLogContains("Executing project 'test.prj'", run)
     }
 
     def 'Run pipeline with package check'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { " +
-                "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",
-                true)
-        )
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { " +
+                    "ttRunProject testCasePath: 'test.prj', executionConfig: [executePackageCheck: true]}",
+                    true)
+            )
         expect:
-        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains('Executing Package Checks for: test.prj ...', run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing package checks for 'test.prj'", run)
+    }
+
+    def 'Run pipeline: with 409 handling'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
+            GroovySpy(ConfigurationApi, global: true){
+                manageConfigurationWithHttpInfo(*_) >> {
+                    restApiClient.apiClient.execute(mockCall, null)
+                }
+            }
+            GroovySpy(ExecutionApi, global: true){
+                createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject 'test.prj' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing project 'test.prj'", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('unauthorized', run)
     }
 }

@@ -7,8 +7,8 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 class AdditionalSettings {
 
     private List<Recording> recording
-    private String mapping
-    private String analysisName
+    private String mapping = ''
+    private String analysisName = ''
     private Boolean forceConfigurationReload
     private List<LabeledValue> packageParameter
 
@@ -28,7 +28,7 @@ class AdditionalSettings {
      * Convert the abstract AdditionalSettings object to a ecu.test REST api object of the api version V1
      * @return AdditionalSettings for ecu.test REST api in version V1
      */
-    de.tracetronic.cxs.generated.et.client.model.v1.AdditionalSettings toAdditionalSettingsV1(){
+    de.tracetronic.cxs.generated.et.client.model.v1.AdditionalSettings toAdditionalSettingsV1() {
         List<de.tracetronic.cxs.generated.et.client.model.v1.Recording> recordingsV1 = []
         for (Recording recording : this.recording) {
             recordingsV1.add(recording.toRecordingV1())
@@ -51,7 +51,7 @@ class AdditionalSettings {
      * Convert the abstract AdditionalSettings object to a ecu.test REST api object of the api version V2
      * @return AdditionalSettings for ecu.test REST api in version V2
      */
-    de.tracetronic.cxs.generated.et.client.model.v2.AdditionalSettings toAdditionalSettingsV2(){
+    de.tracetronic.cxs.generated.et.client.model.v2.AdditionalSettings toAdditionalSettingsV2() {
         List<de.tracetronic.cxs.generated.et.client.model.v2.Recording> recordingsV2 = []
         for (Recording recording : this.recording) {
             recordingsV2.add(recording.toRecordingV2())

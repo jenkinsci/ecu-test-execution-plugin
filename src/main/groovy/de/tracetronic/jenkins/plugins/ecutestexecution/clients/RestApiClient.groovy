@@ -19,32 +19,43 @@ import java.util.concurrent.TimeoutException
 interface RestApiClient {
 
     /**
+     * Sets the timeoutExceeded to true, which will stop the execution at the next check
+     */
+    abstract void setTimeoutExceeded()
+    /**
      * Waits until the ecu.test REST api is alive or timeout is reached.
      * @param timeout time in seconds to wait for alive check
      * @return boolean:
      *   true, if the the ecu.test API sends an alive signal within the timeout range
      *   false, otherwise
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
-    abstract boolean waitForAlive(int timeout)
+    abstract boolean waitForAlive(int timeout) throws TimeoutException
 
     /**
      * This method performs the package check for the given test package or project via REST api.
+     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
+     * timeout from outside this class.
+     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param testPkgPath the path to the package or project to be checked
-     * @param timeout Time in seconds until the check package execution will be aborted
      * @return CheckPackageResult with the result of the check
-     * @throws ApiException on error status codes
-     * @throws TimeoutException on timeout exceeded
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
-    abstract CheckPackageResult runPackageCheck(String testPkgPath, int timeout) throws ApiException, TimeoutException
+    abstract CheckPackageResult runPackageCheck(String testPkgPath) throws ApiException, TimeoutException
 
     /**
      * Executes the test package or project of the given ExecutionOrder via REST api.
+     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
+     * timeout from outside this class.
+     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
      * @param executionOrder is an ExecutionOrder object which defines the test environment and even the test package
      *   or project
-     * @param timeout Time in seconds until the test execution will be aborted
      * @return ReportInfo with report information about the test execution
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException if the execution time exceeded the timeout
      */
-    abstract ReportInfo runTest(ExecutionOrder executionOrder, int timeout)
+    abstract ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException
 
     /**
      * Generates a report for a given report ID. The report has the format defined by the ReportGenerationOrder

@@ -8,11 +8,13 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import org.apache.commons.lang.StringUtils
 
+import java.util.concurrent.TimeoutException
+
 class RestApiClientFactory {
     private static int DEFAULT_TIMEOUT = 10
     private static final String DEFAULT_HOSTNAME = 'localhost'
     private static final String DEFAULT_PORT = '5050'
-
+    private static RestApiClient apiClient
     /**
      * Determine the client for the highest REST api version of the given ecu.test.
      * @param hostName (optional) set if ecu.test is hosted on a custom host
@@ -25,16 +27,24 @@ class RestApiClientFactory {
         hostName = StringUtils.isBlank(hostName) ? DEFAULT_HOSTNAME : StringUtils.trim(hostName)
         port = StringUtils.isBlank(port) ? DEFAULT_PORT : StringUtils.trim(port)
 
-        RestApiClient apiClientV2 = new RestApiClientV2(hostName, port)
-        if (apiClientV2.waitForAlive(timeout)) {
-            return apiClientV2
+        apiClient = new RestApiClientV2(hostName, port)
+        if (apiClient.waitForAlive(timeout)) {
+            return apiClient
         }
 
-        RestApiClient apiClientV1 = new RestApiClientV1(hostName, port)
-        if (apiClientV1.waitForAlive(timeout)) {
-            return apiClientV1
+        apiClient = new RestApiClientV1(hostName, port)
+        if (apiClient.waitForAlive(timeout)) {
+            return apiClient
         }
 
         throw new ApiException("Could not find a ecu.test REST api for host: ${hostName}:${port}")
+    }
+
+    /**
+     * Sets the executionTimedOut of the current ApiClient to true, which will stop the execution of ApiCalls and
+     * throw a TimeoutException
+     */
+    static setTimeoutExceeded() {
+        apiClient.setTimeoutExceeded()
     }
 }

@@ -5,14 +5,19 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
+import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import hudson.model.Result
+import okhttp3.Call
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -77,9 +82,34 @@ class UploadReportsStepIT extends IntegrationTestBase {
 
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new TestRestApiClient()
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+    }
+
+
+    def 'Run pipeline: with 409 handling'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
+            GroovySpy(ReportApi, global: true){
+                createUpload(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
+                getAllReports(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085' }", true))
+
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('unauthorized', run)
     }
 }

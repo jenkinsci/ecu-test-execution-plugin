@@ -8,6 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
@@ -18,7 +19,6 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.DataBoundConstructor
@@ -114,22 +114,29 @@ class CheckPackageStep extends Step {
          */
         @Override
         CheckPackageResult run() throws Exception {
+            CheckPackageResult result
+            TaskListener listener = context.get(TaskListener.class)
             try {
-                return getContext().get(Launcher.class).getChannel().call(
-                        new PackageCheckCallable (step.testCasePath, context, step.executionConfig)
+                result = getContext().get(Launcher.class).getChannel().call(
+                        new PackageCheckCallable(step.testCasePath, context, step.executionConfig)
                 )
             } catch (Exception e) {
-                context.get(TaskListener.class).error(e.message)
+                listener.logger.println('Executing package checks failed!')
+                listener.error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
-                return new CheckPackageResult(null, null)
+                result = new CheckPackageResult(null, null)
             }
+
+            listener.logger.println(result.toString())
+            listener.logger.flush()
+            return result
         }
     }
 
     /**
      * Callable providing the execution of the step in the build
      */
-    private  static final class PackageCheckCallable extends MasterToSlaveCallable<CheckPackageResult,Exception> {
+    private static final class PackageCheckCallable extends ControllerToAgentCallableWithTimeout<CheckPackageResult, Exception> {
 
         private static final long serialVersionUID = 1L
 
@@ -139,6 +146,7 @@ class CheckPackageStep extends Step {
         private final TaskListener listener
         private final ExecutionConfig executionConfig
         private final ToolInstallations toolInstallations
+        private RestApiClient apiClient
         /**
          * Instantiates a new [ExecutionCallable].
          *
@@ -152,6 +160,7 @@ class CheckPackageStep extends Step {
          * ArrayList of strings containing tool installations, which depending on execution cfg will be stopped
          */
         PackageCheckCallable(String testCasePath, StepContext context, ExecutionConfig executionConfig) {
+            super(executionConfig.timeout, context.get(TaskListener.class))
             this.testCasePath = testCasePath
             this.context = context
             this.envVars = context.get(EnvVars.class)
@@ -168,33 +177,39 @@ class CheckPackageStep extends Step {
          * @return the results of the package check
          */
         @Override
-        CheckPackageResult call() throws Exception {
-            listener.logger.println('Executing Package Checks for: ' + testCasePath + ' ...')
-            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-
+        CheckPackageResult execute() throws Exception {
+            listener.logger.println("Executing package checks for '${testCasePath}'...")
+            apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             CheckPackageResult result
             try {
-                result = apiClient.runPackageCheck(testCasePath, executionConfig.timeout)
+                result = apiClient.runPackageCheck(testCasePath)
             }
             catch (Exception e) {
-                listener.logger.println('Executing Package Checks failed!')
-                if (e instanceof TimeoutException || e instanceof ApiException) {
-                    listener.logger.println(e.message)
+                if (e instanceof ApiException) {
+                    listener.logger.println('Executing package checks failed!')
+                    listener.error(e.message)
                     result = new CheckPackageResult(null, null)
-                }
-                else {
+                } else {
                     throw e
                 }
             }
-
-            listener.logger.println(result.toString())
-            if (result.result == "ERROR" && executionConfig.stopOnError){
+            if (result.result == "ERROR" && executionConfig.stopOnError) {
                 toolInstallations.stopToolInstances(executionConfig.timeout)
                 if (executionConfig.stopUndefinedTools) {
                     toolInstallations.stopTTInstances(executionConfig.timeout)
                 }
             }
             return result
+        }
+
+        /**
+         * Cancels the package checks because it exceeded the configured timeout
+         * If the RestApiClientFactory has not return an apiClient for this class yet, it will be canceled there
+         */
+        @Override
+        void cancel() {
+            listener.logger.println("Canceling package checks execution!")
+            !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
         }
     }
 
