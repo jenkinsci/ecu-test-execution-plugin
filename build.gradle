@@ -67,7 +67,7 @@ dependencies {
 
     // codenarc
     codenarc('org.codenarc:CodeNarc:3.4.0')
-    codenarc('org.codehaus.groovy:groovy-all:3.0.9')
+    codenarc('org.codehaus.groovy:groovy-all:3.0.19')
 
     // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
@@ -91,24 +91,23 @@ dependencies {
             strictly '6.0.0'
         }
     }
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:1058.vcb_fc1e3a_21a_9'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:994.vd57e3ca_46d24'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3894.3896.vca_2c931e7935'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3894.3896.vca_2c931e7935:tests'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1331.vc8c2fed35334'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1223.v7f1a_98a_8863e'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1385.vb_58b_86ea_fff1'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:657.v03b_e8115821b_:tests'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
+    testImplementation 'org.jenkins-ci.main:jenkins-test-harness:2174.v111a_b_471784f'
     testImplementation('org.testcontainers:spock:1.19.8') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
+
+    // testImplementation 'cglib:cglib-nodep:3.3.0'
+    // testImplementation 'org.objenesis:objenesis:3.3'
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.19'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
-    testImplementation 'org.spockframework:spock-guice:2.3-groovy-3.0'
-    //testImplementation 'cglib:cglib-nodep:3.3.0'
-    //testImplementation 'org.objenesis:objenesis:3.3'
-    testImplementation 'org.codehaus.groovy:groovy-all:3.0.9'
-
-    // testImplementation 'org.jenkins-ci.plugins:bouncycastle-api:2.30.1.77-225.v26ea_c9455fd9'
 }
 
 // remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
