@@ -11,6 +11,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.builder.TestProjectBuilde
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -69,12 +70,12 @@ class RunProjectStep extends RunTestStep {
             return result
         }
 
-        private void checkProjectPath(String projectFile)
-                throws IOException, InterruptedException, IllegalArgumentException {
+        private void checkProjectPath(String projectFile) {
             if (IOUtils.isAbsolute(projectFile)) {
                 FilePath projectPath = new FilePath(context.get(Launcher.class).getChannel(), projectFile)
                 if (!projectPath.exists()) {
-                    throw new IllegalArgumentException("ecu.test project at ${projectPath.getRemote()} does not exist!")
+                    throw new AbortException("ecu.test project at ${projectPath.getRemote()} does not exist!" +
+                        "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
             }
         }

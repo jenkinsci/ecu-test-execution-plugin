@@ -13,6 +13,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -105,12 +106,12 @@ class RunPackageStep extends RunTestStep {
             return result
         }
 
-        private void checkPackagePath(String packageFile)
-                throws IOException, InterruptedException, IllegalArgumentException {
+        private void checkPackagePath(String packageFile) {
             if (IOUtils.isAbsolute(packageFile)) {
                 FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
                 if (!packagePath.exists()) {
-                    throw new IllegalArgumentException("ecu.test package at ${packagePath.getRemote()} does not exist!")
+                    throw new AbortException("ecu.test package at ${packagePath.getRemote()} does not exist!" +
+                        "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
             }
         }

@@ -16,6 +16,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.scan.TestPackageScanner
 import de.tracetronic.jenkins.plugins.ecutestexecution.scan.TestProjectScanner
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -166,30 +167,36 @@ class RunTestFolderStep extends RunTestStep {
              return testResultList
         }
 
-        private String checkFolder(String folder)
-                throws IOException, InterruptedException, IllegalArgumentException {
+        private String checkFolder(String folder) {
             if (IOUtils.isAbsolute(folder)) {
                 FilePath folderPath = new FilePath(context.get(Launcher.class).getChannel(), folder)
                 if (!folderPath.exists()) {
-                    throw new IllegalArgumentException("ecu.test folder at ${folderPath.getRemote()} does not extist!")
+                    throw new AbortException("ecu.test folder at ${folderPath.getRemote()} does not extist!" +
+                        "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
                 return folderPath.getRemote()
             } else {
-                throw new IllegalArgumentException("Unsupported relative paths for ecu.test folder '${folder}'!")
+                throw new AbortException("Unsupported relative paths for ecu.test folder '${folder}'!" +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.")
             }
         }
     }
 
      private static List<String> scanPackages(final String testFolder, final StepContext context,
-                                              ScanMode scanMode, boolean isRecursive)
-            throws IOException, InterruptedException {
+                                              ScanMode scanMode, boolean isRecursive) {
         List<String> pkgFiles = new ArrayList<>()
         if (scanMode == ScanMode.PROJECTS_ONLY) {
             return pkgFiles
         }
 
-        final TestPackageScanner scanner = new TestPackageScanner(testFolder, isRecursive, context)
-        pkgFiles = scanner.scanTestFiles()
+        try {
+            final TestPackageScanner scanner = new TestPackageScanner(testFolder, isRecursive, context)
+            pkgFiles = scanner.scanTestFiles()
+        } catch (IOException | InterruptedException e) {
+            throw new AbortException("Failed to scan packages in the folder: '${testFolder}'" +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.")
+        }
+
         if (pkgFiles.isEmpty()) {
             context.get(TaskListener.class).logger.println('No packages found!')
         } else {
@@ -200,15 +207,20 @@ class RunTestFolderStep extends RunTestStep {
     }
 
     private static List<String> scanProjects(final String testFolder, final StepContext context,
-                                             ScanMode scanMode, boolean isRecursive)
-            throws IOException, InterruptedException {
+                                             ScanMode scanMode, boolean isRecursive) {
         List<String> prjFiles = new ArrayList<>()
         if (scanMode == ScanMode.PACKAGES_ONLY) {
             return prjFiles
         }
 
-        final TestProjectScanner scanner = new TestProjectScanner(testFolder, isRecursive, context)
-        prjFiles = scanner.scanTestFiles()
+        try {
+            final TestProjectScanner scanner = new TestProjectScanner(testFolder, isRecursive, context)
+            prjFiles = scanner.scanTestFiles()
+        } catch (IOException | InterruptedException e) {
+            throw new AbortException("Failed to scan projects in the folder: '${testFolder}'" +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.")
+        }
+
         if (prjFiles.isEmpty()) {
             context.get(TaskListener.class).logger.println('No projects found!')
         } else {

@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Functions
@@ -120,7 +121,7 @@ class StopToolStep extends Step {
         }
 
         @Override
-        Void call() throws IOException {
+        Void call() {
             String toolName = installation.getName()
             if (toolName) {
                 listener.logger.println("Stopping ${toolName}...")
@@ -130,7 +131,9 @@ class StopToolStep extends Step {
                 if (ProcessUtil.killProcess(exeFileName, timeout)) {
                     listener.logger.println("${toolName} stopped successfully.")
                 } else {
-                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!")
+                    throw new AbortException(
+                            "Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!" +
+                            "Please ensure that the tool is not already stopped.")
                 }
             }
 
@@ -139,7 +142,9 @@ class StopToolStep extends Step {
                 if (ProcessUtil.killTTProcesses(timeout)) {
                     listener.logger.println("Stopped tracetronic tools successfully.")
                 } else {
-                    throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!")
+                    throw new AbortException(
+                            "Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!" +
+                            "Please ensure that tracetronic tools are not already stopped.")
                 }
             }
 
