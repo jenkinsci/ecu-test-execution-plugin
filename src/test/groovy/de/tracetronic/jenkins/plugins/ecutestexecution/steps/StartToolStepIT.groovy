@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -152,5 +153,37 @@ class StartToolStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('Re-using running instance ', run)
             jenkins.assertLogNotContains('Stop tracetronic tool instances.', run)
             jenkins.assertLogContains('Starting ecu.test...', run)
+    }
+
+    def 'Run pipeline: Workspace directory does not exist'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String tempDirString = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
+                    "workspaceDir: '${tempDirString}/foo', settingsDir: '${tempDirString}' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("ecu.test workspace directory at ${tempDirString}/foo does not exist! " +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.", run)
+    }
+
+    def 'Run pipeline: Timeout exceeded'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+        when:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killTTProcesses(_) >> false
+        then:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Timeout of 60 seconds exceeded for stopping tracetronic tools! " +
+                    "Please ensure that tracetronic tools are not already stopped or "  +
+                    "blocked by another process.", run)
     }
 }

@@ -55,26 +55,33 @@ class RunProjectStep extends RunTestStep {
 
         @Override
         protected TestResult run() throws Exception {
-            EnvVars envVars = context.get(EnvVars.class)
-            String expTestCasePath = envVars.expand(step.testCasePath)
-            TestConfig expTestConfig = step.testConfig.expand(envVars)
+            try {
+                EnvVars envVars = context.get(EnvVars.class)
+                String expTestCasePath = envVars.expand(step.testCasePath)
+                TestConfig expTestConfig = step.testConfig.expand(envVars)
 
-            checkProjectPath(expTestCasePath)
+                checkProjectPath(expTestCasePath)
 
-            TestProjectBuilder testProject = new TestProjectBuilder(expTestCasePath, expTestConfig,
-                    step.getExecutionConfig(), context)
-            TestResult result = testProject.runTest()
+                TestProjectBuilder testProject = new TestProjectBuilder(expTestCasePath, expTestConfig,
+                        step.getExecutionConfig(), context)
+                TestResult result = testProject.runTest()
 
-            addBuildAction(context.get(Run.class), expTestCasePath, expTestConfig, result)
+                addBuildAction(context.get(Run.class), expTestCasePath, expTestConfig, result)
 
-            return result
+                return result
+
+            } catch (Exception e) {
+                throw new AbortException(e.getMessage())
+
+            }
         }
 
-        private void checkProjectPath(String projectFile) {
+        private void checkProjectPath(String projectFile)
+                throws IOException, InterruptedException, IllegalArgumentException {
             if (IOUtils.isAbsolute(projectFile)) {
                 FilePath projectPath = new FilePath(context.get(Launcher.class).getChannel(), projectFile)
                 if (!projectPath.exists()) {
-                    throw new AbortException("ecu.test project at ${projectPath.getRemote()} does not exist!" +
+                    throw new AbortException("ecu.test project at ${projectPath.getRemote()} does not exist! " +
                         "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
             }

@@ -121,7 +121,7 @@ class StopToolStep extends Step {
         }
 
         @Override
-        Void call() {
+        Void call() throws IOException {
             String toolName = installation.getName()
             if (toolName) {
                 listener.logger.println("Stopping ${toolName}...")
@@ -132,8 +132,9 @@ class StopToolStep extends Step {
                     listener.logger.println("${toolName} stopped successfully.")
                 } else {
                     throw new AbortException(
-                            "Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}!" +
-                            "Please ensure that the tool is not already stopped.")
+                            "Timeout of ${this.timeout} seconds exceeded for stopping ${toolName}! " +
+                            "Please ensure that the tool is not already stopped or "  +
+                            "blocked by another process.")
                 }
             }
 
@@ -143,8 +144,9 @@ class StopToolStep extends Step {
                     listener.logger.println("Stopped tracetronic tools successfully.")
                 } else {
                     throw new AbortException(
-                            "Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!" +
-                            "Please ensure that tracetronic tools are not already stopped.")
+                            "Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools! " +
+                            "Please ensure that tracetronic tools are not already stopped or "  +
+                            "blocked by another process.")
                 }
             }
 

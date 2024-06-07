@@ -152,4 +152,17 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
     }
+
+    def 'Run pipeline: ecu.test folder at path does not exist'() {
+        given:
+            File tempDir = File.createTempDir()
+            String nonExistentFolder = tempDir.getPath().replace('\\', '/') + "/foo"
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: '${nonExistentFolder}' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("ecu.test project at ${nonExistentFolder} does not exist! " +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.", run)
+    }
+
 }

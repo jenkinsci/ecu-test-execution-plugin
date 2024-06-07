@@ -130,73 +130,75 @@ class RunTestFolderStep extends RunTestStep {
 
         @Override
         protected List<TestResult> run() throws Exception {
-            List<TestResult> testResultList = new ArrayList<>()
-            EnvVars envVars = context.get(EnvVars.class)
-            String expTestCasePath = envVars.expand(step.testCasePath)
-            ExecutionConfig expExecutionConfig = step.executionConfig
-            TestConfig expTestConfig = step.testConfig.expand(envVars)
-            PackageConfig expPackageConfig = step.packageConfig.expand(envVars)
-            AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
+            try {
+                List<TestResult> testResultList = new ArrayList<>()
+                EnvVars envVars = context.get(EnvVars.class)
+                String expTestCasePath = envVars.expand(step.testCasePath)
+                ExecutionConfig expExecutionConfig = step.executionConfig
+                TestConfig expTestConfig = step.testConfig.expand(envVars)
+                PackageConfig expPackageConfig = step.packageConfig.expand(envVars)
+                AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
 
-            String testFolderPath = checkFolder(expTestCasePath)
+                String testFolderPath = checkFolder(expTestCasePath)
 
-            final List<String> pkgFiles = scanPackages(testFolderPath, context, step.scanMode, step.recursiveScan)
-            final List<String> prjFiles = scanProjects(testFolderPath, context, step.scanMode, step.recursiveScan)
+                final List<String> pkgFiles = scanPackages(testFolderPath, context, step.scanMode, step.recursiveScan)
+                final List<String> prjFiles = scanProjects(testFolderPath, context, step.scanMode, step.recursiveScan)
 
 
-            pkgFiles.each { pkgFile ->
-                TestPackageBuilder testPackage = new TestPackageBuilder(pkgFile, expTestConfig,
-                        expExecutionConfig, context, expPackageConfig, expAnalysisConfig)
-                TestResult result = testPackage.runTest()
-                testResultList.add(result)
-                if (result.getTestResult() == 'FAILED' && isFailFast()) {
-                    return testResultList
+                pkgFiles.each { pkgFile ->
+                    TestPackageBuilder testPackage = new TestPackageBuilder(pkgFile, expTestConfig,
+                            expExecutionConfig, context, expPackageConfig, expAnalysisConfig)
+                    TestResult result = testPackage.runTest()
+                    testResultList.add(result)
+                    if (result.getTestResult() == 'FAILED' && isFailFast()) {
+                        return testResultList
+                    }
                 }
-            }
 
-            prjFiles.each { prjFile ->
-                TestProjectBuilder testProject = new TestProjectBuilder(prjFile, expTestConfig,
-                        expExecutionConfig, context)
-                TestResult result = testProject.runTest()
-                testResultList.add(result)
-                if (result.getTestResult() == 'FAILED' && isFailFast()) {
-                    return testResultList
+                prjFiles.each { prjFile ->
+                    TestProjectBuilder testProject = new TestProjectBuilder(prjFile, expTestConfig,
+                            expExecutionConfig, context)
+                    TestResult result = testProject.runTest()
+                    testResultList.add(result)
+                    if (result.getTestResult() == 'FAILED' && isFailFast()) {
+                        return testResultList
+                    }
                 }
-            }
 
-             return testResultList
+                return testResultList
+
+            } catch (Exception e) {
+                throw new AbortException(e.getMessage())
+            }
         }
 
-        private String checkFolder(String folder) {
+        private String checkFolder(String folder)
+                throws IOException, InterruptedException, IllegalArgumentException {
             if (IOUtils.isAbsolute(folder)) {
                 FilePath folderPath = new FilePath(context.get(Launcher.class).getChannel(), folder)
                 if (!folderPath.exists()) {
-                    throw new AbortException("ecu.test folder at ${folderPath.getRemote()} does not extist!" +
+                    throw new AbortException("ecu.test folder at ${folderPath.getRemote()} does not extist! " +
                         "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
                 return folderPath.getRemote()
             } else {
-                throw new AbortException("Unsupported relative paths for ecu.test folder '${folder}'!" +
-                    "Please ensure that the path is correctly set and it refers to the desired directory.")
+                throw new AbortException("Unsupported relative paths for ecu.test folder '${folder}'! " +
+                    "Please ensure that the path is correctly set and it refers to the desired directory. " +
+                    "Consider using an absolute path instead.")
             }
         }
     }
 
      private static List<String> scanPackages(final String testFolder, final StepContext context,
-                                              ScanMode scanMode, boolean isRecursive) {
+                                              ScanMode scanMode, boolean isRecursive)
+             throws IOException, InterruptedException {
         List<String> pkgFiles = new ArrayList<>()
         if (scanMode == ScanMode.PROJECTS_ONLY) {
             return pkgFiles
         }
 
-        try {
-            final TestPackageScanner scanner = new TestPackageScanner(testFolder, isRecursive, context)
-            pkgFiles = scanner.scanTestFiles()
-        } catch (IOException | InterruptedException e) {
-            throw new AbortException("Failed to scan packages in the folder: '${testFolder}'" +
-                    "Please ensure that the path is correctly set and it refers to the desired directory.")
-        }
-
+        final TestPackageScanner scanner = new TestPackageScanner(testFolder, isRecursive, context)
+        pkgFiles = scanner.scanTestFiles()
         if (pkgFiles.isEmpty()) {
             context.get(TaskListener.class).logger.println('No packages found!')
         } else {
@@ -207,20 +209,15 @@ class RunTestFolderStep extends RunTestStep {
     }
 
     private static List<String> scanProjects(final String testFolder, final StepContext context,
-                                             ScanMode scanMode, boolean isRecursive) {
+                                             ScanMode scanMode, boolean isRecursive)
+            throws IOException, InterruptedException {
         List<String> prjFiles = new ArrayList<>()
         if (scanMode == ScanMode.PACKAGES_ONLY) {
             return prjFiles
         }
 
-        try {
-            final TestProjectScanner scanner = new TestProjectScanner(testFolder, isRecursive, context)
-            prjFiles = scanner.scanTestFiles()
-        } catch (IOException | InterruptedException e) {
-            throw new AbortException("Failed to scan projects in the folder: '${testFolder}'" +
-                    "Please ensure that the path is correctly set and it refers to the desired directory.")
-        }
-
+        final TestProjectScanner scanner = new TestProjectScanner(testFolder, isRecursive, context)
+        prjFiles = scanner.scanTestFiles()
         if (prjFiles.isEmpty()) {
             context.get(TaskListener.class).logger.println('No projects found!')
         } else {
