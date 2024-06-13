@@ -238,7 +238,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttRunTestFolder testCasePath: '${nonExistentFolder}' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("ecu.test folder at ${nonExistentFolder} does not extist! " +
+            jenkins.assertLogContains("ecu.test folder at ${nonExistentFolder} does not exist! " +
                     "Please ensure that the path is correctly set and it refers to the desired directory.", run)
     }
 

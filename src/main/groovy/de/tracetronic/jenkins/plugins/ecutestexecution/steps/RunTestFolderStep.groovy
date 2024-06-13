@@ -177,7 +177,7 @@ class RunTestFolderStep extends RunTestStep {
             if (IOUtils.isAbsolute(folder)) {
                 FilePath folderPath = new FilePath(context.get(Launcher.class).getChannel(), folder)
                 if (!folderPath.exists()) {
-                    throw new AbortException("ecu.test folder at ${folderPath.getRemote()} does not extist! " +
+                    throw new AbortException("ecu.test folder at ${folderPath.getRemote()} does not exist! " +
                         "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
                 return folderPath.getRemote()
