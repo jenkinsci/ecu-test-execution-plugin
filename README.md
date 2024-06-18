@@ -109,7 +109,7 @@ When encountering problems or error messages, please check the installed plugin 
 If the problem still exists search the following list of issues for possible solutions, otherwise you are asked to create an [issue](#contribution).
 
 <details>
-    <summary>When executing ttRunTestFolders, an error "IllegalArgumentException" with the messages that the path does not exist occurs.</summary>
+    <summary>When executing ttRunTestFolders, an error with the messages that the path does not exist occurs.</summary>
 
 > This is an issue related to the path resolution. In order to resolve paths correctly, ecu.test needs to be run either
 > on the server, or on a machine together with the step-executing Jenkins agent. This means in particular, that, when

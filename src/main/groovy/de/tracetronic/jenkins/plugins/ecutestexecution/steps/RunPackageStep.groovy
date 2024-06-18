@@ -13,6 +13,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.TestResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -87,22 +88,28 @@ class RunPackageStep extends RunTestStep {
 
         @Override
         protected TestResult run() throws Exception {
-            EnvVars envVars = context.get(EnvVars.class)
-            String expTestCasePath = envVars.expand(step.testCasePath)
-            TestConfig expTestConfig = step.testConfig.expand(envVars)
-            PackageConfig expPackageConfig = step.packageConfig.expand(envVars)
-            AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
+            try {
+                EnvVars envVars = context.get(EnvVars.class)
+                String expTestCasePath = envVars.expand(step.testCasePath)
+                TestConfig expTestConfig = step.testConfig.expand(envVars)
+                PackageConfig expPackageConfig = step.packageConfig.expand(envVars)
+                AnalysisConfig expAnalysisConfig = step.analysisConfig.expand(envVars)
 
-            checkPackagePath(expTestCasePath)
 
-            TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
-                    step.executionConfig, context, expPackageConfig, expAnalysisConfig)
-            TestResult result = testPackage.runTest()
+                checkPackagePath(expTestCasePath)
 
-            addBuildAction(context.get(Run.class), expTestCasePath, expTestConfig, expPackageConfig, expAnalysisConfig,
-                    result)
+                TestPackageBuilder testPackage = new TestPackageBuilder(expTestCasePath, expTestConfig,
+                        step.executionConfig, context, expPackageConfig, expAnalysisConfig)
+                TestResult result = testPackage.runTest()
 
-            return result
+                addBuildAction(context.get(Run.class), expTestCasePath, expTestConfig, expPackageConfig, expAnalysisConfig,
+                        result)
+
+                return result
+
+            } catch (Exception e) {
+                throw new AbortException(e.getMessage())
+            }
         }
 
         private void checkPackagePath(String packageFile)
@@ -110,7 +117,8 @@ class RunPackageStep extends RunTestStep {
             if (IOUtils.isAbsolute(packageFile)) {
                 FilePath packagePath = new FilePath(context.get(Launcher.class).getChannel(), packageFile)
                 if (!packagePath.exists()) {
-                    throw new IllegalArgumentException("ecu.test package at ${packagePath.getRemote()} does not exist!")
+                    throw new AbortException("ecu.test package at ${packagePath.getRemote()} does not exist! " +
+                        "Please ensure that the path is correctly set and it refers to the desired directory.")
                 }
             }
         }

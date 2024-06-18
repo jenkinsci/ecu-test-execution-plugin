@@ -110,7 +110,9 @@ class StopToolStepIT extends IntegrationTestBase {
             ProcessUtil.killProcess(_, _) >> false
         then:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Timeout of 30 seconds exceeded for stopping ${toolName}!", run)
+            jenkins.assertLogContains("Timeout of 30 seconds exceeded for stopping ${toolName}! " +
+                    "Please ensure that the tool is not already stopped or "  +
+                    "blocked by another process.", run)
         where:
             toolName = 'ecu.test'
     }
@@ -139,6 +141,8 @@ class StopToolStepIT extends IntegrationTestBase {
             ProcessUtil.killTTProcesses(_) >> false
         then:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains('Timeout of 30 seconds exceeded for stopping tracetronic tools!', run)
+            jenkins.assertLogContains("Timeout of 30 seconds exceeded for stopping tracetronic tools! " +
+                    "Please ensure that tracetronic tools are not already stopped or "  +
+                    "blocked by another process.", run)
     }
 }

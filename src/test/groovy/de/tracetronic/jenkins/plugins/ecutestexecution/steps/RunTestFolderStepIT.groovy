@@ -230,6 +230,30 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing project '${testProject.getAbsolutePath()}'", run)
     }
 
+    def 'Run pipeline: ecu.test folder at path does not exist'() {
+        given:
+            File tempDir = File.createTempDir()
+            String nonExistentFolder = tempDir.getPath().replace('\\', '/') + "/foo"
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunTestFolder testCasePath: '${nonExistentFolder}' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("ecu.test folder at ${nonExistentFolder} does not exist! " +
+                    "Please ensure that the path is correctly set and it refers to the desired directory.", run)
+    }
+
+    def 'Run pipeline: unsupported relative paths'() {
+        given:
+            String relativeFolder = "relative/path/to/folder"
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunTestFolder testCasePath: '${relativeFolder}' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Unsupported relative paths for ecu.test folder '${relativeFolder}'! " +
+                    "Please ensure that the path is correctly set and it refers to the desired directory. " +
+                    "Consider using an absolute path instead.", run)
+    }
+
     void setupTestFolder() {
         testProject = folder.newFile("test.prj")
         testPackage = folder.newFile("test.pkg")

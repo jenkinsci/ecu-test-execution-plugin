@@ -234,4 +234,17 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains("Execution has exceeded the configured timeout of 2 seconds", run)
     }
+
+    def 'Run pipeline: package path does not exist'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String tempDirString = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: '${tempDirString}/foo/test.pkg' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("ecu.test package at ${tempDirString}/foo/test.pkg does not exist!" +
+                    " Please ensure that the path is correctly set and it refers to the desired directory.", run)
+    }
 }

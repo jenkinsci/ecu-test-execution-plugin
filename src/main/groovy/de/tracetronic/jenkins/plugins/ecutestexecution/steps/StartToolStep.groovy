@@ -13,7 +13,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
-
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -148,7 +148,8 @@ class StartToolStep extends Step {
                                 step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
             } catch (Exception e) {
                 context.get(Run.class).setResult(Result.FAILURE)
-                throw(e) // there is no friendly option to stop the step execution without an exception
+                // there is no friendly option to stop the step execution without an exception
+                throw new AbortException(e.getMessage())
             }
         }
 
@@ -156,8 +157,9 @@ class StartToolStep extends Step {
                 throws IOException, InterruptedException, IllegalArgumentException {
             FilePath workspacePath = new FilePath(context.get(Launcher.class).getChannel(), workspaceDir)
             if (!workspacePath.exists()) {
-                throw new IllegalArgumentException(
-                        "ecu.test workspace directory at ${workspacePath.getRemote()} does not exist!")
+                throw new AbortException(
+                        "ecu.test workspace directory at ${workspacePath.getRemote()} does not exist! " +
+                        "Please ensure that the path is correctly set and it refers to the desired directory.")
             }
 
             FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
@@ -197,26 +199,33 @@ class StartToolStep extends Step {
 
         @Override
         Void call() throws TimeoutException {
-            String toolName = installation.getName()
-            if (keepInstance) {
-                listener.logger.println("Re-using running instance ${toolName}...")
-                connectTool(toolName)
-            } else {
-                if (stopUndefinedTools) {
-                    listener.logger.println("Stop tracetronic tool instances.")
-                    if (ProcessUtil.killTTProcesses(timeout)) {
-                        listener.logger.println("Stopped tracetronic tools successfully.")
-                    } else {
-                        throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools!")
+            try {
+                String toolName = installation.getName()
+                if (keepInstance) {
+                    listener.logger.println("Re-using running instance ${toolName}...")
+                    connectTool(toolName)
+                } else {
+                    if (stopUndefinedTools) {
+                        listener.logger.println("Stop tracetronic tool instances.")
+                        if (ProcessUtil.killTTProcesses(timeout)) {
+                            listener.logger.println("Stopped tracetronic tools successfully.")
+                        } else {
+                            throw new AbortException(
+                                    "Timeout of ${this.timeout} seconds exceeded for stopping tracetronic tools! " +
+                                            "Please ensure that tracetronic tools are not already stopped or " +
+                                            "blocked by another process.")
+                        }
                     }
+                    listener.logger.println("Starting ${toolName}...")
+                    checkLicense(toolName)
+                    startTool(toolName)
+                    connectTool(toolName)
+                    listener.logger.println("${toolName} started successfully.")
                 }
-                listener.logger.println("Starting ${toolName}...")
-                checkLicense(toolName)
-                startTool(toolName)
-                connectTool(toolName)
-                listener.logger.println("${toolName} started successfully.")
+                return null
+            } catch (Exception e) {
+                throw new AbortException(e.getMessage())
             }
-            return null
         }
 
         /**
@@ -249,12 +258,14 @@ class StartToolStep extends Step {
                     exitCode = future.get(timeout, TimeUnit.SECONDS)
                 }
                 if (exitCode != 0) {
-                    throw new IllegalStateException("No valid license found for ${toolName}!")
+                    throw new AbortException("No valid license found for ${toolName}! " +
+                            "Please ensure the license is not expired or corrupted.")
                 }
             } catch (TimeoutException ignored) {
                 process.destroy()
-                throw new TimeoutException(
-                        "Timeout of ${this.timeout} seconds exceeded for checking license of ${toolName}!")
+                throw new AbortException(
+                        "Timeout of ${this.timeout} seconds exceeded for checking license of ${toolName}! " +
+                        "Please ensure the license server is active and responsive.")
             }
         }
 
@@ -284,7 +295,9 @@ class StartToolStep extends Step {
             }
 
             if (!isStarted) {
-                throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for starting ${toolName}!")
+                throw new AbortException(
+                        "Timeout of ${this.timeout} seconds exceeded for starting ${toolName}! " +
+                        "Please ensure that the tool is correctly configured and accessible.")
             }
         }
 
@@ -296,7 +309,9 @@ class StartToolStep extends Step {
             try {
                  RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'), timeout)
             } catch (ApiException e) {
-                throw new TimeoutException("Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}!")
+                throw new AbortException(
+                        "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
+                        "Please ensure the tool is correctly started and consider restarting it.")
             }
         }
     }
