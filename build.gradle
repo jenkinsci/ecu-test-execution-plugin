@@ -46,34 +46,18 @@ repositories {
     mavenCentral()
 }
 
-/* org.jenkins-ci.main:jenkins-core:2.414.3 use com.google.guava:guava:32.1.1-jre
- * which has dependency issues https://github.com/google/guava/issues/6657
- */
-configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
-            details.useVersion '33.2.0-jre'
-        }
-    }
-}
-
-
-// remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
 dependencies {
     implementation 'org.jenkins-ci.plugins:credentials:1337.v60b_d7b_c7b_c9f'
-    implementation 'org.jenkins-ci.plugins:script-security:1336.vf33a_a_9863911'
+    implementation 'org.jenkins-ci.plugins:script-security:1341.va_2819b_414686'
     implementation 'org.jenkins-ci.plugins:structs:337.v1b_04ea_4df7c8'
-    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:657.v03b_e8115821b_'
-
-    // codenarc
-    codenarc('org.codenarc:CodeNarc:3.4.0')
-    codenarc('org.codehaus.groovy:groovy-all:3.0.19')
+    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:639.v6eca_cd8c04a_a_'
+    implementation 'com.google.guava:guava:33.2.0-jre'
 
     // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
     api 'com.google.code.gson:gson:2.9.1'
     api 'io.gsonfire:gson-fire:1.8.5'
-    api 'com.squareup.okhttp3:okhttp:4.10.0'
+    api 'com.squareup.okhttp3:okhttp:4.11.0'
     api 'com.squareup.okhttp3:logging-interceptor:4.10.0'
     api 'org.apache.commons:commons-lang3:3.12.0'
     api 'javax.annotation:javax.annotation-api:1.3.2'
@@ -81,34 +65,70 @@ dependencies {
     api 'org.slf4j:slf4j-api:2.0.0'
 
     // test
-    testImplementation 'io.swagger:swagger-parser:1.0.61'
+    testImplementation 'io.swagger:swagger-parser:1.0.71'
     testImplementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
-    testImplementation('org.cyclonedx:cyclonedx-gradle-plugin:1.4.0') {
-        exclude group: 'com.google.inject', module: 'guice' // uses old 4.0.0 version, jenkins core uses min 6.0.0
-    }
-    testImplementation('com.google.inject:guice') {
+    //testImplementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.7.2'
+    testImplementation('com.google.inject:guice') /*{
         version {
             strictly '6.0.0'
         }
+    }*/
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-basic-steps:1042.ve7b_140c4a_e0c') {
+        exclude group: 'org.jenkins-ci.modules', module: 'instance-identity'
     }
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:994.vd57e3ca_46d24'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3894.3896.vca_2c931e7935'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3894.3896.vca_2c931e7935:tests'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1223.v7f1a_98a_8863e'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3903.v48a_8836749e9'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3903.v48a_8836749e9:tests'
+    //testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1331.vc8c2fed35334'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1385.vb_58b_86ea_fff1'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:657.v03b_e8115821b_:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:639.v6eca_cd8c04a_a_:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-support:907.v6713a_ed8a_573:tests'
+    testImplementation 'org.jenkins-ci.plugins:credentials-binding:677.vdc9d38cb_254d'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation 'org.jenkins-ci.main:jenkins-test-harness:2174.v111a_b_471784f'
     testImplementation('org.testcontainers:spock:1.19.8') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
-
-    // testImplementation 'cglib:cglib-nodep:3.3.0'
-    // testImplementation 'org.objenesis:objenesis:3.3'
-    testImplementation 'org.codehaus.groovy:groovy-all:3.0.19'
+    testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
+    testImplementation('org.spockframework:spock-junit4:2.3-groovy-3.0') {
+        exclude group: 'org.spockframework', module: 'spock-core'
+    }
+    testImplementation 'cglib:cglib-nodep:3.3.0'
+    testImplementation 'org.objenesis:objenesis:3.3'
 }
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+            /* org.jenkins-ci.main:jenkins-core:2.426.3 use com.google.guava:guava:32.1.1-jre
+             * which has dependency issues https://github.com/google/guava/issues/6657
+             */
+            details.useVersion '33.2.0-jre'
+        }
+    }
+}
+
+/*configurations.testImplementation {
+    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+}*/
+
+/*configurations.testCompileClasspath {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.codehaus.groovy' && details.requested.name == 'groovy-all') {
+            // need Groovy 3 for Spock
+            details.useVersion '2.5.18'
+        }
+    }
+}
+
+configurations.testRuntimeClasspath {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.codehaus.groovy' && details.requested.name == 'groovy-all') {
+            // need Groovy 3 for Spock
+            details.useVersion '2.5.18'
+        }
+    }
+}*/
+
 
 // remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
 configurations.testRuntimeOnly {
@@ -341,7 +361,7 @@ tasks.register('openApiGenerateV2', GenerateTask) {
     generateApiTests = false
     configOptions = [
             licenseName: "MIT License",
-            licenseUrl : "https://spdx.org/licenses/MIT.html",
+            licenseUrl: "https://spdx.org/licenses/MIT.html",
             dateLibrary: "java${project.properties['javaVersion']}"
     ]
 }
