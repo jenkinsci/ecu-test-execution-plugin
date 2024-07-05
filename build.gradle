@@ -47,10 +47,14 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jenkins-ci.plugins:credentials:1337.v60b_d7b_c7b_c9f'
-    implementation 'org.jenkins-ci.plugins:script-security:1341.va_2819b_414686'
-    implementation 'org.jenkins-ci.plugins:structs:337.v1b_04ea_4df7c8'
-    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:639.v6eca_cd8c04a_a_'
+    // provides to correct versions of typical needed plugins
+    implementation platform('io.jenkins.tools.bom:bom-2.426.x:3041.ve87ce2cdf223')
+
+    implementation 'org.jenkins-ci.plugins:credentials'
+    implementation 'org.jenkins-ci.plugins:script-security'
+    implementation 'org.jenkins-ci.plugins:structs'
+    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+
     implementation 'com.google.guava:guava:33.2.0-jre'
 
     // ecu.test-java-rest-client
@@ -66,32 +70,24 @@ dependencies {
 
     // test
     testImplementation 'io.swagger:swagger-parser:1.0.71'
-    testImplementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
-    //testImplementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.7.2'
-    testImplementation('com.google.inject:guice') /*{
-        version {
-            strictly '6.0.0'
-        }
-    }*/
-    testImplementation('org.jenkins-ci.plugins.workflow:workflow-basic-steps:1042.ve7b_140c4a_e0c') {
+
+    // sandbox 1.34 seems to be incompatible with jenkins 2.426.3
+    testImplementation('org.kohsuke:groovy-sandbox') { version { strictly '1.33'}}
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-basic-steps') {//:1042.ve7b_140c4a_e0c') {
         exclude group: 'org.jenkins-ci.modules', module: 'instance-identity'
     }
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3903.v48a_8836749e9'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:3903.v48a_8836749e9:tests'
-    //testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1331.vc8c2fed35334'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1385.vb_58b_86ea_fff1'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:639.v6eca_cd8c04a_a_:tests'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-support:907.v6713a_ed8a_573:tests'
-    testImplementation 'org.jenkins-ci.plugins:credentials-binding:677.vdc9d38cb_254d'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps'
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-cps') {artifact{ classifier = 'tests'}}
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job'
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-step-api') {artifact{ classifier = 'tests'}}
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-support') {artifact{ classifier = 'tests'}}
+    testImplementation 'org.jenkins-ci.plugins:credentials-binding'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
     testImplementation('org.testcontainers:spock:1.19.8') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
-    testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testImplementation('org.spockframework:spock-junit4:2.3-groovy-3.0') {
-        exclude group: 'org.spockframework', module: 'spock-core'
-    }
+    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'cglib:cglib-nodep:3.3.0'
     testImplementation 'org.objenesis:objenesis:3.3'
 }
@@ -107,28 +103,10 @@ configurations.configureEach {
     }
 }
 
-/*configurations.testImplementation {
-    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
-}*/
-
-/*configurations.testCompileClasspath {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'org.codehaus.groovy' && details.requested.name == 'groovy-all') {
-            // need Groovy 3 for Spock
-            details.useVersion '2.5.18'
-        }
-    }
+// jenkins-bom is added by the jpi plugin since version 0.46, but creates issues with the spockframework
+configurations.testImplementation {
+    exclude group: 'org.jenkins-ci.main', module: 'jenkins-bom'
 }
-
-configurations.testRuntimeClasspath {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'org.codehaus.groovy' && details.requested.name == 'groovy-all') {
-            // need Groovy 3 for Spock
-            details.useVersion '2.5.18'
-        }
-    }
-}*/
-
 
 // remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
 configurations.testRuntimeOnly {
@@ -145,7 +123,7 @@ publishing {
             from components.java
 
             pom {
-                packaging = "$jenkinsPlugin.fileExtension"
+                packaging = "$jenkinsPlugin.extension"
                 name = "$jenkinsPlugin.displayName"
                 description = "$project.description"
                 url = 'https://plugins.jenkins.io/ecu-test-execution/'
@@ -340,7 +318,7 @@ tasks.register('openApiGenerateV1', GenerateTask) {
     generateApiTests = false
     configOptions = [
             licenseName: "MIT License",
-            licenseUrl : "https://spdx.org/licenses/MIT.html",
+            licenseUrl: "https://spdx.org/licenses/MIT.html",
             dateLibrary: "java${project.properties['javaVersion']}"
     ]
 }
