@@ -239,4 +239,8 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         return reports*.testReportId
     }
 
+    File downloadReportFolder(String reportID) {
+        ReportApi apiInstance = new ReportApi(apiClient)
+        return apiInstance.reportDownload(reportID)
+    }
 }

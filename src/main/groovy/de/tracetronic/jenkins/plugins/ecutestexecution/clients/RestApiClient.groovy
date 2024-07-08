@@ -78,4 +78,6 @@ interface RestApiClient {
      * @return List of strings with report IDs
      */
     abstract List<String> getAllReportIds()
+
+    abstract File downloadReportFolder(String reportID)
 }

@@ -215,4 +215,8 @@ class RestApiClientV1 implements RestApiClient {
         List<de.tracetronic.cxs.generated.et.client.model.v1.ReportInfo> reports = apiInstance.getAllReports()
         return reports*.testReportId
     }
+
+    File downloadReportFolder(String reportID) {
+        throw new Exception("Not supported by V1")
+    }
 }

@@ -1,0 +1,19 @@
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+    <l:layout title="${it.displayName}">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
+        </l:side-panel>
+        <l:main-panel>
+            <h1>${it.displayName}</h1>
+            <ul>
+                <j:forEach var="log" items="${it.reportLogs}">
+                    <li>
+                        <td>
+                            <a href="${rootURL}/${it.run.url}artifact/${log.relativePath}">${log.fileName}</a>
+                        </td>
+                    </li>
+                </j:forEach>
+            </ul>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
