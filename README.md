@@ -123,7 +123,7 @@ If the problem still exists search the following list of issues for possible sol
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
-    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> 2022.4 or higher </summary>
+    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
 
 | Version |    latest - 3.1    |        3.0         |
 |:-------:|:------------------:|:------------------:|
@@ -138,7 +138,7 @@ If the problem still exists search the following list of issues for possible sol
 
 </details>
 <details>
-    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> 1.114.3 or higher</summary>
+    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.114.3)</summary>
 
 | Version |    latest - 3.0    |
 |:-------:|:------------------:|
