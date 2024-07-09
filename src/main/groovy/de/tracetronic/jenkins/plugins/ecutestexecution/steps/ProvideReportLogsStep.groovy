@@ -130,9 +130,9 @@ class ProvideReportLogsStep extends Step {
 
         @Override
         List<String> call() throws IOException {
+            listener.logger.println("Providing ecu.test report logs to jenkins.")
             List<String> logs = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            listener.logger.println("ProvideReportLogsStep ...")
             reportIds = apiClient.getAllReportIds()
 
             if (reportIds == null || reportIds.isEmpty()) {
