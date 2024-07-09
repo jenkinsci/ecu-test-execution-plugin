@@ -21,6 +21,7 @@ import hudson.model.Executor
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.ListBoxModel
+import io.jenkins.cli.shaded.org.apache.commons.io.FileUtils
 import jenkins.model.StandardArtifactManager
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
@@ -66,9 +67,14 @@ class ProvideReportLogsStep extends Step {
         protected GenerationResult run() throws Exception {
             def logDirName = "reportLogs"
             Run<?, ?> run = context.get(Run.class)
+            FilePath workspace = context.get(FilePath.class)
             Launcher launcher = context.get(Launcher.class)
             EnvVars envVars = context.get(EnvVars.class)
             TaskListener listener = context.get(TaskListener.class)
+
+            if (workspace.child(logDirName).list().size() > 0) {
+                listener.logger.println("[WARNING] workspace report folder includes old files")
+            }
 
             long startTimeMillis = run.getTimeInMillis()
             def logDirPath = PathUtil.makeAbsoluteInPipelineHome("${logDirName}", context)
@@ -85,18 +91,18 @@ class ProvideReportLogsStep extends Step {
 
             // Archive logs and add to view
             if (logFiles) {
-                FilePath workspace = context.get(FilePath.class)
+                // Clear Folder
                 FilePath[] reportLogs = workspace.list("${logDirName}/*.log")
-                def artifactManager = new StandardArtifactManager(run)
-
                 def artifactsMap = new HashMap<String, String>()
                 reportLogs.each { log ->
                     def relativePath = log.getRemote().substring(workspace.getRemote().length() + 1)
                     artifactsMap.put(relativePath, relativePath)
                 }
-
-                artifactManager.archive(workspace, launcher, listener, artifactsMap)
+                listener.logger.println("Adding report logs to artifacts")
+                run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
                 run.addAction(new ProvideReportLogsAction(run))
+                listener.logger.println("Cleaning report folder in workspace")
+                workspace.child(logDirName).deleteContents()
                 listener.logger.flush()
                 return null
             }
@@ -130,21 +136,16 @@ class ProvideReportLogsStep extends Step {
             reportIds = apiClient.getAllReportIds()
 
             if (reportIds == null || reportIds.isEmpty()) {
-                listener.logger.println("[WARNING] No report log files found")
+                listener.logger.println("[WARNING] No report files returned by ecu.test")
             }
             reportIds.each { reportId ->
                 listener.logger.println("Downloading reportFolder for ${reportId}")
                 File reportFolderZip = apiClient.downloadReportFolder(reportId)
-
-
                 def fileNameToExtract = "test/ecu.test_out.log"
                 ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
                 ZipEntry entry
 
                 while ((entry = zipInputStream.nextEntry) != null) {
-                    //TODO check old files  with startTimeMillis
-                    //Problem:entry.getCreationTime is null
-                    //listener.logger.println("[WARNING] Old files")
                     if (entry.name == fileNameToExtract) {
                         def outputFile = new File("${logDirPath}/${reportId}.log")
                         outputFile.parentFile.mkdirs()
