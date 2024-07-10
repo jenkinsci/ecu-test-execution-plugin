@@ -302,4 +302,50 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect successful test and upload completion"
             jenkins.assertLogContains("-> FINISHED", run)
     }
+
+    def "Execute test case with api constant"() {
+        given: "a test execution pipeline with usage of constants"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test_api_constant.pkg', 
+                        testConfig: [tbcPath: 'test.tbc', 
+                                     tcfPath: 'test.tcf', 
+                                     constants: [[label: 'API_CONSTANT', value: 'some-value']]]
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+    }
+
+    def "Execute test case with tcf constant"() {
+        given: "a test execution pipeline with usage of constants"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test_tcf_constant.pkg', 
+                        testConfig: [tbcPath: 'test.tbc', 
+                                     tcfPath: 'test.tcf', 
+                                     constants: [[label: 'API_CONSTANT', value: 'some-value']]]
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+    }
 }
