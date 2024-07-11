@@ -217,6 +217,6 @@ class RestApiClientV1 implements RestApiClient {
     }
 
     File downloadReportFolder(String reportID) {
-        throw new Exception("Not supported by V1")
+        throw new Exception("Downloading report folders is not supported by api v1")
     }
 }

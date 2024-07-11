@@ -52,7 +52,7 @@ class ProvideReportLogsStep extends Step {
         return reportIds.findAll { id -> StringUtils.isNotBlank(id) }
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<GenerationResult> {
+    static class Execution extends SynchronousNonBlockingStepExecution<Void> {
 
         private static final long serialVersionUID = 1L
 
@@ -62,9 +62,14 @@ class ProvideReportLogsStep extends Step {
             super(context)
             this.step = step
         }
-
+        /**
+         * Call the execution of the step in the build and archive returned report logs in jenkins.
+         * Logs a warning if old files are present in report file folder of the workspace.
+         * Clean up report log folder after run.
+         * @return Void
+         */
         @Override
-        protected GenerationResult run() throws Exception {
+        protected Void run() throws Exception {
             def logDirName = "reportLogs"
             Run<?, ?> run = context.get(Run.class)
             FilePath workspace = context.get(FilePath.class)
@@ -89,9 +94,7 @@ class ProvideReportLogsStep extends Step {
                 throw e
             }
 
-            // Archive logs and add to view
-            if (logFiles) {
-                // Clear Folder
+            if (workspace.child(logDirName).list().size() > 0 && logFiles) {
                 FilePath[] reportLogs = workspace.list("${logDirName}/*.log")
                 def artifactsMap = new HashMap<String, String>()
                 reportLogs.each { log ->
@@ -101,11 +104,11 @@ class ProvideReportLogsStep extends Step {
                 listener.logger.println("Adding report logs to artifacts")
                 run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
                 run.addAction(new ProvideReportLogsAction(run))
-                listener.logger.println("Cleaning report folder in workspace")
-                workspace.child(logDirName).deleteContents()
-                listener.logger.flush()
-                return null
+
             }
+            listener.logger.println("Cleaning report folder in workspace")
+            workspace.child(logDirName).deleteContents()
+            listener.logger.flush()
         }
     }
 
@@ -127,7 +130,12 @@ class ProvideReportLogsStep extends Step {
             this.logDirPath = logDirPath
             this.listener = listener
         }
-
+        /**
+         * Calls downloadReportFolder via the RestApiClient for all report ids.
+         * Then extracts and saves the ecu.test log out of the returned zip folder.
+         * Logs a warning if no reportIds were returned by ecu.test.
+         * @return List of strings containing the paths of the logs.
+         */
         @Override
         List<String> call() throws IOException {
             listener.logger.println("Providing ecu.test report logs to jenkins.")
@@ -189,7 +197,7 @@ class ProvideReportLogsStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Provide ecu.test report logs'
+            '[TT] Provide ecu.test report logs in jenkins.'
         }
 
         @Override
