@@ -48,9 +48,15 @@ class MockRestApiClient implements RestApiClient {
     }
 
     @Override
+    List<ReportInfo> getAllReports(){
+        return null
+    }
+
+    @Override
     List<String> getAllReportIds() {
         return null
     }
+
     @Override
     File downloadReportFolder(String reportID){
         return null

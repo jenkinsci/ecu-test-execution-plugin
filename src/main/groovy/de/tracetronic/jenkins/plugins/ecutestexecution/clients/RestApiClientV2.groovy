@@ -230,15 +230,27 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     }
 
     /**
+     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * of all available test reports in the ecu.test instance.
+     * @return List of ReportInfo with report IDs
+     */
+    List<ReportInfo> getAllReports() {
+        ReportApi apiInstance = new ReportApi(apiClient)
+        return apiInstance.getAllReports()
+    }
+
+    /**
      * Get the IDs of all available test reports in the ecu.test instance.
      * @return List of strings with report IDs
      */
     List<String> getAllReportIds() {
-        ReportApi apiInstance = new ReportApi(apiClient)
-        List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reports = apiInstance.getAllReports()
-        return reports*.testReportId
+        return getAllReports()*.testReportId
     }
 
+    /**
+     * Download the report folder of the given reportId from ecu.test
+     * @return File
+     */
     File downloadReportFolder(String reportID) {
         ReportApi apiInstance = new ReportApi(apiClient)
         return apiInstance.reportDownload(reportID)

@@ -207,16 +207,29 @@ class RestApiClientV1 implements RestApiClient {
     }
 
     /**
+     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * of all available test reports in the ecu.test instance.
+     * @return List of ReportInfo with report IDs
+     */
+    List<ReportInfo> getAllReports() {
+        de.tracetronic.cxs.generated.et.client.api.v2.ReportApi apiInstance = new de.tracetronic.cxs.generated.et.client.api.v2.ReportApi(apiClient)
+        return apiInstance.getAllReports()
+    }
+
+    /**
      * Get the IDs of all available test reports in the ecu.test instance.
      * @return List of strings with report IDs
      */
     List<String> getAllReportIds() {
-        ReportApi apiInstance = new ReportApi(apiClient)
-        List<de.tracetronic.cxs.generated.et.client.model.v1.ReportInfo> reports = apiInstance.getAllReports()
-        return reports*.testReportId
+        return getAllReports()*.testReportId
     }
 
+    /**
+     * Download the report folder of the given reportId from ecu.test
+     * Only available in api v2
+     * @return File
+     */
     File downloadReportFolder(String reportID) {
-        throw new Exception("Downloading report folders is not supported by api v1")
+        throw new de.tracetronic.cxs.generated.et.client.v1.ApiException("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.")
     }
 }
