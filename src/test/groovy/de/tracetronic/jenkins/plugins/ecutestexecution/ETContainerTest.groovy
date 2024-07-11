@@ -351,13 +351,12 @@ abstract class ETContainerTest extends ContainerTest {
     def "Perform provide report logs step with no reports"() {
             given: "a test execution pipeline"
                 String script = """
-                                node {
-                                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                        ttRunPackage testCasePath: 'test.pkg'
-                                        ttProvideReportLogs()
-                                    }
-                                }
-                                """.stripIndent()
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttProvideReportLogs()
+                    }
+                }
+                """.stripIndent()
                 WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
                 job.setDefinition(new CpsFlowDefinition(script, true))
             when: "scheduling a new build"
@@ -368,22 +367,23 @@ abstract class ETContainerTest extends ContainerTest {
                 jenkins.assertLogContains("[WARNING] No report files returned by ecu.test", run)
         }
 
-        def "Perform provide report logs step with reports"() {
-            given: "a test execution pipeline"
-                String script = """
-                                node {
-                                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                        ttProvideReportLogs()
-                                    }
-                                }
-                                """.stripIndent()
-                WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-                job.setDefinition(new CpsFlowDefinition(script, true))
-            when: "scheduling a new build"
-                WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+    def "Perform provide report logs step with reports"() {
+        given: "a test execution pipeline"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test.pkg'
+                    ttProvideReportLogs()
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
-            then: "expect successful test completion"
-                jenkins.assertLogContains("Providing ecu.test report logs to jenkins.", run)
-                jenkins.assertLogContains("Adding report logs to artifacts", run)
-        }
+        then: "expect successful test completion"
+            jenkins.assertLogContains("Providing ecu.test report logs to jenkins.", run)
+            jenkins.assertLogContains("Adding report logs to artifacts", run)
+    }
 }
