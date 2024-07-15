@@ -39,7 +39,7 @@ class ETV1ContainerTest extends ETContainerTest {
                 .waitingFor(Wait.forHttp("/api/v1/live"))
     }
 
-    def "Perform provide report logs step with reports"() {
+    def "Perform provide logs step with reports"() {
         given: "a test execution pipeline"
             String script = """
             node {
@@ -55,7 +55,7 @@ class ETV1ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("Providing ecu.test report logs to jenkins.", run)
-            jenkins.assertLogContains("Adding report logs to artifacts", run)
+            jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
+            jenkins.assertLogContains("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.", run)
     }
 }

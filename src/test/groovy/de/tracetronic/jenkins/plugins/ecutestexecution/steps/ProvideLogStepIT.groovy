@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
-class ProvideReportLogStepIT extends IntegrationTestBase {
+class ProvideLogStepIT extends IntegrationTestBase {
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
@@ -21,9 +21,9 @@ class ProvideReportLogStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
-            ProvideReportLogsStep before = new ProvideReportLogsStep()
+            ProvideLogsStep before = new ProvideLogsStep()
         when:
-            ProvideReportLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+            ProvideLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -31,7 +31,7 @@ class ProvideReportLogStepIT extends IntegrationTestBase {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            ProvideReportLogsStep step = new ProvideReportLogsStep()
+            ProvideLogsStep step = new ProvideLogsStep()
         then:
             st.assertRoundTrip(step, "ttProvideReportLogs()")
     }
@@ -39,9 +39,9 @@ class ProvideReportLogStepIT extends IntegrationTestBase {
     def 'Run pipeline'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttProvideReportLogs()}", true))
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test report logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
     }
 }

@@ -4,10 +4,10 @@ import hudson.FilePath
 import hudson.model.Run
 import jenkins.model.RunAction2
 
-class ProvideReportLogsAction implements RunAction2 {
+class ProvideLogsAction implements RunAction2 {
     private transient Run<?, ?> run
 
-    ProvideReportLogsAction(Run<?, ?> run) {
+    ProvideLogsAction(Run<?, ?> run) {
         this.run = run
     }
 
@@ -41,7 +41,7 @@ class ProvideReportLogsAction implements RunAction2 {
         return run
     }
 
-    List<Run.Artifact> getReportLogs() {
+    List<Run.Artifact> getLogs() {
         return run?.artifacts ?: []
     }
 }

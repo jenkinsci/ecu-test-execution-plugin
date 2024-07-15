@@ -6,7 +6,7 @@
         <l:main-panel>
             <h1>${it.displayName}</h1>
             <ul>
-                <j:forEach var="log" items="${it.reportLogs}">
+                <j:forEach var="log" items="${it.logs}">
                     <li>
                         <td>
                             <a href="${rootURL}/${it.run.url}artifact/${log.relativePath}">${log.fileName}</a>

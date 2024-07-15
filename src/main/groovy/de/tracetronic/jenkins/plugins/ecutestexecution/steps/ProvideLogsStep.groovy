@@ -9,7 +9,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.actions.ProvideReportLogsAction
+import de.tracetronic.jenkins.plugins.ecutestexecution.actions.ProvideLogsAction
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
@@ -21,9 +21,7 @@ import hudson.Launcher
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.ListBoxModel
-import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
-import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
@@ -31,14 +29,13 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 
-import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-class ProvideReportLogsStep extends Step {
+class ProvideLogsStep extends Step {
 
     @DataBoundConstructor
-    ProvideReportLogsStep() {
+    ProvideLogsStep() {
         super()
     }
 
@@ -47,17 +44,13 @@ class ProvideReportLogsStep extends Step {
         return new Execution(this, context)
     }
 
-    private static List<String> removeEmptyReportIds(List<String> reportIds) {
-        return reportIds.findAll { id -> StringUtils.isNotBlank(id) }
-    }
-
     static class Execution extends SynchronousNonBlockingStepExecution<Void> {
 
         private static final long serialVersionUID = 1L
 
-        private final transient ProvideReportLogsStep step
+        private final transient ProvideLogsStep step
 
-        Execution(ProvideReportLogsStep step, StepContext context) {
+        Execution(ProvideLogsStep step, StepContext context) {
             super(context)
             this.step = step
         }
@@ -83,17 +76,16 @@ class ProvideReportLogsStep extends Step {
             def logDirPath = PathUtil.makeAbsoluteInPipelineHome("${logDirName}", context)
 
             // Download report logs to workspace
-            List<String> logFiles = []
             try {
-                logFiles = launcher.getChannel().call(
+                launcher.getChannel().call(
                         new ExecutionCallable(startTimeMillis, envVars, logDirPath, listener)
                 )
             } catch (Exception e) {
                 throw e
             }
 
-            if (workspace.child(logDirName).list().size() > 0 && logFiles) {
-                FilePath[] reportLogs = workspace.list("${logDirName}/*.log")
+            if (workspace.child(logDirName).list().size() > 0) {
+                FilePath[] reportLogs = workspace.list("${logDirName}/**/*.log")
                 def artifactsMap = new HashMap<String, String>()
                 reportLogs.each { log ->
                     def relativePath = log.getRemote().substring(workspace.getRemote().length() + 1)
@@ -101,7 +93,7 @@ class ProvideReportLogsStep extends Step {
                 }
                 listener.logger.println("Adding report logs to artifacts")
                 run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
-                run.addAction(new ProvideReportLogsAction(run))
+                run.addAction(new ProvideLogsAction(run))
 
             }
             listener.logger.println("Cleaning report folder in jenkins workspace")
@@ -114,7 +106,6 @@ class ProvideReportLogsStep extends Step {
 
         private static final long serialVersionUID = 1L
 
-        private List<String> reportIds
         private final long startTimeMillis
         private final EnvVars envVars
         private final String logDirPath
@@ -131,12 +122,12 @@ class ProvideReportLogsStep extends Step {
         /**
          * Calls downloadReportFolder via the RestApiClient for all report ids.
          * Then extracts and saves the ecu.test log out of the returned zip folder.
-         * Logs a warning if no reportIds were returned by ecu.test.
+         * Logs a warning if no reports were returned by ecu.test.
          * @return List of strings containing the paths of the logs.
          */
         @Override
         List<String> call() throws IOException {
-            listener.logger.println("Providing ecu.test report logs to jenkins.")
+            listener.logger.println("Providing ecu.test logs to jenkins.")
             List<String> logs = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             List<ReportInfo> reports = apiClient.getAllReports()
@@ -144,18 +135,17 @@ class ProvideReportLogsStep extends Step {
             if (reports == null || reports.isEmpty()) {
                 listener.logger.println("[WARNING] No report files returned by ecu.test")
             }
-            reports*.reportDir.each { String reportDir ->
+            for (def report : reports) {
+                String reportDir = report.reportDir.split('/').last()
                 if (!checkReportFolderCreationDate(reportDir)) {
-                    listener.logger.println("[WARNING] ecu.test report folder includes files older than this run. ${reportDir}")
+                    listener.logger.println("[WARNING] ecu.test report folder includes files older than this run. ${report.reportDir}")
                 }
-            }
 
-            reports*.testReportId.each { String reportId ->
-                listener.logger.println("Downloading reportFolder for ${reportId}")
+                listener.logger.println("Downloading reportFolder for ${report.testReportId}")
                 try {
-                    File reportFolderZip = apiClient.downloadReportFolder(reportId)
-                    File log = extractLogFileFromZip(reportFolderZip, "test/ecu.test_out.log", reportId)
-                    logs.add(log.name)
+                    File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
+                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_out.log", "${logDirPath}/${reportDir}/${reportDir}_test_out.log")
+                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_err.log", "${logDirPath}/${reportDir}/${reportDir}_test_err.log")
                 }
                 catch (ApiException e) {
                     if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
@@ -184,13 +174,12 @@ class ProvideReportLogsStep extends Step {
             }
         }
 
-        File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String newName) {
+        File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String saveToPath) {
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
             ZipEntry entry
             while ((entry = zipInputStream.nextEntry) != null) {
-                newName
                 if (entry.name == fileNameToExtract) {
-                    File outputFile = new File("${logDirPath}/${newName}.log")
+                    File outputFile = new File(saveToPath)
                     outputFile.parentFile.mkdirs()
 
                     def outputStream = new FileOutputStream(outputFile)
@@ -199,12 +188,11 @@ class ProvideReportLogsStep extends Step {
                     } finally {
                         outputStream.close()
                     }
-                    listener.logger.println("Extracted ${fileNameToExtract} to ${logDirPath}")
                     zipInputStream.close()
                     return outputFile
                 }
             }
-            throw new Exception("No ecu.test log not found in given report zip!")
+            throw new Exception("No ecu.test logs not found in given report zip!")
         }
     }
 
@@ -223,12 +211,12 @@ class ProvideReportLogsStep extends Step {
 
         @Override
         String getFunctionName() {
-            'ttProvideReportLogs'
+            'ttProvideLogs'
         }
 
         @Override
         String getDisplayName() {
-            '[TT] Provide ecu.test report logs in jenkins.'
+            '[TT] Provide ecu.test logs in jenkins.'
         }
 
         @Override
