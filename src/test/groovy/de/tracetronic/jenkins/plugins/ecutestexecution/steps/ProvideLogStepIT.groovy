@@ -33,7 +33,7 @@ class ProvideLogStepIT extends IntegrationTestBase {
         when:
             ProvideLogsStep step = new ProvideLogsStep()
         then:
-            st.assertRoundTrip(step, "ttProvideReportLogs()")
+            st.assertRoundTrip(step, "ttProvideLogs()")
     }
 
     def 'Run pipeline'() {
