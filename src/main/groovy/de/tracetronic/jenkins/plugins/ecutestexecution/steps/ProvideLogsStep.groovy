@@ -92,7 +92,7 @@ class ProvideLogsStep extends Step {
                     def relativePath = log.getRemote().substring(workspace.getRemote().length() + 1)
                     artifactsMap.put(relativePath, relativePath)
                 }
-                listener.logger.println("Adding report logs to artifacts")
+                listener.logger.println("Adding logs to artifacts")
                 run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
                 run.addAction(new ProvideLogsAction(run))
 
