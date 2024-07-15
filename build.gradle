@@ -55,7 +55,9 @@ dependencies {
     implementation 'org.jenkins-ci.plugins:structs'
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
-    implementation 'com.google.guava:guava:33.2.0-jre'
+    // codenarc
+    codenarc('org.codenarc:CodeNarc:3.4.0')
+    codenarc('org.codehaus.groovy:groovy-all:3.0.19')
 
     // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
@@ -271,8 +273,8 @@ tasks.register('containerTest', Test) {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
     }
 }
 
@@ -285,11 +287,14 @@ spotbugsMain {
     release = version
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
     }
 }
 
+codenarc {
+    toolVersion = "1.1"
+}
 codenarcMain {
     compilationClasspath = sourceSets.main.compileClasspath + sourceSets.main.output
     configFile = file('config/codenarc/rules.groovy')
