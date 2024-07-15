@@ -75,6 +75,6 @@ class ETV2ContainerTest extends ETContainerTest {
 
             then: "expect successful test completion"
                 jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-                jenkins.assertLogContains("Adding logs to artifacts", run)
+                jenkins.assertLogContains("Successfully added ecu.test logs to jenkins.", run)
         }
 }

@@ -63,28 +63,22 @@ class ProvideLogsStep extends Step {
          */
         @Override
         protected Void run() throws Exception {
-            def logDirName = "reportLogs"
+            String logDirName = "reportLogs"
+            String logDirPath = PathUtil.makeAbsoluteInPipelineHome(logDirName, context)
+
             Run<?, ?> run = context.get(Run.class)
             FilePath workspace = context.get(FilePath.class)
             Launcher launcher = context.get(Launcher.class)
-            EnvVars envVars = context.get(EnvVars.class)
             TaskListener listener = context.get(TaskListener.class)
 
-            if (workspace.child(logDirName).list().size() > 0) {
-                listener.logger.println("[WARNING] jenkins workspace report folder includes old files")
-            }
             long startTimeMillis = run.getStartTimeInMillis()
-            def logDirPath = PathUtil.makeAbsoluteInPipelineHome("${logDirName}", context)
 
-            // Download report logs to workspace
-            try {
-                launcher.getChannel().call(
-                        new ExecutionCallable(startTimeMillis, envVars, logDirPath, listener)
-                )
-            } catch (Exception e) {
-                throw e
-            }
+            // Download ecu.test logs to jenkins workspace
+            launcher.getChannel().call(
+                    new ExecutionCallable(startTimeMillis, context.get(EnvVars.class), logDirPath, listener)
+            )
 
+            // Upload ecu.test logs as jenkins artifacts
             if (workspace.child(logDirName).list().size() > 0) {
                 FilePath[] reportLogs = workspace.list("${logDirName}/**/*.log")
                 def artifactsMap = new HashMap<String, String>()
@@ -92,18 +86,16 @@ class ProvideLogsStep extends Step {
                     def relativePath = log.getRemote().substring(workspace.getRemote().length() + 1)
                     artifactsMap.put(relativePath, relativePath)
                 }
-                listener.logger.println("Adding logs to artifacts")
                 run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
                 run.addAction(new ProvideLogsAction(run))
-
+                workspace.child(logDirName).deleteContents()
+                listener.logger.println("Successfully added ecu.test logs to jenkins.")
             }
-            listener.logger.println("Cleaning report folder in jenkins workspace")
-            workspace.child(logDirName).deleteContents()
             listener.logger.flush()
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<List<String>, IOException> {
+    private static final class ExecutionCallable extends MasterToSlaveCallable<Void, IOException> {
 
         private static final long serialVersionUID = 1L
 
@@ -127,9 +119,8 @@ class ProvideLogsStep extends Step {
          * @return List of strings containing the paths of the logs.
          */
         @Override
-        List<String> call() throws IOException {
+        Void call() throws IOException {
             listener.logger.println("Providing ecu.test logs to jenkins.")
-            List<String> logs = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
             List<ReportInfo> reports = apiClient.getAllReports()
 
@@ -141,12 +132,10 @@ class ProvideLogsStep extends Step {
                 if (!checkReportFolderCreationDate(reportDir)) {
                     listener.logger.println("[WARNING] ecu.test report folder includes files older than this run. ${report.reportDir}")
                 }
-
-                listener.logger.println("Downloading reportFolder for ${report.testReportId}")
                 try {
                     File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
-                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_out.log", "${logDirPath}/${reportDir}/${reportDir}_test_out.log")
-                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_err.log", "${logDirPath}/${reportDir}/${reportDir}_test_err.log")
+                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_out.log", "${logDirPath}/${reportDir}/${reportDir}_out.log")
+                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_err.log", "${logDirPath}/${reportDir}/${reportDir}_err.log")
                 }
                 catch (ApiException e) {
                     if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
@@ -157,25 +146,30 @@ class ProvideLogsStep extends Step {
                 }
             }
             listener.logger.flush()
-            return logs
-
         }
 
+
+        /**
+         * Checks if given reportDir name, which includes the date was created after this build was started
+         * @return boolean
+         */
         boolean checkReportFolderCreationDate(String reportDir) {
-            def df = "yyyy-MM-dd_HHmmss"
+            String df = "yyyy-MM-dd_HHmmss"
             SimpleDateFormat dateFormat = new SimpleDateFormat(df)
-            def pattern = /\d{4}-\d{2}-\d{2}_\d{6}/
+            String pattern = /\d{4}-\d{2}-\d{2}_\d{6}/
             def matcher = reportDir =~ pattern
             if (matcher.find()) {
-                def matchedText = matcher.group(0)
-                Date dateTime1 = dateFormat.parse(matchedText)
-                Date dateTime2 = new Date(startTimeMillis)
-                return dateTime1 > dateTime2
+                String matchedText = matcher.group(0)
+                return dateFormat.parse(matchedText) > new Date(startTimeMillis)
             } else {
                 throw new Exception("No date and time found in the input string.")
             }
         }
 
+        /**
+         * Extracts given filename out of given zip folder and saves it to given path.
+         * @return File
+         */
         static File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String saveToPath) {
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
             ZipEntry entry
