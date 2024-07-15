@@ -45,7 +45,7 @@ class ETV1ContainerTest extends ETContainerTest {
             node {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                     ttRunPackage testCasePath: 'test.pkg'
-                    ttProvideReportLogs()
+                    ttProvideLogs()
                 }
             }
             """.stripIndent()

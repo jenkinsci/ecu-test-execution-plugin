@@ -29,6 +29,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 
+import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -162,11 +163,12 @@ class ProvideLogsStep extends Step {
 
         boolean checkReportFolderCreationDate(String reportDir) {
             def df = "yyyy-MM-dd_HHmmss"
+            SimpleDateFormat dateFormat = new SimpleDateFormat(df)
             def pattern = /\d{4}-\d{2}-\d{2}_\d{6}/
             def matcher = reportDir =~ pattern
-            if (matcher) {
-                def date = matcher[0]
-                Date dateTime1 = new Date().parse(df, date)
+            if (matcher.find()) {
+                def matchedText = matcher.group(0)
+                Date dateTime1 = dateFormat.parse(matchedText)
                 Date dateTime2 = new Date(startTimeMillis)
                 return dateTime1 > dateTime2
             } else {
@@ -174,7 +176,7 @@ class ProvideLogsStep extends Step {
             }
         }
 
-        File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String saveToPath) {
+        static File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String saveToPath) {
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
             ZipEntry entry
             while ((entry = zipInputStream.nextEntry) != null) {
