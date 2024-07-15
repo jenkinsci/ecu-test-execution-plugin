@@ -212,7 +212,7 @@ class RestApiClientV1 implements RestApiClient {
      * @return List of ReportInfo with report IDs
      */
     List<ReportInfo> getAllReports() {
-        de.tracetronic.cxs.generated.et.client.api.v2.ReportApi apiInstance = new de.tracetronic.cxs.generated.et.client.api.v2.ReportApi(apiClient)
+        ReportApi apiInstance = new ReportApi(apiClient)
         return apiInstance.getAllReports()
     }
 
