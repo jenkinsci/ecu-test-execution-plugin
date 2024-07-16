@@ -311,7 +311,7 @@ abstract class ETContainerTest extends ContainerTest {
                     ttRunPackage testCasePath: 'test_api_constant.pkg', 
                         testConfig: [tbcPath: 'test.tbc', 
                                      tcfPath: 'test.tcf', 
-                                     constants: [[label: 'API_CONSTANT', value: 'some-value']]]
+                                     constants: [[label: 'API_CONSTANT', value: 'True']]]
                 }
             }
             """.stripIndent()
@@ -333,8 +333,7 @@ abstract class ETContainerTest extends ContainerTest {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                     ttRunPackage testCasePath: 'test_tcf_constant.pkg', 
                         testConfig: [tbcPath: 'test.tbc', 
-                                     tcfPath: 'test.tcf', 
-                                     constants: [[label: 'API_CONSTANT', value: 'some-value']]]
+                                     tcfPath: 'test.tcf']
                 }
             }
             """.stripIndent()

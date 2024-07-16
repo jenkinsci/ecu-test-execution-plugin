@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) 2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.ConverterUtil
 import jline.internal.Nullable
 
 /**
@@ -35,10 +40,17 @@ class ExecutionOrder implements Serializable {
      * @return ExecutionOrder for ecu-test REST API in version V1
      */
     de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder toExecutionOrderV1() {
+        List<de.tracetronic.cxs.generated.et.client.model.v1.LabeledValue> constantsV1 = []
+        this.constants.each {constant ->
+            constantsV1.add(new de.tracetronic.cxs.generated.et.client.model.v1.LabeledValue()
+                    .label(constant.label)
+                    .value(constant.value))}
+
         return new de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder()
                 .testCasePath(this.testCasePath)
                 .tbcPath(this.tbcPath)
                 .tcfPath(this.tcfPath)
+                .constants(constantsV1)
                 .additionalSettings(this.additionalSetting.toAdditionalSettingsV1())
     }
 
