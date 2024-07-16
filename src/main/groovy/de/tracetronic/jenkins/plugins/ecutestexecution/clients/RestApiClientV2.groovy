@@ -128,7 +128,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
 
-        List<LabeledValue> constants = new ArrayList<>()
+        List<LabeledValue> constants = []
         executionOrder.constants.each { constant ->
             constants.add(new LabeledValue().label(constant.label).value(constant.value))
         }
@@ -138,10 +138,9 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
 
-        if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
+        if (executionOrder.tbcPath != null || executionOrder.tcfPath != null || constants.size() != 0) {
             ConfigurationApi configApi = new ConfigurationApi(apiClient)
-            ApiResponse<SimpleMessage> status
-            configApi.manageConfigurationWithHttpInfo(configOrder)
+            configApi.manageConfiguration(configOrder)
         }
         ExecutionApi executionApi = new ExecutionApi(apiClient)
         executionApi.createExecution(executionOrderV2)
