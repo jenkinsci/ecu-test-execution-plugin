@@ -1,404 +1,151 @@
-# Copyright (c) 2020-2022 tracetronic GmbH
-# SPDX short identifier: MIT
-openapi: 3.0.3
-info:
-  title: ecu.test REST-API V2
-  version: '2.1.0'
-  description: '**ecu.test** is a test automation software for the validation of embedded systems in automotive environments developed by tracetronic GmbH.
-  This software executes regression tests which are essential for validating complex technical products such as electronic control units (ECUs).
-  It supports standardized access to a broad range of test tools and provides an extensive automation of distributed test environments.
-  The API reference for the ecu.test Core **enables the execution** of ecu.test packages, projects and analysis jobs with their respective configurations.'
-  contact:
-    email: support@tracetronic.com
-  license:
-    name: MIT License
-    url: 'https://spdx.org/licenses/MIT.html'
-servers:
-  - url: /api/v2
-tags:
-  - name: checks
-    description: Endpoints related to run and view package/project checks
-  - name: configuration
-    description: Endpoints related to changing the test configuration or test bench configuration.
-  - name: execution
-    description: Endpoints to show or manipulate the current test execution.
-  - name: report
-    description: Endpoints related to test report operations.
-  - name: status
-    description: Endpoints related to status information.
-  - name: settings
-    description: Endpoints to manipulate program settings.
 components:
+  responses:
+    200OK:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+      description: OK
+    CheckExecutionOrderCreated:
+      content:
+        application/json:
+          example:
+            checkExecutionId: 87393c4e-4eeb-418a-86ad-51b501f83446
+          schema:
+            $ref: '#/components/schemas/AcceptedCheckExecutionOrder'
+      description: Check execution order created.
+    CheckExecutionResultResponse:
+      content:
+        application/json:
+          example:
+            _class: io.jenkins.plugins.analysis.core.restapi.ReportApi
+            issues:
+              - description: Generated message from ecu.test to open the affected Package
+                directory: <Absolute path to the workspace>/Packages
+                fileName: Package.pkg
+                message: The message from the check
+                packageName: Packages
+                severity: ERROR
+            size: 1
+          schema:
+            $ref: '#/components/schemas/CheckReport'
+      description: Result of an package or project check in [WarningsNG supported
+        format](https://github.com/jenkinsci/warnings-ng-plugin/blob/master/doc/Documentation.md#export-your-issues-into-a-supported-format)
+    CheckExecutionStatusOverview:
+      content:
+        application/json:
+          example:
+            - checkExecutionId: 4013d7ee-b713-431e-b7a7-19202701cdff
+              filePath: Package.pkg
+              status: FINISHED
+            - checkExecutionId: 1c3fa6a2-e7b1-4560-9186-4579018ecadd
+              filePath: Project.prj
+              status: WAITING
+          schema:
+            items:
+              $ref: '#/components/schemas/CheckExecutionStatus'
+            type: array
+      description: List of check execution orders and their status.
+    CheckExecutionStatusResponse:
+      content:
+        application/json:
+          example:
+            checkExecutionId: 4013d7ee-b713-431e-b7a7-19202701cdff
+            filePath: Package.pkg
+            status: FINISHED
+          schema:
+            $ref: '#/components/schemas/CheckExecutionStatus'
+      description: Status of a check execution order.
   schemas:
     AcceptedCheckExecutionOrder:
       description: Information about the created check execution order.
-      type: object
       properties:
         checkExecutionId:
           type: string
-    Execution:
-      description: Represents the sum of all information ecu.test needs and provides for a certain test execution.
       type: object
-      required:
-        - status
-        - order
-      properties:
-        status:
-          $ref: '#/components/schemas/ExecutionStatus'
-        order:
-          $ref: '#/components/schemas/ExecutionOrder'
-        result:
-          $ref: '#/components/schemas/ReportInfo'
-
-
-    ExecutionStatus:
-      description: The status of the current execution.
-      required:
-        - message
-        - key
-      properties:
-        message:
-          type: string
-          description: Contains a (error) message if something goes wrong.
-        key:
-          type: string
-          description: 'The current status identifier. The ERROR state refers to a hard error
-          that prevented the execution from finishing and is not coupled to the report verdict.'
-          enum:
-            - WAITING
-            - RUNNING
-            - FINISHED
-            - ABORTED
-            - ERROR
-        userData:  # arbitrary user data, no description on purpose, see TTS-36781
-          type: object
-          additionalProperties: true
-
-    LabeledValue:
-      description: Just a value and a representing label.
-      type: object
-      required:
-        - label
-        - value
-      properties:
-        label:
-          type: string
-          description: Name of the value
-        value:
-          type: string
-          description: 'Expression to be evaluated, e.g.: "Some string", or 123'
-
-    Recording:
-      description: A signal recording.
-      type: object
-      required:
-        - path
-      properties:
-        path:
-          type: string
-          description: 'The path must either be an absolute path or a relative path to
-                the Traces directory in the workspace.'
-        recordingGroup:
-          type: string
-          description: 'Name of the recording group the recording is to be assigned to.
-                Only required for packages unless there is only one recording group
-                (not used for analysis packages).'
-        mappingNames:
-          type: array
-          description: 'Names of the mapping items included in this recording.
-                Only required for analysis packages unless there is only one recording
-                (not used for packages).'
-          items:
-            type: string
-        deviceName:
-          type: string
-          description: 'Optional device name. Required if the recording contains multiple
-                devices and the mapping between device names in the test configuration and device
-                names in the recording cannot be realized by format details.
-                See "Supported file formats" in ecu.test help for more information.'
-        formatDetails:
-          type: string
-          description: 'Optional format details. Required if the recording cannot be
-                interpreted with default format details.
-                See "Supported file formats" in ecu.test help for more information.'
-        recordingNumber:
-          type: integer
-          description: 'Optional recording number. Required for unique identification of
-                recordings in special file formats like MDF ETAS.'
-          default: 0
-        startTime:
-          type: number
-          description: 'Optional start time. Can be used to restrict analyses to a
-            part of the recordings (instead of the whole recording).'
-        stopTime:
-          type: number
-          description: 'Optional stop time. Can be used to restrict analyses to a
-            part of the recordings (instead of the whole recording).'
-        deltaT:
-          type: number
-          description: 'Optional deltaT. Required if the recordings are to be synchronized before
-                the analysis. deltaT is the time shift applied to all timestamps of the recording.'
-
     AdditionalSettings:
       description: Additional information or settings for the execution.
-      type: object
       properties:
+        analysisExecutionMode:
+          default: sequential
+          description: |-
+            The analysis execution mode determines how analyses in projects and packages are executed. Valid values are:
+            * sequential: Analyses are executed in one process (default).
+            * parallel: Analyses are executed in parallel processes (only available for projects).
+            * none: Analyses are not executed at all.
+            * downstream: Analyses are not executed immediately, but analysis tasks are created in test.guide, which triggers a downstream analysis. (test.guide has to be configured appropriately in ecu.test for this mode.)
+            * downstream_no_upload: Analyses are not executed, but .ajob.json files are created. These files can be used to trigger analyses via REST-API.
+          enum:
+            - sequential
+            - parallel
+            - none
+            - downstream
+            - downstream_no_upload
+          type: string
+        analysisName:
+          default: ''
+          description: Name of the analysis to be executed. Will only be considered
+            if the test case file is a package.
+          type: string
+        mapping:
+          default: ''
+          description: For internal use only.
+          type: string
         packageParameters:
-          type: array
-          description: Parameters for package execution. Will only be considered if the test case file is a package.
+          description: Parameters for package execution. Will only be considered if
+            the test case file is a package.
+          example:
+            - label: scenarioName
+              value: '''LaneChange'''
+            - label: laneNumber
+              value: '1'
           items:
             $ref: '#/components/schemas/LabeledValue'
-          example:
-            - label: "scenarioName"
-              value: "'LaneChange'"
-            - label: "laneNumber"
-              value: "1"
-        analysisExecutionMode:
-          type: string
-          description: 'The analysis execution mode determines how analyses in projects and packages are executed.
-          Valid values are:
-
-          * sequential: Analyses are executed in one process (default).
-
-          * parallel: Analyses are executed in parallel processes (only available for projects).
-
-          * none: Analyses are not executed at all.
-
-          * downstream: Analyses are not executed immediately,
-                        but analysis tasks are created in test.guide,
-                        which triggers a downstream analysis.
-                        (test.guide has to be configured appropriately in ecu.test for this mode.)
-
-          * downstream_no_upload: Analyses are not executed, but .ajob.json files are created.
-                                  These files can be used to trigger analyses via REST-API.'
-          enum: [ sequential, parallel, none, downstream, downstream_no_upload ]
-          default: 'sequential'
-        analysisName:
-          type: string
-          description: Name of the analysis to be executed. Will only be considered if the test case file is a package.
-          default: ''
-        recordings:
           type: array
-          description: Recordings for analysis execution. Will only be considered for analysis execution.
+        recordings:
+          description: Recordings for analysis execution. Will only be considered
+            for analysis execution.
           items:
             $ref: '#/components/schemas/Recording'
-        mapping:
-          type: string
-          description: 'Optional mapping which overwrites the default mapping.
-            Will only be considered for analysis execution. Should not be set manually.'
-          default: ''
-
+          type: array
+      type: object
+    ApplySettingsOrder:
+      description: An order to reload program settings from their respective files.
+      properties:
+        settingNames:
+          description: The names of the settings to be reloaded.
+          items:
+            enum:
+              - directories
+              - manifest
+            type: string
+          type: array
+      required:
+        - settingNames
+      type: object
     CheckExecutionOrder:
       description: An order to execute checks on a package or project..
-      type: object
+      properties:
+        filePath:
+          description: The path to the package or project that should be checked.
+          type: string
       required:
         - filePath
-      properties:
-        filePath:
-          type: string
-          description: 'The path to the package or project that should be checked.'
-
+      type: object
     CheckExecutionStatus:
       description: Information about the check execution order.
-      type: object
       properties:
-        filePath:
-          type: string
-          description: 'The path to the package or project.'
         checkExecutionId:
+          description: ID of the check execution order.
           type: string
-          description: 'ID of the check execution order.'
+        filePath:
+          description: The path to the package or project.
+          type: string
         status:
+          description: Status of the execution (WAITING, RUNNING, FINISHED, ERROR)
           type: string
-          description: 'Status of the execution (WAITING, RUNNING, FINISHED, ERROR)'
-
-    ExecutionOrder:
-      description: An order to execute a new test run.
       type: object
-      required:
-        - testCasePath
-      properties:
-        testCasePath:
-          type: string
-          description: 'The path to the test case file that should be started. A test case file can
-          be a package, project, project archive or analysis job. The path must either be an
-          absolute path or a relative path to the Packages directory in the workspace.'
-        executionId:
-          type: string
-          description: An optional ID that can be used to identify the currently active test execution.
-          default: ''
-        constants:
-          type: array
-          description: 'Add new global constants or overwrite the value of existing global 
-          constants.'
-          items:
-            $ref: '#/components/schemas/LabeledValue'
-          example:
-            - label: "SW_VERSION"
-              value: "2.0"
-            - label: "NEEDED_FILE"
-              value: "'/Path/to a/File'"
-        additionalSettings:
-          $ref: '#/components/schemas/AdditionalSettings'
-
-    ReportInfo:
-      description: Information about a test report.
-      type: object
-      required:
-        - testReportId
-        - reportDir
-        - result
-      properties:
-        testReportId:
-          type: string
-          description: A unique identifier for the test report.
-        reportDir:
-          type: string
-          description: Directory for test report, log files and recordings.
-        result:
-          type: string
-          description: Result of the execution.
-        subReportIds:
-          type: array
-          items:
-            type: string
-
-    TGUpload:
-      description: Represents the sum of all information ecu.test needs and provides for a certain test report upload to test.guide.
-      type: object
-      required:
-        - status
-        - order
-        - result
-      properties:
-        status:
-          $ref: '#/components/schemas/TGUploadStatus'
-        order:
-          $ref: '#/components/schemas/TGUploadOrder'
-        result:
-          $ref: '#/components/schemas/TGUploadResult'
-
-    TGUploadOrder:
-      description: An order to execute a test.guide upload.
-      type: object
-      required:
-        - testGuideUrl
-      properties:
-        testGuideUrl:
-          type: string
-          description: The URL to the test.guide instance to connect to, e.g. https://myTestGuideHost:1234
-        authKey:
-          type: string
-          default: ''
-          description: API authentification key. Needed if authentification is switched on in test.guide.
-        projectId:
-          type: integer
-          default: 0
-          description: The test.guide project ID to upload to.
-        useSettingsFromServer:
-          type: boolean
-          default: false
-          description: Get and use upload settings from test.guide.
-        additionalSettings:
-          type: object
-          additionalProperties:
-            type: string
-          description: Key-value pairs containing optional settings for the test.guide upload. Equivalent to ecu.test -> Settings -> test.guide -> ATX Generator default settings.
-
-    TGUploadStatus:
-      description: The current upload status of a triggered test.guide upload.
-      type: object
-      required:
-        - message
-        - key
-      properties:
-        message:
-          type: string
-          description: Contains a (error) message if something goes wrong.
-        key:
-          type: string
-          description: The current status identifier.
-          enum:
-            - WAITING
-            - RUNNING
-            - FINISHED
-            - ERROR
-
-    TGUploadResult:
-      description: The result of a triggered test.guide upload.
-      type: object
-      required:
-        - link
-      properties:
-        link:
-          type: string
-          description: Link to the uploaded test.guide report.
-
-    ReportGeneration:
-      description: Represents the sum of all information ecu.test needs and provides for a certain test report generation via a report generator.
-      type: object
-      required:
-        - status
-        - order
-      properties:
-        status:
-          $ref: '#/components/schemas/ReportGenerationStatus'
-        order:
-          $ref: '#/components/schemas/ReportGenerationOrder'
-        result:
-          $ref: '#/components/schemas/ReportGenerationResult'
-
-    ReportGenerationOrder:
-      description: An order to generate a report with a specific report generator.
-      type: object
-      required:
-        - generatorName
-      properties:
-        generatorName:
-          type: string
-          description: The name of the report generator to trigger, e.g. HTML
-        additionalSettings:
-          type: object
-          additionalProperties:
-            type: string
-          description: Key-value pairs containing optional settings passed to the report generator.
-
-    ReportGenerationStatus:
-      description: The current generation status of a triggered report generator.
-      type: object
-      required:
-        - message
-        - key
-      properties:
-        message:
-          type: string
-          description: Contains a (error) message if something goes wrong.
-        key:
-          type: string
-          description: The current status identifier.
-          enum:
-            - WAITING
-            - RUNNING
-            - FINISHED
-            - ERROR
-
-    ReportGenerationResult:
-      description: Report generator result.
-      type: object
-      properties:
-        outputDir:
-          type: string
-          description: Directory of the generated report.
-
-    SimpleMessage:
-      type: object
-      properties:
-        message:
-          type: string
-          default: ''
-
     CheckFinding:
-      type: object
       properties:
         description:
           type: string
@@ -412,186 +159,438 @@ components:
           type: string
         severity:
           type: string
-
-    CheckReport:
       type: object
+    CheckReport:
       properties:
         _class:
           type: string
         issues:
-          type: array
           items:
             $ref: '#/components/schemas/CheckFinding'
+          type: array
         size:
           type: integer
-
-    ApplySettingsOrder:
-      description: An order to reload program settings from their respective files.
       type: object
-      required:
-        - settingNames
-      properties:
-        settingNames:
-          type: array
-          description: 'The names of the settings to be reloaded.'
-          items:
-            type: string
-            enum:
-              - manifest
-
     Configuration:
-      description: Represents the sum of all information ecu.test needs and provides for a configuration change.
-      type: object
+      description: Represents the sum of all information ecu.test needs and provides
+        for a configuration change.
+      properties:
+        order:
+          $ref: '#/components/schemas/ConfigurationOrder'
+        status:
+          $ref: '#/components/schemas/ConfigurationStatus'
       required:
         - status
         - order
+      type: object
+    ConfigurationOrder:
+      description: An order to start, stop or load a configuration.
       properties:
-        status:
-          $ref: '#/components/schemas/ConfigurationStatus'
-        order:
-          $ref: '#/components/schemas/ConfigurationOrder'
-
+        action:
+          description: |-
+            Valid values are:
+            * Start: The configuration is started or changed. No additional Load step necessary.
+            * Stop: The configuration is stopped.
+            * Load: The configuration is loaded.
+          enum:
+            - Start
+            - Stop
+            - Load
+          type: string
+        constants:
+          $ref: '#/components/schemas/Constants'
+        tbc:
+          $ref: '#/components/schemas/TestbenchConfiguration'
+        tcf:
+          $ref: '#/components/schemas/TestConfiguration'
+      required:
+        - action
+      type: object
     ConfigurationStatus:
       description: The status of the current configuration change.
-      required:
-        - message
-        - key
       properties:
-        message:
-          type: string
-          description: Contains a (error) message if something goes wrong.
         key:
-          type: string
-          description: 'The current status identifier.'
+          description: The current status identifier.
           enum:
             - FINISHED
             - RUNNING
             - ERROR
             - WAITING
-
-    ConfigurationOrder:
-      description: An order to start or stop a configuration.
-      type: object
+          type: string
+        message:
+          description: Contains a (error) message if something goes wrong.
+          type: string
       required:
-        - action
-      properties:
-        action:
-          type: string
-          description: 'Valid values are:
-
-                * Start: The configuration is started or changed.
-                
-                * Stop: The configuration is stopped.'
-          enum: [ Start, Stop ]
-        tbc:
-          $ref: '#/components/schemas/TestbenchConfiguration'
-        tcf:
-          $ref: '#/components/schemas/TestConfiguration'
-        constants:
-          $ref: '#/components/schemas/Constants'
-
-
-    TestbenchConfiguration:
-      description: A testbench configuration.
-      type: object
-      properties:
-        tbcPath:
-          type: string
-          description: 'Absolute path or relative path of the .tbc file in the Configurations directory.'
-          default: ''
-
-
-
-    TestConfiguration:
-      description: A test configuration.
-      type: object
-      properties:
-        tcfPath:
-          type: string
-          description: 'Absolute path or relative path of the .tcf file in the Configurations directory.'
-          default: ''
-
+        - message
+        - key
     Constants:
-      type: array
-      description: 'Add new global constants or overwrite the value of existing global constants.'
+      description: Add new global constants or overwrite the value of existing global
+        constants.
+      example:
+        - label: SW_VERSION
+          value: '2.0'
+        - label: NEEDED_FILE
+          value: '''/Path/to a/File'''
       items:
         $ref: '#/components/schemas/LabeledValue'
-      example:
-        -   label: "SW_VERSION"
-            value: "2.0"
-        -   label: "NEEDED_FILE"
-            value: "'/Path/to a/File'"
-
-    IsIdle:
+      type: array
+    Execution:
+      description: Represents the sum of all information ecu.test needs and provides
+        for a certain test execution.
+      properties:
+        order:
+          $ref: '#/components/schemas/ExecutionOrder'
+        result:
+          $ref: '#/components/schemas/ReportInfo'
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+      required:
+        - status
+        - order
       type: object
+    ExecutionOrder:
+      description: An order to execute a new test run.
+      properties:
+        additionalSettings:
+          $ref: '#/components/schemas/AdditionalSettings'
+        constants:
+          description: Add new global constants or overwrite the value of existing
+            global constants.
+          example:
+            - label: SW_VERSION
+              value: '2.0'
+            - label: NEEDED_FILE
+              value: '''/Path/to a/File'''
+          items:
+            $ref: '#/components/schemas/LabeledValue'
+          type: array
+        executionId:
+          default: ''
+          description: An optional ID that can be used to identify the currently active
+            test execution.
+          type: string
+        testCasePath:
+          description: The path to the test case file that should be started. A test
+            case file can be a package, project, project archive or analysis job.
+            The path must either be an absolute path or a relative path to the Packages
+            directory in the workspace.
+          type: string
+      required:
+        - testCasePath
+      type: object
+    ExecutionStatus:
+      description: The status of the current execution.
+      properties:
+        key:
+          description: The current status identifier. The ERROR state refers to a
+            hard error that prevented the execution from finishing and is not coupled
+            to the report verdict.
+          enum:
+            - WAITING
+            - RUNNING
+            - FINISHED
+            - ABORTED
+            - ERROR
+          type: string
+        message:
+          description: Contains a (error) message if something goes wrong.
+          type: string
+        userData:
+          additionalProperties: true
+          type: object
+      required:
+        - message
+        - key
+    IsIdle:
       properties:
         isIdle:
           type: boolean
-
-  responses:
-    200OK:
-      description: OK
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SimpleMessage'
-    CheckExecutionOrderCreated:
-      description: Check execution order created.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AcceptedCheckExecutionOrder'
-          example:
-            checkExecutionId: "87393c4e-4eeb-418a-86ad-51b501f83446"
-    CheckExecutionStatusOverview:
-      description: List of check execution orders and their status.
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/CheckExecutionStatus'
-          example:
-            - filePath: "Package.pkg"
-              checkExecutionId: "4013d7ee-b713-431e-b7a7-19202701cdff"
-              status: "FINISHED"
-            - filePath: "Project.prj"
-              checkExecutionId: "1c3fa6a2-e7b1-4560-9186-4579018ecadd"
-              status: "WAITING"
-    CheckExecutionStatusResponse:
-      description: Status of a check execution order.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CheckExecutionStatus'
-          example:
-            filePath: "Package.pkg"
-            checkExecutionId: "4013d7ee-b713-431e-b7a7-19202701cdff"
-            status: "FINISHED"
-    CheckExecutionResultResponse:
-      description: Result of an package or project check in [WarningsNG supported format](https://github.com/jenkinsci/warnings-ng-plugin/blob/master/doc/Documentation.md#export-your-issues-into-a-supported-format)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CheckReport'
-          example:
-            _class: "io.jenkins.plugins.analysis.core.restapi.ReportApi"
-            issues:
-              - description: "Generated message from ecu.test to open the affected Package"
-                directory: "<Absolute path to the workspace>/Packages"
-                fileName: "Package.pkg"
-                message: "The message from the check"
-                packageName: "Packages"
-                severity: "ERROR"
-            size: 1
-
-
+      type: object
+    LabeledValue:
+      description: Just a value and a representing label.
+      properties:
+        label:
+          description: Name of the value
+          type: string
+        value:
+          description: 'Expression to be evaluated, e.g.: "Some string", or 123'
+          type: string
+      required:
+        - label
+        - value
+      type: object
+    License:
+      properties:
+        identifier:
+          description: The license identifier, e.g. the dongle number for dongle licenses
+          type: string
+        options:
+          description: Additional available license options.
+          items:
+            type: string
+          type: array
+        type:
+          description: The license type.
+          enum:
+            - NO_LICENSE
+            - DONGLE
+            - FLOATING
+          type: string
+        validUntil:
+          description: Expiration date of the license.
+          type: string
+        validUpToVersion:
+          description: Maximum product version the license can be used for.
+          type: string
+      type: object
+    Recording:
+      description: A signal recording.
+      properties:
+        deltaT:
+          description: Optional deltaT. Required if the recordings are to be synchronized
+            before the analysis. deltaT is the time shift applied to all timestamps
+            of the recording.
+          type: number
+        deviceName:
+          description: Optional device name. Required if the recording contains multiple
+            devices and the mapping between device names in the test configuration
+            and device names in the recording cannot be realized by format details.
+            See "Supported file formats" in ecu.test help for more information.
+          type: string
+        formatDetails:
+          description: Optional format details. Required if the recording cannot be
+            interpreted with default format details. See "Supported file formats"
+            in ecu.test help for more information.
+          type: string
+        mappingNames:
+          description: Names of the mapping items included in this recording. Only
+            required for analysis packages unless there is only one recording (not
+            used for packages).
+          items:
+            type: string
+          type: array
+        path:
+          description: The path must either be an absolute path or a relative path
+            to the Traces directory in the workspace.
+          type: string
+        recordingGroup:
+          description: Name of the recording group the recording is to be assigned
+            to. Only required for packages unless there is only one recording group
+            (not used for analysis packages).
+          type: string
+        recordingNumber:
+          default: 0
+          description: Optional recording number. Required for unique identification
+            of recordings in special file formats like MDF ETAS.
+          type: integer
+        startTime:
+          description: Optional start time. Can be used to restrict analyses to a
+            part of the recordings (instead of the whole recording).
+          type: number
+        stopTime:
+          description: Optional stop time. Can be used to restrict analyses to a part
+            of the recordings (instead of the whole recording).
+          type: number
+      required:
+        - path
+      type: object
+    ReportGeneration:
+      description: Represents the sum of all information ecu.test needs and provides
+        for a certain test report generation via a report generator.
+      properties:
+        order:
+          $ref: '#/components/schemas/ReportGenerationOrder'
+        result:
+          $ref: '#/components/schemas/ReportGenerationResult'
+        status:
+          $ref: '#/components/schemas/ReportGenerationStatus'
+      required:
+        - status
+        - order
+      type: object
+    ReportGenerationOrder:
+      description: An order to generate a report with a specific report generator.
+      properties:
+        additionalSettings:
+          additionalProperties:
+            type: string
+          description: Key-value pairs containing optional settings passed to the
+            report generator.
+          type: object
+        generatorName:
+          description: The name of the report generator to trigger, e.g. HTML
+          type: string
+      required:
+        - generatorName
+      type: object
+    ReportGenerationResult:
+      description: Report generator result.
+      properties:
+        outputDir:
+          description: Directory of the generated report.
+          type: string
+      type: object
+    ReportGenerationStatus:
+      description: The current generation status of a triggered report generator.
+      properties:
+        key:
+          description: The current status identifier.
+          enum:
+            - WAITING
+            - RUNNING
+            - FINISHED
+            - ERROR
+          type: string
+        message:
+          description: Contains a (error) message if something goes wrong.
+          type: string
+      required:
+        - message
+        - key
+      type: object
+    ReportInfo:
+      description: Information about a test report.
+      properties:
+        reportDir:
+          description: Directory for test report, log files and recordings.
+          type: string
+        result:
+          description: Result of the execution.
+          type: string
+        subReportIds:
+          items:
+            type: string
+          type: array
+        testReportId:
+          description: A unique identifier for the test report.
+          type: string
+      required:
+        - testReportId
+        - reportDir
+        - result
+      type: object
+    SimpleMessage:
+      properties:
+        message:
+          default: ''
+          type: string
+      type: object
+    TGUpload:
+      description: Represents the sum of all information ecu.test needs and provides
+        for a certain test report upload to test.guide.
+      properties:
+        order:
+          $ref: '#/components/schemas/TGUploadOrder'
+        result:
+          $ref: '#/components/schemas/TGUploadResult'
+        status:
+          $ref: '#/components/schemas/TGUploadStatus'
+      required:
+        - status
+        - order
+        - result
+      type: object
+    TGUploadOrder:
+      description: An order to execute a test.guide upload.
+      properties:
+        additionalSettings:
+          additionalProperties:
+            type: string
+          description: Key-value pairs containing optional settings for the test.guide
+            upload. Equivalent to ecu.test -> Settings -> test.guide -> ATX Generator
+            default settings.
+          type: object
+        authKey:
+          default: ''
+          description: API authentification key. Needed if authentification is switched
+            on in test.guide.
+          type: string
+        projectId:
+          default: 0
+          description: The test.guide project ID to upload to.
+          type: integer
+        testGuideUrl:
+          description: The URL to the test.guide instance to connect to, e.g. https://myTestGuideHost:1234
+          type: string
+        useSettingsFromServer:
+          default: false
+          description: Get and use upload settings from test.guide.
+          type: boolean
+      required:
+        - testGuideUrl
+      type: object
+    TGUploadResult:
+      description: The result of a triggered test.guide upload.
+      properties:
+        link:
+          description: Link to the uploaded test.guide report.
+          type: string
+      required:
+        - link
+      type: object
+    TGUploadStatus:
+      description: The current upload status of a triggered test.guide upload.
+      properties:
+        key:
+          description: The current status identifier.
+          enum:
+            - WAITING
+            - RUNNING
+            - FINISHED
+            - ERROR
+          type: string
+        message:
+          description: Contains a (error) message if something goes wrong.
+          type: string
+      required:
+        - message
+        - key
+      type: object
+    TestConfiguration:
+      description: A test configuration.
+      properties:
+        tcfPath:
+          default: ''
+          description: Absolute path or relative path of the .tcf file in the Configurations
+            directory.
+          type: string
+      type: object
+    TestbenchConfiguration:
+      description: A testbench configuration.
+      properties:
+        tbcPath:
+          default: ''
+          description: Absolute path or relative path of the .tbc file in the Configurations
+            directory.
+          type: string
+      type: object
+info:
+  contact:
+    email: support@tracetronic.com
+  description: '**ecu.test** is a test automation software for the validation of embedded
+    systems in automotive environments developed by tracetronic GmbH. This software
+    executes regression tests which are essential for validating complex technical
+    products such as electronic control units (ECUs). It supports standardized access
+    to a broad range of test tools and provides an extensive automation of distributed
+    test environments. The API reference for the ecu.test Core **enables the execution**
+    of ecu.test packages, projects and analysis jobs with their respective configurations.'
+  license:
+    name: MIT License
+    url: https://spdx.org/licenses/MIT.html
+  title: ecu.test REST-API V2
+  version: 2.4.1
+openapi: 3.0.3
 paths:
   /checks/executions:
-    post:
+    get:
+      operationId: GetCheckExecutionStatusOverview
+      responses:
+        '200':
+          $ref: '#/components/responses/CheckExecutionStatusOverview'
+      summary: Get an overview of all check execution orders.
       tags:
         - checks
-      summary: Create a check execution order.
+    post:
       operationId: CreateCheckExecutionOrder
       requestBody:
         content:
@@ -602,80 +601,70 @@ paths:
         '201':
           $ref: '#/components/responses/CheckExecutionOrderCreated'
         '409':
-          description: Check could not be triggered.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    get:
+          description: Check could not be triggered because ecu.test is not idle.
+            Try again later.
+      summary: Create a check execution order.
       tags:
         - checks
-      summary: Get an overview of all check execution orders.
-      operationId: GetCheckExecutionStatusOverview
-      responses:
-        '200':
-          $ref: '#/components/responses/CheckExecutionStatusOverview'
-
   /checks/executions/{checkExecutionId}:
-    get:
-      tags:
-        - checks
-      summary: Get information about the status of the check execution order.
-      operationId: GetCheckExecutionStatus
-      parameters:
-        - in: path
-          name: checkExecutionId
-          schema:
-            type: string
-          required: true
-          description: ID of check execution given while creation of the order.
-      responses:
-        '200':
-          $ref: '#/components/responses/CheckExecutionStatusResponse'
-        '404':
-          description: No check execution found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SimpleMessage'
-
     delete:
-      tags:
-        - checks
-      summary: Delete all information about the check execution.
       operationId: DeleteCheckExecutionOrder
       parameters:
-        - in: path
+        - description: ID of check execution given while creation of the order.
+          in: path
           name: checkExecutionId
+          required: true
           schema:
             type: string
-          required: true
-          description: ID of check execution given while creation of the order.
       responses:
         '200':
           description: All information removed.
         '404':
           description: No check execution order found.
         '409':
-          description: Check execution order can not be deleted.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-
-  /checks/executions/{checkExecutionId}/result:
-    get:
+          description: Check execution order can not be deleted.
+      summary: Delete all information about the check execution.
       tags:
         - checks
-      summary: Get the result of the check execution.
-      operationId: GetCheckResult
+    get:
+      operationId: GetCheckExecutionStatus
       parameters:
-        - in: path
+        - description: ID of check execution given while creation of the order.
+          in: path
           name: checkExecutionId
+          required: true
           schema:
             type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/CheckExecutionStatusResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
+          description: No check execution found.
+      summary: Get information about the status of the check execution order.
+      tags:
+        - checks
+  /checks/executions/{checkExecutionId}/result:
+    get:
+      operationId: GetCheckResult
+      parameters:
+        - description: ID of check execution given while creation of the order.
+          in: path
+          name: checkExecutionId
           required: true
-          description: ID of check execution given while creation of the order.
+          schema:
+            type: string
       responses:
         '200':
           $ref: '#/components/responses/CheckExecutionResultResponse'
@@ -684,38 +673,41 @@ paths:
         '404':
           description: No check execution found.
         '500':
-          description: Error occured while executing check order.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-
+          description: Error occured while executing check order.
+      summary: Get the result of the check execution.
+      tags:
+        - checks
   /configuration:
     get:
-      tags:
-        - configuration
-      summary: Get information about the current configuration change.
       description: Returns the current configuration change order.
       operationId: GetLastConfigurationOrder
       responses:
         '200':
-          description: Successfully queried information about the current configuration change order.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Configuration'
+          description: Successfully queried information about the current configuration
+            change order.
         '404':
-          description: No order to change the configuration was found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    put:
+          description: No order to change the configuration was found.
+      summary: Get information about the current configuration change.
       tags:
         - configuration
-      summary: Start/stop a configuration or set/unset constants.
-      description: Creates an order to change the test configuration (tcf), test bench configuration (tbc) and/or constants. <br> <i>When starting a configuration, omitting parameters like "constants", "tbc" or "tcf" will result in unloading the respective configuration.</i>
-      operationId: ManageConfiguration # ControlConfiguration
+    put:
+      description: Creates an order to start or stop the test configuration (tcf),
+        test bench configuration (tbc) and/or set/unset constants. A tcf and/or tbc
+        can also just be loaded. <br> <i>When starting a configuration, omitting parameters
+        like "constants", "tbc" or "tcf" will result in unloading the respective configuration.</i>
+      operationId: ManageConfiguration
       requestBody:
         content:
           application/json:
@@ -725,39 +717,50 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '409':
-          description: ecu.test already executes a configuration change order and therefore does not accept another one. Try again later.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-
+          description: Configuration/constants change could not be triggered because
+            ecu.test is not idle. Try again later.
+      summary: Start/stop/load a configuration or set/unset constants.
+      tags:
+        - configuration
   /execution:
-    get:
+    delete:
+      description: Aborts the currently running execution. If no execution runs this
+        call has no effect. Report generation will be executed regardless of the execution
+        abort.
+      operationId: AbortExecution
+      responses:
+        '200':
+          $ref: '#/components/responses/200OK'
+      summary: Aborts the currently running execution.
       tags:
         - execution
-      summary: Get information about the current execution.
+    get:
       description: If already created, returns the current active execution.
       operationId: GetCurrentExecution
       responses:
         '200':
-          description: Successfully queried information about the current execution.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Execution'
+          description: Successfully queried information about the current execution.
         '404':
-          description: No execution has been registered yet.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    put:
+          description: No execution has been registered yet.
+      summary: Get information about the current execution.
       tags:
         - execution
-      summary: Creates a new execution to run.
-      description: 'Gives ecu.test a new execution to run, if no other execution is currently
-      active. Please note that the result will not automatically be uploaded to test.guide, even
-      if specified so in the workspace settings.'
+    put:
+      description: Gives ecu.test a new execution to run, if no other execution is
+        currently active. Please note that the result will not automatically be uploaded
+        to test.guide, even if specified so in the workspace settings.
       operationId: CreateExecution
       requestBody:
         content:
@@ -768,159 +771,158 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '409':
-          description: ecu.test already runs a test execution and therefore does not accept another one. Try again later.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    delete:
+          description: Test execution could not be triggered because ecu.test is not
+            idle. Try again later.
+      summary: Creates a new execution to run.
       tags:
         - execution
-      summary: Aborts the currently running execution.
-      description: Aborts the currently running execution. If no execution runs this call has no effect. Report generation will be executed regardless of the execution abort.
-      operationId: AbortExecution
-      responses:
-        '200':
-          $ref: '#/components/responses/200OK'
-
-  /reports:
+  /info/license:
     get:
-      tags:
-        - report
-      summary: Get information about all available test reports.
-      description: Gives information about all test reports currently available in the ecu.test report directory.
-      operationId: GetAllReports
+      description: Returns information about the used license.
+      operationId: GetLicenseInfo
       responses:
         '200':
-          description: Information about all available test reports.
           content:
             application/json:
               schema:
-                type: array
+                $ref: '#/components/schemas/License'
+          description: OK
+      summary: Returns information about the used license.
+      tags:
+        - info
+  /isIdle:
+    get:
+      description: Is ecu.test in an idle state so that a new execution can be triggered?
+      operationId: EcutestIsIdle
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IsIdle'
+          description: OK
+      summary: Check to see if ecu.test is in an idle state.
+      tags:
+        - status
+  /live:
+    get:
+      description: A simple endpoint that can be used to check if the API is reachable.
+      operationId: IsAlive
+      responses:
+        '200':
+          $ref: '#/components/responses/200OK'
+      summary: Simple alive ping
+      tags:
+        - status
+  /reports:
+    get:
+      description: Gives information about all test reports currently available in
+        the ecu.test report directory.
+      operationId: GetAllReports
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
                 items:
                   $ref: '#/components/schemas/ReportInfo'
-
-  /reports/{reportId}:
-    get:
+                type: array
+          description: Information about all available test reports.
+      summary: Get information about all available test reports.
       tags:
         - report
-      summary: Get information about test report with id reportId.
+  /reports/{reportId}:
+    get:
       description: Gives information about a specific test report.
       operationId: GetReport
       parameters:
-        - name: reportId
-          in: path
+        - in: path
+          name: reportId
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Information about the test report with the given id.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportInfo'
+          description: Information about the test report with the given id.
         '404':
-          description: No report with the given ID exists in the ecu.test report directory.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-
-  /reports/{reportId}/upload:
+          description: No report with the given ID exists in the ecu.test report directory.
+      summary: Get information about test report with id reportId.
+      tags:
+        - report
+  /reports/{reportId}/download:
     get:
-      tags:
-        - report
-      summary: Get information about the upload status to test.guide.
-      description: Get information about the upload status to test.guide.
-      operationId: GetCurrentUpload
+      description: Downloads the report folder for the report with id reportId as
+        a zip file.
+      operationId: ReportDownload
       parameters:
-        - name: reportId
-          in: path
+        - in: path
+          name: reportId
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Successfully queried information about the test.guide upload status.
           content:
-            application/json:
+            application/octet-stream:
               schema:
-                $ref: '#/components/schemas/TGUpload'
+                format: binary
+                type: string
+          description: Successfully created zip file and provided for download.
         '404':
-          description: No upload has been triggered yet.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    put:
-      tags:
-        - report
-      summary: Uploads a report to test.guide.
-      description: Triggers the upload of the given report to test.guide.
-      operationId: CreateUpload
-      parameters:
-        - name: reportId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TGUploadOrder'
-      responses:
-        '200':
-          $ref: '#/components/responses/200OK'
-        '404':
           description: No report with the given ID exists in the ecu.test report directory.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SimpleMessage'
-        '409':
-          description: There already is an active upload for the report. Try again later.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SimpleMessage'
-
+      summary: Downloads the report folder for the report with id reportId as a zip
+        file.
+      tags:
+        - report
   /reports/{reportId}/generate:
     get:
-      tags:
-        - report
-      summary: Get information about the report generator status.
       description: Get information about the report generator status.
       operationId: GetCurrentReportGeneration
       parameters:
-        - name: reportId
-          in: path
+        - in: path
+          name: reportId
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Successfully queried information about the report generator status.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportGeneration'
+          description: Successfully queried information about the report generator
+            status.
         '404':
-          description: No report generator has been triggered yet.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-    put:
+          description: No report generator has been triggered yet.
+      summary: Get information about the report generator status.
       tags:
         - report
-      summary: Triggers a report generator.
+    put:
       description: Triggers a report generator.
       operationId: CreateReportGeneration
       parameters:
-        - name: reportId
-          in: path
+        - in: path
+          name: reportId
           required: true
           schema:
             type: string
@@ -933,50 +935,85 @@ paths:
         '200':
           $ref: '#/components/responses/200OK'
         '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
           description: No report with the given ID exists in the ecu.test report directory.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SimpleMessage'
         '409':
-          description: There already is an active generation running for the report. Try again later.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
-
-  /live:
-    get:
+          description: Report generator could not be triggered because ecu.test is
+            not idle. Try again later.
+      summary: Triggers a report generator.
       tags:
-        - status
-      summary: Simple alive ping
-      description: A simple endpoint that can be used to check if the API is reachable.
-      operationId: IsAlive
+        - report
+  /reports/{reportId}/upload:
+    get:
+      description: Get information about the upload status to test.guide.
+      operationId: GetCurrentUpload
+      parameters:
+        - in: path
+          name: reportId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TGUpload'
+          description: Successfully queried information about the test.guide upload
+            status.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
+          description: No upload has been triggered yet.
+      summary: Get information about the upload status to test.guide.
+      tags:
+        - report
+    put:
+      description: Triggers the upload of the given report to test.guide.
+      operationId: CreateUpload
+      parameters:
+        - in: path
+          name: reportId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TGUploadOrder'
       responses:
         '200':
           $ref: '#/components/responses/200OK'
-
-  /isIdle:
-    get:
-      tags:
-        - status
-      summary: Check to see if ecu.test is in an idle state.
-      description: Is ecu.test in an idle state so that a new execution can be triggered?
-      operationId: EcutestIsIdle
-      responses:
-        '200':
-          description: OK
+        '404':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IsIdle'
-
+                $ref: '#/components/schemas/SimpleMessage'
+          description: No report with the given ID exists in the ecu.test report directory.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
+          description: Report upload could not be triggered because ecu.test is not
+            idle. Try again later.
+      summary: Uploads a report to test.guide.
+      tags:
+        - report
   /settings/reload:
     put:
-      tags:
-        - settings
-      summary: Reload program settings.
-      description: Triggers jobs for reloading the program settings with the specified names.
+      description: Triggers jobs for reloading the program settings with the specified
+        names.
       operationId: CreateReloadSettings
       requestBody:
         content:
@@ -985,8 +1022,34 @@ paths:
               $ref: '#/components/schemas/ApplySettingsOrder'
       responses:
         '200':
-          description: Reload jobs for the specified settings were triggered.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SimpleMessage'
+          description: Reload jobs for the specified settings were triggered.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleMessage'
+          description: Reload jobs for the specified settings could not be triggered
+            because ecu.test is not idle. Try again later.
+      summary: Reload program settings.
+      tags:
+        - settings
+servers:
+  - url: /api/v2
+tags:
+  - description: Endpoints related to run and view package/project checks
+    name: checks
+  - description: Endpoints related to changing the test configuration or test bench
+      configuration.
+    name: configuration
+  - description: Endpoints to show or manipulate the current test execution.
+    name: execution
+  - description: Endpoints related to test report operations.
+    name: report
+  - description: Endpoints related to status information.
+    name: status
+  - description: Endpoints to manipulate program settings.
+    name: settings
