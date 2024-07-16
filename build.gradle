@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
     // codenarc
-    codenarc('org.codenarc:CodeNarc:3.4.0')
+    codenarc('org.codenarc:CodeNarc:3.5.0')
     codenarc('org.codehaus.groovy:groovy-all:3.0.19')
 
     // ecu.test-java-rest-client
@@ -292,9 +292,6 @@ spotbugsMain {
     }
 }
 
-codenarc {
-    toolVersion = "1.1"
-}
 codenarcMain {
     compilationClasspath = sourceSets.main.compileClasspath + sourceSets.main.output
     configFile = file('config/codenarc/rules.groovy')
@@ -302,6 +299,7 @@ codenarcMain {
 }
 
 codenarcTest {
+    enabled = false
     compilationClasspath = codenarcMain.compilationClasspath + sourceSets.test.compileClasspath + sourceSets.test.output
     configFile = file('config/codenarc/rules-test.groovy')
     ignoreFailures = true
@@ -407,12 +405,6 @@ idea {
     }
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(project.properties['javaVersion'] as Integer)
-    }
-}
-
 wrapper {
-    gradleVersion = "$gradleVersion"
+    gradleVersion = "${project.properties['gradleVersion']}"
 }
