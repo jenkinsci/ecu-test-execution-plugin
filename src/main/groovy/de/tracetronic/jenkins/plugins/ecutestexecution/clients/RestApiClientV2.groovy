@@ -139,7 +139,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
         try {
-            if (executionOrder.tbcPath != null || executionOrder.tcfPath != null || constants.size() != 0) {
+            if (configOrder.tbc.tbcPath != "" || configOrder.tcf.tcfPath != "" || constants.size() != 0) {
                 ConfigurationApi configApi = new ConfigurationApi(apiClient)
                 configApi.manageConfiguration(configOrder)
 

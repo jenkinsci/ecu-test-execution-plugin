@@ -192,7 +192,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
             GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> {
+                manageConfiguration(*_) >> {
                     restApiClient.apiClient.execute(mockCall,new TypeToken<SimpleMessage>(){}.getType())
                 }
             }
@@ -200,7 +200,7 @@ class RunPackageStepIT extends IntegrationTestBase {
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage 'test.pkg' }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc']}", true))
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
