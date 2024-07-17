@@ -125,7 +125,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
     ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
-
+        ExecutionApi executionApi = new ExecutionApi(apiClient)
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
 
@@ -152,7 +152,6 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 }
             }
 
-            ExecutionApi executionApi = new ExecutionApi(apiClient)
             executionApi.createExecution(executionOrderV2)
             Closure<Boolean> checkStatus = { Execution execution ->
                 execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]

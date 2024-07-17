@@ -5,6 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.model.v2.Execution
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.google.gson.reflect.TypeToken
@@ -183,24 +184,22 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
     }
 
-    def 'Run pipeline: with 409 handling'() {
+    def 'Run pipeline: with 409 handling and no config load'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
-            GroovySpy(ConfigurationApi, global: true){
-                manageConfiguration(*_) >> {
-                    restApiClient.apiClient.execute(mockCall,new TypeToken<SimpleMessage>(){}.getType())
-                }
-            }
+
             GroovySpy(ExecutionApi, global: true){
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
             }
+
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc']}", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage 'test.pkg' }", true))
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
@@ -210,22 +209,52 @@ class RunPackageStepIT extends IntegrationTestBase {
 
     }
 
+    def 'Run pipeline: with 409 handling and config load'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
+
+            def manageConfigCalled = 0
+            GroovySpy(ConfigurationApi, global: true) {
+                manageConfiguration(*_) >> {
+                    manageConfigCalled =+ 1
+                    restApiClient.apiClient.execute(mockCall, new TypeToken<SimpleMessage>(){}.getType())
+                }
+            }
+
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc'] }", true))
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogContains("Executing package 'test.pkg'", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('unauthorized', run)
+        and:
+            // cannot use interactive based testing since the method call was not fully ended
+            assert manageConfigCalled == 1
+    }
+
     def 'Run pipeline: timeout by busy ecu.test'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy()
-            GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> {
-                    restApiClient.apiClient.execute(mockCall, null)
-                }
-            }
+
             GroovySpy(ExecutionApi, global: true){
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
+                getCurrentExecution() >> new Execution()
             }
+
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage  testCasePath:'test.pkg', executionConfig:[timeout: 2]}", true))
         expect:
