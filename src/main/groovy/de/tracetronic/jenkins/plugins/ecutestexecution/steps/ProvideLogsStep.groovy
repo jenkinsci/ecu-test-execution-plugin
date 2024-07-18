@@ -13,7 +13,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.actions.ProvideLogsAction
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
-
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
@@ -121,28 +121,30 @@ class ProvideLogsStep extends Step {
         @Override
         Void call() throws IOException {
             listener.logger.println("Providing ecu.test logs to jenkins.")
-            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-            List<ReportInfo> reports = apiClient.getAllReports()
+            try {
+                RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+                List<ReportInfo> reports = apiClient.getAllReports()
 
-            if (reports == null || reports.isEmpty()) {
-                listener.logger.println("[WARNING] No report files returned by ecu.test")
-            }
-            for (def report : reports) {
-                String reportDir = report.reportDir.split('/').last()
-                if (!checkReportFolderCreationDate(reportDir)) {
-                    listener.logger.println("[WARNING] ecu.test report folder includes files older than this run. ${report.reportDir}")
+                if (reports == null || reports.isEmpty()) {
+                    listener.logger.println("[WARNING] No report files returned by ecu.test")
                 }
-                try {
-                    File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
-                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_out.log", "${logDirPath}/${reportDir}/${reportDir}_out.log")
-                    extractLogFileFromZip(reportFolderZip, "test/ecu.test_err.log", "${logDirPath}/${reportDir}/${reportDir}_err.log")
-                }
-                catch (ApiException e) {
-                    if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
-                        throw new de.tracetronic.cxs.generated.et.client.v2.ApiException("[ERROR] Downloading reportFolder is not available for ecu.test < 2024.2!")
-                    } else {
-                        throw e
+                for (def report : reports) {
+                    String reportDir = report.reportDir.split('/').last()
+                    if (!checkReportFolderCreationDate(reportDir)) {
+                        listener.logger.println("[WARNING] ecu.test reports contains folder older than this run. Path: ${report.reportDir}")
                     }
+
+                    File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
+                    if (!extractAndSaveFromZip(reportFolderZip, ["ecu.test_out", "ecu.test_err"], "${logDirPath}/${reportDir}")) {
+                        throw new AbortException("${report.reportDir} is missing one or all log files!")
+                    }
+                }
+            }
+            catch (ApiException e) {
+                if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
+                    throw new AbortException("[ERROR] Downloading reportFolder is not available for ecu.test < 2024.2!")
+                } else {
+                    throw new AbortException(e.message)
                 }
             }
             listener.logger.flush()
@@ -161,34 +163,39 @@ class ProvideLogsStep extends Step {
             if (matcher.find()) {
                 String matchedText = matcher.group(0)
                 return dateFormat.parse(matchedText) > new Date(startTimeMillis)
-            } else {
-                throw new Exception("No date and time found in the input string.")
             }
+            listener.logger.println("[WARNING] Could not extract date from report folder name: ${reportDir}")
+            return false
         }
 
         /**
-         * Extracts given filename out of given zip folder and saves it to given path.
-         * @return File
+         * Extracts and saves files containing the given strings in their name out of a given zip folder to given path.
+         * @return boolean
          */
-        static File extractLogFileFromZip(File reportFolderZip, String fileNameToExtract, String saveToPath) {
+        static boolean extractAndSaveFromZip(File reportFolderZip, List<String> extractFilesContaining, String saveToPath) {
+            int found = 0
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
             ZipEntry entry
             while ((entry = zipInputStream.nextEntry) != null) {
-                if (entry.name == fileNameToExtract) {
-                    File outputFile = new File(saveToPath)
-                    outputFile.parentFile.mkdirs()
-
-                    def outputStream = new FileOutputStream(outputFile)
-                    try {
-                        outputStream << zipInputStream
-                    } finally {
-                        outputStream.close()
+                for (String str : extractFilesContaining) {
+                    if (entry.name.contains(str)) {
+                        File outputFile = new File("${saveToPath}/${str}.log")
+                        outputFile.parentFile.mkdirs()
+                        def outputStream = new FileOutputStream(outputFile)
+                        try {
+                            outputStream << zipInputStream
+                        } finally {
+                            outputStream.close()
+                        }
+                        found++
                     }
-                    zipInputStream.close()
-                    return outputFile
                 }
             }
-            throw new Exception("No ecu.test logs not found in given report zip!")
+            zipInputStream.close()
+            if (extractFilesContaining.size() == found) {
+                return true
+            }
+            return false
         }
     }
 

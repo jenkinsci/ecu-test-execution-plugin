@@ -79,8 +79,8 @@ node('windows') {
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
-    stage('Provide Logs') {
-        ttProvideReportLogs()
+    stage('Provide ecu.test logs in jenkins') {
+        ttProvideLogs()
     }
     stage('Generate Reports') {
         ttGenerateReports 'HTML'

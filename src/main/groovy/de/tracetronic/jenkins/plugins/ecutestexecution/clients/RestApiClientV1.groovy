@@ -29,6 +29,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrd
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import hudson.AbortException
 
 import java.util.concurrent.TimeoutException
 
@@ -230,6 +231,6 @@ class RestApiClientV1 implements RestApiClient {
      * @return File
      */
     File downloadReportFolder(String reportID) {
-        throw new de.tracetronic.cxs.generated.et.client.v1.ApiException("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.")
+        throw new AbortException("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.")
     }
 }
