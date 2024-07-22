@@ -26,7 +26,6 @@ import de.tracetronic.cxs.generated.et.client.model.v2.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.TestConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.TestbenchConfiguration
-import de.tracetronic.cxs.generated.et.client.v2.Configuration
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
@@ -139,7 +138,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
         try {
-            if (configOrder.tbc.tbcPath != "" || configOrder.tcf.tcfPath != "" || constants.size() != 0) {
+            if (configOrder.tbc.tbcPath || configOrder.tcf.tcfPath || constants) {
                 ConfigurationApi configApi = new ConfigurationApi(apiClient)
                 configApi.manageConfiguration(configOrder)
 

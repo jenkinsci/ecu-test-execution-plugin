@@ -181,7 +181,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
         and:
-            // cannot use interactive based testing since the method call was not fully ended
+            // interactive-based testing cannot be used because the method call does not fully end
             assert manageConfigCalled == 1
     }
 

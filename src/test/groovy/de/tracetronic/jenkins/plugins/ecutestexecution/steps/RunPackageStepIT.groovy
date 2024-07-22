@@ -26,8 +26,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.RecordingAsSetting
 import hudson.Functions
 import hudson.model.Result
 import okhttp3.Call
-import okhttp3.HttpUrl
-import okhttp3.Request
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -236,7 +234,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
         and:
-            // cannot use interactive based testing since the method call was not fully ended
+            // interactive-based testing cannot be used because the method call does not fully end
             assert manageConfigCalled == 1
     }
 
