@@ -125,7 +125,7 @@ If the problem still exists search the following list of issues for possible sol
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
 
-| Version |    latest - 3.5    |     3.3 - 3.1      |        3.0         |
+| Version |    latest - 3.5    |     3.4 - 3.1      |        3.0         |
 |:-------:|:------------------:|:------------------:|:------------------:|
 | 2024.2  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.1  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
