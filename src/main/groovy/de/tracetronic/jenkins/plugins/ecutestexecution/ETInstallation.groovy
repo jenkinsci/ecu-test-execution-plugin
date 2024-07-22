@@ -163,7 +163,7 @@ class ETInstallation extends ToolInstallation implements
 
         @Override
         String getDisplayName() {
-            'ecu.test'
+            'ecu.test (ecu.test execution plugin)'
         }
 
         @Override
