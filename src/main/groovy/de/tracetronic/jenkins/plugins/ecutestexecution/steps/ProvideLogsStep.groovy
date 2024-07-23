@@ -114,7 +114,7 @@ class ProvideLogsStep extends Step {
                 artifactsMap.put(relPath, relPath)
             }
             run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
-            run.addAction(new ProvideLogsAction(run))
+            run.addAction(new ProvideLogsAction(run, logDirName))
             workspace.child(logDirName).deleteContents()
             listener.logger.println("Successfully added ecu.test logs to jenkins.")
             listener.logger.flush()

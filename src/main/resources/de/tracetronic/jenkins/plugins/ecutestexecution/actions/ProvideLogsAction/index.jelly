@@ -6,12 +6,23 @@
         <l:main-panel>
             <h1>${it.displayName}</h1>
             <ul>
-                <j:forEach var="log" items="${it.logs}">
-                    <li>
+                <j:forEach var="entry" items="${it.LogPathMap}">
+                    <tr>
                         <td>
-                            <a href="${rootURL}/${it.run.url}artifact/${log.relativePath}">${log.fileName}</a>
+                            <h4>${entry.key}</h4>
                         </td>
-                    </li>
+                        <td>
+                            <ul>
+                                <j:forEach var="fileName" items="${entry.value}">
+                                    <li>
+                                        <a href="${rootURL}/${it.run.url}artifact/${it.logDirName}/${entry.key}/${fileName}">
+                                            ${fileName}
+                                        </a>
+                                    </li>
+                                </j:forEach>
+                            </ul>
+                        </td>
+                    </tr>
                 </j:forEach>
             </ul>
         </l:main-panel>

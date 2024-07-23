@@ -1,14 +1,15 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.actions
 
-import hudson.FilePath
 import hudson.model.Run
 import jenkins.model.RunAction2
 
 class ProvideLogsAction implements RunAction2 {
-    private transient Run<?, ?> run
+    private transient Run run
+    private String logDirName
 
-    ProvideLogsAction(Run<?, ?> run) {
+    ProvideLogsAction(Run run, String logDirName) {
         this.run = run
+        this.logDirName = logDirName
     }
 
     @Override
@@ -27,21 +28,40 @@ class ProvideLogsAction implements RunAction2 {
     }
 
     @Override
-    void onAttached(Run<?, ?> run) {
+    void onAttached(Run run) {
         this.run = run
 
     }
 
     @Override
-    void onLoad(Run<?, ?> run) {
+    void onLoad(Run run) {
         this.run = run
     }
 
-    Run<?, ?> getRun() {
+    Run getRun() {
         return run
     }
 
-    List<Run.Artifact> getLogs() {
-        return run?.artifacts ?: []
+    String getLogDirName() {
+        return logDirName ?: "reportLogs"
     }
+
+    /**
+     * Creates and returns a map containing the relative path (minus the first folder as its always the same)
+     * as key and filename as entry for each artifact.
+     * This is used to group the logs for each folder in the jelly view.
+     * @return Map
+     */
+    Map<String, List<String>> getLogPathMap() {
+        def map = new HashMap<String, List<String>>()
+        getRun()?.artifacts?.each { artifact ->
+            def pathParts = artifact.relativePath.split("/")
+            if (pathParts[0] == logDirName) {
+                def key = pathParts[1..-2].join("/")
+                map.computeIfAbsent(key) { [] }.add(pathParts[-1])
+            }
+        }
+        return map
+    }
+
 }
