@@ -1,14 +1,14 @@
-package de.tracetronic.jenkins.plugins.ecutestexecution.actions
+package de.tracetronic.jenkins.plugins.ecutestexecution.views
 
+import hudson.model.Action
 import hudson.model.Run
-import jenkins.model.RunAction2
 
-class ProvideLogsAction implements RunAction2 {
-    private transient Run run
+class ProvideLogsActionView implements Action {
+    private String runId
     private String logDirName
 
-    ProvideLogsAction(Run run, String logDirName) {
-        this.run = run
+    ProvideLogsActionView(String runID, String logDirName) {
+        this.runId = runID
         this.logDirName = logDirName
     }
 
@@ -27,23 +27,12 @@ class ProvideLogsAction implements RunAction2 {
         return "et-logs"
     }
 
-    @Override
-    void onAttached(Run run) {
-        this.run = run
-
-    }
-
-    @Override
-    void onLoad(Run run) {
-        this.run = run
-    }
-
     Run getRun() {
-        return run
+        return Run.fromExternalizableId(runId)
     }
 
     String getLogDirName() {
-        return logDirName ?: "reportLogs"
+        return logDirName
     }
 
     /**

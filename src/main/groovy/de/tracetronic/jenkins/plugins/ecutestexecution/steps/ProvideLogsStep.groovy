@@ -9,17 +9,19 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.actions.ProvideLogsAction
+
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideLogsActionView
 import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.FilePath
 import hudson.Launcher
+import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.ListBoxModel
@@ -31,37 +33,32 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
-import javax.annotation.Nonnull
 import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ProvideLogsStep extends Step {
-    @Nonnull
-    private ExecutionConfig executionConfig
+    public static final int DEFAULT_TIMEOUT = 3600
+    private int timeout
 
-    @DataBoundConstructor
     ProvideLogsStep() {
         super()
-        this.executionConfig = new ExecutionConfig()
+        this.timeout = DEFAULT_TIMEOUT
     }
 
-    /**
-     * @return the execution config
-     */
-    @Nonnull
-    ExecutionConfig getExecutionConfig() {
-        return new ExecutionConfig(executionConfig)
+    @DataBoundConstructor
+    ProvideLogsStep(int timeout) {
+        super()
+        this.timeout = timeout
     }
 
-    /**
-     *
-     * @param executionConfig
-     * set the execution config
-     */
+    int getTimeout() {
+        return timeout
+    }
+
     @DataBoundSetter
-    void setExecutionConfig(ExecutionConfig executionConfig) {
-        this.executionConfig = executionConfig ?: new ExecutionConfig()
+    void setTimeout(int timeout) {
+        this.timeout = timeout < 0 ? 0 : timeout
     }
 
     @Override
@@ -99,24 +96,29 @@ class ProvideLogsStep extends Step {
             long startTimeMillis = run.getStartTimeInMillis()
 
             // Download ecu.test logs to jenkins workspace
-            ArrayList<String> logFilePaths = launcher.getChannel().call(
-                    new ExecutionCallable(step.executionConfig.timeout, startTimeMillis, context.get(EnvVars.class), logDirPath, listener)
-            )
-
-            if (!logFilePaths) {
-                listener.logger.println('[WARNING] No ecu.test log files found!')
-                listener.logger.flush()
-                return
+            try {
+                ArrayList<String> logFilePaths = launcher.getChannel().call(
+                        new ExecutionCallable(step.timeout, startTimeMillis, context.get(EnvVars.class), logDirPath, listener)
+                )
+                if (!logFilePaths) {
+                    listener.logger.println('[WARNING] No ecu.test log files found!')
+                    listener.logger.flush()
+                    return
+                }
+                def artifactsMap = new HashMap<String, String>()
+                logFilePaths.each { logPath ->
+                    def relPath = logPath.substring(workspace.getRemote().length() + 1)
+                    artifactsMap.put(relPath, relPath)
+                }
+                run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
+                run.addAction(new ProvideLogsActionView(run.externalizableId, logDirName))
+                workspace.child(logDirName).deleteContents()
+                listener.logger.println("Successfully added ecu.test logs to jenkins.")
+            } catch (Exception e) {
+                listener.logger.println('Providing ecu.test logs failed!')
+                listener.error(e.message)
+                run.setResult(Result.FAILURE)
             }
-            def artifactsMap = new HashMap<String, String>()
-            logFilePaths.each { logPath ->
-                def relPath = logPath.substring(workspace.getRemote().length() + 1)
-                artifactsMap.put(relPath, relPath)
-            }
-            run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
-            run.addAction(new ProvideLogsAction(run, logDirName))
-            workspace.child(logDirName).deleteContents()
-            listener.logger.println("Successfully added ecu.test logs to jenkins.")
             listener.logger.flush()
         }
     }
@@ -173,8 +175,6 @@ class ProvideLogsStep extends Step {
             catch (ApiException e) {
                 if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
                     throw new AbortException(unsupportedProvideLogsMsg)
-                } else {
-                    throw new AbortException(e.message)
                 }
             }
             listener.logger.flush()
@@ -183,7 +183,6 @@ class ProvideLogsStep extends Step {
 
         @Override
         void cancel() {
-            listener.logger.println("Canceling ProvideLogs step!")
             !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
         }
 
@@ -236,15 +235,9 @@ class ProvideLogsStep extends Step {
 
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
-        private static final List<String> REPORT_GENERATORS = Arrays.asList('ATX', 'EXCEL', 'HTML', 'JSON', 'OMR',
-                'TestSpec', 'TRF-SPLIT', 'TXT', 'UNIT')
 
-        static ListBoxModel doFillGeneratorNameItems() {
-            ListBoxModel model = new ListBoxModel()
-            REPORT_GENERATORS.each { name ->
-                model.add(name)
-            }
-            return model
+        static int getDefaultTimeout() {
+            return DEFAULT_TIMEOUT
         }
 
         @Override
