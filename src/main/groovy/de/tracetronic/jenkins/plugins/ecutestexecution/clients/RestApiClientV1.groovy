@@ -224,13 +224,4 @@ class RestApiClientV1 implements RestApiClient {
     List<String> getAllReportIds() {
         return getAllReports()*.testReportId
     }
-
-    /**
-     * Download the report folder of the given reportId from ecu.test
-     * Only available in api v2
-     * @return File
-     */
-    File downloadReportFolder(String reportID) {
-        throw new AbortException("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.")
-    }
 }

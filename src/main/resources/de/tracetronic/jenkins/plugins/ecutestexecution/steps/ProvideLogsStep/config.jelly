@@ -4,4 +4,7 @@
     <f:description>${%step.description}
         <b>${%step.compatNote}</b>
     </f:description>
+    <f:advanced>
+        <f:property field="executionConfig"/>
+    </f:advanced>
 </j:jelly>

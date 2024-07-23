@@ -56,6 +56,6 @@ class ETV1ContainerTest extends ETContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-            jenkins.assertLogContains("Downloading report folders is not supported by api v1. Use ecu.test > 2024.2 with api v2 instead.", run)
+            jenkins.assertLogContains("Downloading report folders is not supported for ecu.test version. Use ecu.test >= 2024.2 instead.", run)
     }
 }

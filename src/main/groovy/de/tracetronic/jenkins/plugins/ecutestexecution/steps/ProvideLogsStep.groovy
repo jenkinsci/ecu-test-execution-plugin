@@ -12,6 +12,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.actions.ProvideLogsAction
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import hudson.AbortException
 import hudson.EnvVars
@@ -21,23 +23,45 @@ import hudson.Launcher
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.ListBoxModel
-import jenkins.security.MasterToSlaveCallable
 import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
+import org.kohsuke.stapler.DataBoundSetter
 
+import javax.annotation.Nonnull
 import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ProvideLogsStep extends Step {
+    @Nonnull
+    private ExecutionConfig executionConfig
 
     @DataBoundConstructor
     ProvideLogsStep() {
         super()
+        this.executionConfig = new ExecutionConfig()
+    }
+
+    /**
+     * @return the execution config
+     */
+    @Nonnull
+    ExecutionConfig getExecutionConfig() {
+        return new ExecutionConfig(executionConfig)
+    }
+
+    /**
+     *
+     * @param executionConfig
+     * set the execution config
+     */
+    @DataBoundSetter
+    void setExecutionConfig(ExecutionConfig executionConfig) {
+        this.executionConfig = executionConfig ?: new ExecutionConfig()
     }
 
     @Override
@@ -55,6 +79,7 @@ class ProvideLogsStep extends Step {
             super(context)
             this.step = step
         }
+
         /**
          * Call the execution of the step in the build and archive returned report logs in jenkins.
          * Logs a warning if old files are present in report file folder of the workspace.
@@ -66,7 +91,7 @@ class ProvideLogsStep extends Step {
             String logDirName = "reportLogs"
             String logDirPath = PathUtil.makeAbsoluteInPipelineHome(logDirName, context)
 
-            Run<?, ?> run = context.get(Run.class)
+            Run run = context.get(Run.class)
             FilePath workspace = context.get(FilePath.class)
             Launcher launcher = context.get(Launcher.class)
             TaskListener listener = context.get(TaskListener.class)
@@ -74,28 +99,29 @@ class ProvideLogsStep extends Step {
             long startTimeMillis = run.getStartTimeInMillis()
 
             // Download ecu.test logs to jenkins workspace
-            launcher.getChannel().call(
-                    new ExecutionCallable(startTimeMillis, context.get(EnvVars.class), logDirPath, listener)
+            ArrayList<String> logFilePaths = launcher.getChannel().call(
+                    new ExecutionCallable(step.executionConfig.timeout, startTimeMillis, context.get(EnvVars.class), logDirPath, listener)
             )
 
-            // Upload ecu.test logs as jenkins artifacts
-            if (workspace.child(logDirName).list().size() > 0) {
-                FilePath[] reportLogs = workspace.list("${logDirName}/**/*.log")
-                def artifactsMap = new HashMap<String, String>()
-                reportLogs.each { log ->
-                    def relativePath = log.getRemote().substring(workspace.getRemote().length() + 1)
-                    artifactsMap.put(relativePath, relativePath)
-                }
-                run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
-                run.addAction(new ProvideLogsAction(run))
-                workspace.child(logDirName).deleteContents()
-                listener.logger.println("Successfully added ecu.test logs to jenkins.")
+            if (!logFilePaths) {
+                listener.logger.println('[WARNING] No ecu.test log files found!')
+                listener.logger.flush()
+                return
             }
+            def artifactsMap = new HashMap<String, String>()
+            logFilePaths.each { logPath ->
+                def relPath = logPath.substring(workspace.getRemote().length() + 1)
+                artifactsMap.put(relPath, relPath)
+            }
+            run.artifactManager.archive(workspace, launcher, listener, artifactsMap)
+            run.addAction(new ProvideLogsAction(run))
+            workspace.child(logDirName).deleteContents()
+            listener.logger.println("Successfully added ecu.test logs to jenkins.")
             listener.logger.flush()
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<Void, IOException> {
+    private static final class ExecutionCallable extends ControllerToAgentCallableWithTimeout<ArrayList<String>, IOException> {
 
         private static final long serialVersionUID = 1L
 
@@ -103,10 +129,12 @@ class ProvideLogsStep extends Step {
         private final EnvVars envVars
         private final String logDirPath
         private final TaskListener listener
+        private RestApiClient apiClient
 
+        private final unsupportedProvideLogsMsg = "Downloading report folders is not supported for ecu.test version < 2024.2."
 
-        ExecutionCallable(long startTimeMillis, EnvVars envVars, String logDirPath, TaskListener listener) {
-            super()
+        ExecutionCallable(long timeout, long startTimeMillis, EnvVars envVars, String logDirPath, TaskListener listener) {
+            super(timeout, listener)
             this.startTimeMillis = startTimeMillis
             this.envVars = envVars
             this.logDirPath = logDirPath
@@ -119,37 +147,45 @@ class ProvideLogsStep extends Step {
          * @return List of strings containing the paths of the logs.
          */
         @Override
-        Void call() throws IOException {
+        ArrayList<String> execute() throws IOException {
+            ArrayList<String> logPaths = []
             listener.logger.println("Providing ecu.test logs to jenkins.")
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+                if (apiClient instanceof de.tracetronic.cxs.generated.et.client.v1.ApiClient) {
+                    throw new AbortException(unsupportedProvideLogsMsg)
+                }
+
                 List<ReportInfo> reports = apiClient.getAllReports()
 
                 if (reports == null || reports.isEmpty()) {
-                    listener.logger.println("[WARNING] No report files returned by ecu.test")
+                    return []
                 }
                 for (def report : reports) {
                     String reportDir = report.reportDir.split('/').last()
                     if (!checkReportFolderCreationDate(reportDir)) {
                         listener.logger.println("[WARNING] ecu.test reports contains folder older than this run. Path: ${report.reportDir}")
                     }
-
                     File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
-                    if (!extractAndSaveFromZip(reportFolderZip, ["ecu.test_out", "ecu.test_err"], "${logDirPath}/${reportDir}")) {
-                        throw new AbortException("${report.reportDir} is missing one or all log files!")
-                    }
+                    logPaths.addAll(extractAndSaveFromZip(reportFolderZip, ["ecu.test_out", "ecu.test_err"], "${logDirPath}/${reportDir}"))
                 }
             }
             catch (ApiException e) {
                 if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
-                    throw new AbortException("[ERROR] Downloading reportFolder is not available for ecu.test < 2024.2!")
+                    throw new AbortException(unsupportedProvideLogsMsg)
                 } else {
                     throw new AbortException(e.message)
                 }
             }
             listener.logger.flush()
+            return logPaths
         }
 
+        @Override
+        void cancel() {
+            listener.logger.println("Canceling ProvideLogs step!")
+            !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
+        }
 
         /**
          * Checks if given reportDir name, which includes the date was created after this build was started
@@ -164,7 +200,6 @@ class ProvideLogsStep extends Step {
                 String matchedText = matcher.group(0)
                 return dateFormat.parse(matchedText) > new Date(startTimeMillis)
             }
-            listener.logger.println("[WARNING] Could not extract date from report folder name: ${reportDir}")
             return false
         }
 
@@ -172,8 +207,8 @@ class ProvideLogsStep extends Step {
          * Extracts and saves files containing the given strings in their name out of a given zip folder to given path.
          * @return boolean
          */
-        static boolean extractAndSaveFromZip(File reportFolderZip, List<String> extractFilesContaining, String saveToPath) {
-            int found = 0
+        ArrayList<String> extractAndSaveFromZip(File reportFolderZip, List<String> extractFilesContaining, String saveToPath) {
+            ArrayList<String> savedLogs = []
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
             ZipEntry entry
             while ((entry = zipInputStream.nextEntry) != null) {
@@ -187,15 +222,15 @@ class ProvideLogsStep extends Step {
                         } finally {
                             outputStream.close()
                         }
-                        found++
+                        savedLogs.add(outputFile.getPath())
                     }
                 }
             }
             zipInputStream.close()
-            if (extractFilesContaining.size() == found) {
-                return true
+            if (extractFilesContaining.size() != savedLogs.size()) {
+                listener.logger.println("${report.reportDir} is missing one or all log files!")
             }
-            return false
+            return savedLogs
         }
     }
 
@@ -219,7 +254,7 @@ class ProvideLogsStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Provide ecu.test logs in jenkins.'
+            '[TT] Provide ecu.test logs as artifacts.'
         }
 
         @Override

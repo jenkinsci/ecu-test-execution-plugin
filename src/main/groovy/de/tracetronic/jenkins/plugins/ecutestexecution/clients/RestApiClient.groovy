@@ -86,10 +86,4 @@ interface RestApiClient {
      */
     abstract List<String> getAllReportIds()
     
-    /**
-     * Download the report folder of the given reportId from ecu.test
-     * Only available in api v2
-     * @return File
-     */
-    abstract File downloadReportFolder(String reportID)
 }
