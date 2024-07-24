@@ -45,7 +45,7 @@ class ETInstallationIT extends IntegrationTestBase {
             toolName     | executablePath               | exceptionMessage
             'INVALID-ET' | ''                           | "Tool executable path of \'${toolName}\' is not configured for this node!"
             'INVALID-ET' | 'C:\\ecu.test\\INVALID.exe'  | "Tool executable path of \'${toolName}\': \'${executablePath}\' does not contain a tracetronic tool! " +
-                                                            "Please ensure the path is a full path including the executable file, not a directory."
+                                                            "Please ensure the path is a full path including the executable file extension, not a directory."
     }
 
     @IgnoreIf({ os.linux })

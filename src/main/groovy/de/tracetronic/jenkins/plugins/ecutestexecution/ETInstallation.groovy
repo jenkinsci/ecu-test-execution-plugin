@@ -90,7 +90,7 @@ class ETInstallation extends ToolInstallation implements
         if (!executables.contains(exeName)) {
             throw new IllegalArgumentException("Tool executable path of '${getName()}': " +
                     "'${home}' does not contain a tracetronic tool! " +
-                    "Please ensure the path is a full path including the executable file, not a directory.")
+                    "Please ensure the path is a full path including the executable file extension, not a directory.")
         }
 
         return new File(home)

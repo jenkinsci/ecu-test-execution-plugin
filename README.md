@@ -53,7 +53,7 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 ### Tool configuration
 
 ecu.test and trace.check installations are administrated in the global tool configuration at section "ecu.test". An installation entry
-is specified by an arbitrary name and the path to the executable. The execution on a Jenkins agent requires
+is specified by an arbitrary name and the full path including the executable file extension. The execution on a Jenkins agent requires
 the adaptation of the path to the executable of the tool on the agent configuration page.
 
 ![ecu.test](docs/images/ecu.test-config.png "ecu.test-config")
