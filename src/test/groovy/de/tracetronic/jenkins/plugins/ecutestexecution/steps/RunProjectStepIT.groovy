@@ -5,6 +5,8 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import com.google.gson.reflect.TypeToken
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
@@ -128,22 +130,20 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing package checks for 'test.prj'", run)
     }
 
-    def 'Run pipeline: with 409 handling'() {
+    def 'Run pipeline: with 409 handling and no config load'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
-            GroovySpy(ConfigurationApi, global: true){
-                manageConfigurationWithHttpInfo(*_) >> {
-                    restApiClient.apiClient.execute(mockCall, null)
-                }
-            }
+
             GroovySpy(ExecutionApi, global: true){
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
             }
+
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunProject 'test.prj' }", true))
         expect:
@@ -151,6 +151,38 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing project 'test.prj'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
+    }
+
+
+    def 'Run pipeline: with 409 handling and config load'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
+            def mockCall = Mock(Call)
+            mockCall.clone() >> mockCall
+            mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
+
+            def manageConfigCalled = 0
+            GroovySpy(ConfigurationApi, global: true) {
+                manageConfiguration(*_) >> {
+                    manageConfigCalled =+ 1
+                    restApiClient.apiClient.execute(mockCall, new TypeToken<SimpleMessage>(){}.getType())
+                }
+            }
+
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', testConfig: [tbcPath: 'test.tbc'] }", true))
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogContains("Executing project 'test.prj'", run)
+            jenkins.assertLogNotContains('ecu.test is busy', run)
+            jenkins.assertLogContains('unauthorized', run)
+        and:
+            // interactive-based testing cannot be used because the method call does not fully end
+            assert manageConfigCalled == 1
     }
 
     def 'Run pipeline: ecu.test folder at path does not exist'() {

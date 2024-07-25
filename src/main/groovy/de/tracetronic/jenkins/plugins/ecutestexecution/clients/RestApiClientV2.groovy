@@ -15,17 +15,17 @@ import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
 import de.tracetronic.cxs.generated.et.client.model.v2.CheckReport
 import de.tracetronic.cxs.generated.et.client.model.v2.ConfigurationOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.ConfigurationStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.Execution
 import de.tracetronic.cxs.generated.et.client.model.v2.ExecutionStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.LabeledValue
+import de.tracetronic.cxs.generated.et.client.model.v2.ModelConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.ReportGeneration
 import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationStatus
-import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.cxs.generated.et.client.model.v2.TGUpload
 import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.TestConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.TestbenchConfiguration
-import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
@@ -124,11 +124,11 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * @throws TimeoutException during api calls if the execution time exceeded the timeout
      */
     ReportInfo runTest(ExecutionOrder executionOrder) throws ApiException, TimeoutException {
-
+        ExecutionApi executionApi = new ExecutionApi(apiClient)
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
 
-        List<LabeledValue> constants = new ArrayList<>()
+        List<LabeledValue> constants = []
         executionOrder.constants.each { constant ->
             constants.add(new LabeledValue().label(constant.label).value(constant.value))
         }
@@ -137,19 +137,25 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .tcf(new TestConfiguration().tcfPath(executionOrder.tcfPath))
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
-
-        if (executionOrder.tbcPath != null || executionOrder.tcfPath != null) {
-            ConfigurationApi configApi = new ConfigurationApi(apiClient)
-            ApiResponse<SimpleMessage> status
-            configApi.manageConfigurationWithHttpInfo(configOrder)
-        }
-        ExecutionApi executionApi = new ExecutionApi(apiClient)
-        executionApi.createExecution(executionOrderV2)
-        Closure<Boolean> checkStatus = { Execution execution ->
-            execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
-        }
-
         try {
+            if (configOrder.tbc.tbcPath || configOrder.tcf.tcfPath || constants) {
+                ConfigurationApi configApi = new ConfigurationApi(apiClient)
+                configApi.manageConfiguration(configOrder)
+
+                Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
+                    configuration?.status?.key in [null, ConfigurationStatus.KeyEnum.WAITING, ConfigurationStatus.KeyEnum.RUNNING]
+                }
+
+                while (checkConfigStatus(configApi.lastConfigurationOrder)) {
+                    sleep(1000)
+                }
+            }
+
+            executionApi.createExecution(executionOrderV2)
+            Closure<Boolean> checkStatus = { Execution execution ->
+                execution?.status?.key in [null, ExecutionStatus.KeyEnum.WAITING, ExecutionStatus.KeyEnum.RUNNING]
+            }
+
             Execution execution
             while (checkStatus(execution = executionApi.currentExecution)) {
                 sleep(1000)
