@@ -15,6 +15,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiExceptio
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideLogsActionView
 import hudson.AbortException
 import hudson.EnvVars
@@ -33,8 +34,6 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
 import java.text.SimpleDateFormat
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 
 class ProvideLogsStep extends Step {
     public static final int DEFAULT_TIMEOUT = 3600
@@ -149,8 +148,9 @@ class ProvideLogsStep extends Step {
          */
         @Override
         ArrayList<String> execute() throws IOException {
-            ArrayList<String> logPaths = []
             listener.logger.println("Providing ecu.test logs to jenkins.")
+            ArrayList<String> logFileNames = ["ecu.test_out.log", "ecu.test_err.log"]
+            ArrayList<String> logPaths = []
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
                 if (apiClient instanceof RestApiClientV1) {
@@ -168,7 +168,11 @@ class ProvideLogsStep extends Step {
                         listener.logger.println("[WARNING] ecu.test reports contains folder older than this run. Path: ${report.reportDir}")
                     }
                     File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
-                    logPaths.addAll(extractAndSaveFromZip(reportFolderZip, ["ecu.test_out", "ecu.test_err"], "${logDirPath}/${reportDir}"))
+                    List<String> extractedFiles = ZipUtil.extractAndSaveFromZip(reportFolderZip, logFileNames, "${logDirPath}/${reportDir}")
+                    if (extractedFiles.size() != logFileNames.size()) {
+                        listener.logger.println("[WARNING] ${report.reportDir} is missing one or all log files!")
+                    }
+                    logPaths.addAll(extractedFiles)
                 }
             }
             catch (ApiException e) {
@@ -200,44 +204,10 @@ class ProvideLogsStep extends Step {
             }
             return false
         }
-
-        /**
-         * Extracts and saves files containing the given strings in their name out of a given zip folder to given path.
-         * @return boolean
-         */
-        ArrayList<String> extractAndSaveFromZip(File reportFolderZip, List<String> extractFilesContaining, String saveToPath) {
-            ArrayList<String> savedLogs = []
-            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
-            ZipEntry entry
-            while ((entry = zipInputStream.nextEntry) != null) {
-                for (String str : extractFilesContaining) {
-                    if (entry.name.contains(str)) {
-                        File outputFile = new File("${saveToPath}/${str}.log")
-                        outputFile.parentFile.mkdirs()
-                        def outputStream = new FileOutputStream(outputFile)
-                        try {
-                            outputStream << zipInputStream
-                        } finally {
-                            outputStream.close()
-                        }
-                        savedLogs.add(outputFile.getPath())
-                    }
-                }
-            }
-            zipInputStream.close()
-            if (extractFilesContaining.size() != savedLogs.size()) {
-                listener.logger.println("${report.reportDir} is missing one or all log files!")
-            }
-            return savedLogs
-        }
     }
 
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
-
-        static int getDefaultTimeout() {
-            return DEFAULT_TIMEOUT
-        }
 
         @Override
         String getFunctionName() {

@@ -14,7 +14,7 @@ class ProvideLogsActionView implements Action {
 
     @Override
     String getIconFileName() {
-        return "clipboard.png"
+        return "orange-square.png"
     }
 
     @Override
