@@ -44,7 +44,8 @@ class ETInstallationIT extends IntegrationTestBase {
         where:
             toolName     | executablePath               | exceptionMessage
             'INVALID-ET' | ''                           | "Tool executable path of \'${toolName}\' is not configured for this node!"
-            'INVALID-ET' | 'C:\\ecu.test\\INVALID.exe'  | "Tool executable path of \'${toolName}\': \'${executablePath}\' does not contain a tracetronic tool!"
+            'INVALID-ET' | 'C:\\ecu.test\\INVALID.exe'  | "Tool executable path of \'${toolName}\': \'${executablePath}\' does not contain a tracetronic tool! " +
+                                                            "Please ensure the path is a full path including the executable file extension, not a directory."
     }
 
     @IgnoreIf({ os.linux })
@@ -155,7 +156,7 @@ class ETInstallationIT extends IntegrationTestBase {
             toolPaths.contains("trace.check")
     }
 
-    def 'getExeFileNames for TraceTronic tools' () {
+    def 'getExeFileNames for tracetronic tools' () {
         expect:
             ETInstallation.getExeFileNames() == Functions.isWindows() ?
                     ['ECU-TEST.exe', 'TRACE-CHECK.exe', 'ecu.test.exe', 'trace.check.exe'] :
