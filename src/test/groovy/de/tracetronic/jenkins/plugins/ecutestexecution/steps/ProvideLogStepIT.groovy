@@ -31,9 +31,9 @@ class ProvideLogStepIT extends IntegrationTestBase {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            ProvideLogsStep step = new ProvideLogsStep()
+            ProvideLogsStep step = new ProvideLogsStep(60)
         then:
-            st.assertRoundTrip(step, "ttProvideLogs()")
+            st.assertRoundTrip(step, "ttProvideLogs timeout: 60")
     }
 
     def 'Run pipeline'() {
@@ -41,7 +41,8 @@ class ProvideLogStepIT extends IntegrationTestBase {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
         expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] No ecu.test log files found", run)
     }
 }

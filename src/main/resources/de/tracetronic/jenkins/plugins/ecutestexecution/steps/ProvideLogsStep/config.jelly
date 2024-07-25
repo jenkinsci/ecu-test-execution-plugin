@@ -7,7 +7,7 @@
     <f:section title="Settings">
         <f:advanced>
             <f:entry title="${%timeout.title}" description="${%timeout.description}" field="timeout">
-                <f:number clazz="non-negative-number-required" min="0" default="${descriptor.defaultTimeout}"/>
+                <f:number clazz="non-negative-number-required" min="0"/>
             </f:entry>
         </f:advanced>
     </f:section>
