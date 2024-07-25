@@ -7,14 +7,15 @@ example pipeline.
 
 Existing pipeline jobs can be migrated using the pipeline syntax given in the following table.
 
-Step Name v2.x | Step Name v3.x
--------------- | ------------------
-*testFolder*   | **ttRunTestFolder**
-*testPackage*  | **ttRunPackage**
-*testProject*  | **ttRunProject**
-*startET*      | **ttStartTool**
-*stopET*       | **ttStopTool**
-*publishATX*   | **ttUploadReports**
+ Step Name v2.x  | Step Name v3.x      
+-----------------|---------------------
+ *testFolder*    | **ttRunTestFolder** 
+ *testPackage*   | **ttRunPackage**    
+ *testProject*   | **ttRunProject**    
+ *startET*       | **ttStartTool**     
+ *stopET*        | **ttStopTool**      
+ *publishATX*    | **ttUploadReports** 
+ *publishETLogs* | **ttProvideLogs**   
 
 Remaining steps which are available in the [current plugin version](https://github.com/jenkinsci/ecutest-plugin) are in
 development and will be available in the future.
@@ -41,7 +42,7 @@ node('windows') {
     stage('Upload Reports') {
         // upload generated report to test.guide
         publishATX 'test.guide'
-        // or publishETLogs failedOnError: true, unstableOnWarning: true
+        publishETLogs failedOnError: true, unstableOnWarning: true
         // or publishTMS credentialsId: 'YourCredentials', toolName: 'ecu.test'
         // or publishTRF()
         // or publishUNIT failedThreshold: 2.0, toolName: 'ecu.test', unstableThreshold: 1.0
@@ -76,6 +77,7 @@ node('windows') {
     stage('Upload Reports') {
         // upload generated reports into project (projectId) of test.guide
         ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
+        ttProvideLogs()
     }
     stage('Stop Tools') {
         // shutdown ecu.test instance
