@@ -55,7 +55,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
                 then: "expect successful test completion"
                     jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-                    jenkins.assertLogContains("[WARNING] No report files returned by ecu.test", run)
+                    jenkins.assertLogContains("[WARNING] No ecu.test log files found!", run)
             }
 
         def "Perform provide logs step with reports"() {

@@ -9,7 +9,8 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.ExecutionConfig
@@ -133,7 +134,7 @@ class ProvideLogsStep extends Step {
         private final TaskListener listener
         private RestApiClient apiClient
 
-        private final unsupportedProvideLogsMsg = "Downloading report folders is not supported for ecu.test version < 2024.2."
+        private final unsupportedProvideLogsMsg = "Downloading report folders is not supported for this ecu.test version. Please use ecu.test >= 2024.2 instead."
 
         ExecutionCallable(long timeout, long startTimeMillis, EnvVars envVars, String logDirPath, TaskListener listener) {
             super(timeout, listener)
@@ -154,10 +155,10 @@ class ProvideLogsStep extends Step {
             listener.logger.println("Providing ecu.test logs to jenkins.")
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
-                if (apiClient instanceof de.tracetronic.cxs.generated.et.client.v1.ApiClient) {
+                if (apiClient instanceof RestApiClientV1) {
                     throw new AbortException(unsupportedProvideLogsMsg)
                 }
-
+                apiClient = (RestApiClientV2) apiClient
                 List<ReportInfo> reports = apiClient.getAllReports()
 
                 if (reports == null || reports.isEmpty()) {
