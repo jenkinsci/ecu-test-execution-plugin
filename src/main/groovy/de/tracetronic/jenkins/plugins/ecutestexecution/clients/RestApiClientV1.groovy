@@ -29,7 +29,6 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrd
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
-import hudson.AbortException
 
 import java.util.concurrent.TimeoutException
 

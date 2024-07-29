@@ -14,7 +14,7 @@ class ProvideLogsActionView implements Action {
 
     @Override
     String getIconFileName() {
-        return "orange-square.png"
+        return "plugin/ecu-test-execution/images/ecu.test.svg"
     }
 
     @Override

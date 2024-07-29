@@ -45,4 +45,16 @@ class ProvideLogStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No ecu.test log files found", run)
     }
+
+        def 'Run pipeline timeout'() {
+            int timeout = 1
+            given:
+                WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+                job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs timeout:${timeout}}", true))
+            expect:
+                WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+                jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
+                jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
+                jenkins.assertLogContains("Providing ecu.test logs failed!", run)
+        }
 }

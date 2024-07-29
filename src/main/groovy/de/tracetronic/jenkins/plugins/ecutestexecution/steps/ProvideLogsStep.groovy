@@ -36,7 +36,7 @@ import org.kohsuke.stapler.DataBoundSetter
 import java.text.SimpleDateFormat
 
 class ProvideLogsStep extends Step {
-    public static final int DEFAULT_TIMEOUT = 3600
+    public static final int DEFAULT_TIMEOUT = 0
     private int timeout
 
     ProvideLogsStep() {
@@ -209,6 +209,10 @@ class ProvideLogsStep extends Step {
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 
+        static int getDefaultTimeout() {
+            DEFAULT_TIMEOUT
+        }
+
         @Override
         String getFunctionName() {
             'ttProvideLogs'
@@ -216,7 +220,7 @@ class ProvideLogsStep extends Step {
 
         @Override
         String getDisplayName() {
-            '[TT] Provide ecu.test logs as artifacts.'
+            '[TT] Provide ecu.test logs as job artifacts.'
         }
 
         @Override
