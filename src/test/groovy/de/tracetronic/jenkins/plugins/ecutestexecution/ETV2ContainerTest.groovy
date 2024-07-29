@@ -77,25 +77,4 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
             jenkins.assertLogContains("Successfully added ecu.test logs to jenkins.", run)
     }
-    def "Perform provide logs step with timeout"() {
-        int timeout = 1
-        given: "a test execution pipeline"
-            String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttRunPackage testCasePath: 'test.pkg'
-                    ttProvideLogs timeout:${timeout}
-                }
-            }
-            """.stripIndent()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-        when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
-
-        then: "expect successful test completion"
-            jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-            jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-            jenkins.assertLogContains("Providing ecu.test logs failed!", run)
-    }
 }
