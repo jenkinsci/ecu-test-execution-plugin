@@ -36,7 +36,7 @@ import org.kohsuke.stapler.DataBoundSetter
 import java.text.SimpleDateFormat
 
 class ProvideLogsStep extends Step {
-    public static final int DEFAULT_TIMEOUT = 0
+    public static final int DEFAULT_TIMEOUT = 36000
     private int timeout
 
     ProvideLogsStep() {
@@ -113,9 +113,13 @@ class ProvideLogsStep extends Step {
                 workspace.child(logDirName).deleteContents()
                 listener.logger.println("Successfully added ecu.test logs to jenkins.")
             } catch (Exception e) {
+                if (e instanceof AbortException) {
+                    run.setResult(Result.UNSTABLE)
+                } else {
+                    run.setResult(Result.FAILURE)
+                }
                 listener.logger.println('Providing ecu.test logs failed!')
                 listener.error(e.message)
-                run.setResult(Result.FAILURE)
             }
             listener.logger.flush()
         }

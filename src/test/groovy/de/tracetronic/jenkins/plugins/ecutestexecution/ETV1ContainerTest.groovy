@@ -52,7 +52,7 @@ class ETV1ContainerTest extends ETContainerTest {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
 
         then: "expect successful test completion"
             jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
