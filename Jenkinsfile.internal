@@ -36,6 +36,7 @@ pipeline {
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
         TEST_LEVEL = "pipeline"
+        JENKINS_VERSION = "2.426.3"
     }
 
     tools {
@@ -81,7 +82,11 @@ pipeline {
                     // The needed artifact is only built for main and pull requests -> skip this job otherwise
                     when { branch pattern: "PR-\\d+|main", comparator: "REGEXP"}
                     steps {
-                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}")]
+                        script {
+                            gradle_properties = readProperties file: 'gradle.properties'
+                            def currentJenkinsVersion = gradle_properties['jenkinsVersion'] ?: '2.452.3'
+                            build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}"), string(name: 'jenkinsVersion', value: "${currentJenkinsVersion}")]
+                        }
                     }
                 }
                 stage('Container Tests') {
