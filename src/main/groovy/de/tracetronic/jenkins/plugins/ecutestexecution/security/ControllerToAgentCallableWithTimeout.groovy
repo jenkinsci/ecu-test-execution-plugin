@@ -40,7 +40,9 @@ abstract class ControllerToAgentCallableWithTimeout<V, T extends Throwable> exte
         try {
             ScheduledExecutorService exe = Timer.get()
             V result
-            exe.schedule({ !result ? cancel() : { return } } as Callable, timeout, TimeUnit.SECONDS)
+            if (timeout != 0) {
+                exe.schedule({ !result ? cancel() : { return } } as Callable, timeout, TimeUnit.SECONDS)
+            }
             result = execute()
         } catch (Exception e) {
             if (e instanceof TimeoutException) {

@@ -74,8 +74,16 @@ interface RestApiClient {
     abstract UploadResult uploadReport(String reportId, TGUploadOrder order)
 
     /**
+     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * of all available test reports in the ecu.test instance.
+     * @return List of ReportInfo with report IDs
+     */
+    abstract List<ReportInfo> getAllReports()
+
+    /**
      * Get the IDs of all available test reports in the ecu.test instance.
      * @return List of strings with report IDs
      */
     abstract List<String> getAllReportIds()
+    
 }

@@ -1,9 +1,12 @@
 # ecu.test execution plugin
+
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=plugins/ecu-test-execution-plugin/main)](https://ci.jenkins.io/job/plugins/job/ecu-test-execution-plugin/job/main) [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/ecu-test-execution.svg)](https://plugins.jenkins.io/ecu-test-execution) [![Jenkins Release](https://img.shields.io/github/release/jenkinsci/ecu-test-execution-plugin.svg?label=changelog&color=orange)](https://github.com/jenkinsci/ecu-test-execution-plugin/releases) [![Plugin Installs](https://img.shields.io/jenkins/plugin/i/ecu-test-execution.svg?color=blue&logo=jenkins&logoColor=white)](https://plugins.jenkins.io/ecu-test-execution) [![License](https://img.shields.io/badge/license-3--clause%20BSD-blue.svg?style=flat&logo=opensourceinitiative&logoColor=white&color=green)](https://github.com/jenkinsci/ecu-test-execution-plugin/blob/main/LICENSE)
 
 This plugin enables a platform-independent test execution. Due to the reduced complexity and communication via REST API,
-it provides an easy and reliable entry into continuous testing. It integrates 
-[ecu.test](https://www.tracetronic.com/products/ecu-test) and [trace.check](https://www.tracetronic.com/products/trace-check/) with Jenkins and allows report generation and its upload of 
+it provides an easy and reliable entry into continuous testing. It integrates
+[ecu.test](https://www.tracetronic.com/products/ecu-test)
+and [trace.check](https://www.tracetronic.com/products/trace-check/) with Jenkins and allows report generation and its
+upload of
 automated test execution.<br><br>
 
 <img src="docs/images/ecu.test.png" align="left" alt="ecu.test Logo" style="padding-right: 15px;height:150px"> 
@@ -42,18 +45,21 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 ## Features
 
 - Provides an easy integration and control of ecu.test and trace.check with Jenkins
-- Enables perfoming package and project checks with rules defined in ecu.test. 
-  - [Custom-Checks](https://github.com/tracetronic/ecu-test_custom-checks) provides an easy way to configure and import these checks.
+- Enables perfoming package and project checks with rules defined in ecu.test.
+    - [Custom-Checks](https://github.com/tracetronic/ecu-test_custom-checks) provides an easy way to configure and
+      import these checks.
 - Enables the execution of ecu.test packages and projects with their respective configurations
-- Enables the upload of generated test reports to [test.guide](https://www.tracetronic.com/products/test-guide/) 
+- Enables the upload of generated test reports to [test.guide](https://www.tracetronic.com/products/test-guide/)
 - Using "pipelines first" approach to improve the automated process and traceability
 
 ## Configuration
 
 ### Tool configuration
 
-ecu.test and trace.check installations are administrated in the global tool configuration at section "ecu.test". An installation entry
-is specified by an arbitrary name and the full path including the executable file extension. The execution on a Jenkins agent requires
+ecu.test and trace.check installations are administrated in the global tool configuration at section "ecu.test". An
+installation entry
+is specified by an arbitrary name and the full path including the executable file extension. The execution on a Jenkins
+agent requires
 the adaptation of the path to the executable of the tool on the agent configuration page.
 
 ![ecu.test](docs/images/ecu.test-config.png "ecu.test-config")
@@ -72,12 +78,15 @@ node('windows') {
         ttStartTool toolName: 'ecu.test', workspaceDir: './workspace', settingsDir: './settings'
     }
     stage('Package Checks') {
-      ttCheckPackage testCasePath: 'sample.pkg'
-      ttCheckPackage testCasePath: 'sample.prj'
+        ttCheckPackage testCasePath: 'sample.pkg'
+        ttCheckPackage testCasePath: 'sample.prj'
     }
     stage('Test Execution') {
         ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
+    }
+    stage('Provide ecu.test logs in jenkins') {
+        ttProvideLogs timeout: 60
     }
     stage('Generate Reports') {
         ttGenerateReports 'HTML'
@@ -91,12 +100,14 @@ node('windows') {
 }
 ```
 
-The [test.guide](https://www.tracetronic.com/products/test-guide/) authentication key has to be set as a Jenkins 
-[credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the *ttUploadReports* step.
+The [test.guide](https://www.tracetronic.com/products/test-guide/) authentication key has to be set as a Jenkins
+[credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the
+*ttUploadReports* step.
 
 ## Migration
 
-See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x using the new pipeline syntax.
+See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x
+using the new pipeline syntax.
 
 ## Contribution
 
@@ -105,8 +116,10 @@ new [GitHub issue](https://github.com/jenkinsci/ecu-test-execution-plugin/issues
 
 ## Known Issues
 
-When encountering problems or error messages, please check the installed plugin version at first and update to the most recent version, if any.
-If the problem still exists search the following list of issues for possible solutions, otherwise you are asked to create an [issue](#contribution).
+When encountering problems or error messages, please check the installed plugin version at first and update to the most
+recent version, if any.
+If the problem still exists search the following list of issues for possible solutions, otherwise you are asked to
+create an [issue](#contribution).
 
 <details>
     <summary>When executing ttRunTestFolders, an error with the messages that the path does not exist occurs.</summary>
@@ -116,10 +129,10 @@ If the problem still exists search the following list of issues for possible sol
 > using a containerized version of ecu.test, the executing Jenkins agent needs to be within the same container.
 </details>
 
-## Compatibility  
+## Compatibility
 
 - Jenkins LTS 2.332.3 or higher
-- Java SE Runtime Environment 11 or higher 
+- Java SE Runtime Environment 11 or higher
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
@@ -156,8 +169,9 @@ If you have any further questions, please contact us at [support@tracetronic.com
 
 This plugin is licensed under the terms of the [3-Clause BSD license](LICENSES/BSD-3-Clause.txt).
 
-Using the [REUSE helper tool](https://github.com/fsfe/reuse-tool), you can run `reuse spdx` to get a bill of materials. 
-For 3rd party dependencies you can use `./gradlew checkLicense`. The third-party dependencies are generated in 
+Using the [REUSE helper tool](https://github.com/fsfe/reuse-tool), you can run `reuse spdx` to get a bill of materials.
+For 3rd party dependencies you can use `./gradlew checkLicense`. The third-party dependencies are generated in
 _./build/licenses/_.
 
-To generate a software bill of material (sbom) for the project run ```./gradlew cyclonedxBom```. The generated _sbom_ destination is ```build/reports/bom.json```
+To generate a software bill of material (sbom) for the project run ```./gradlew cyclonedxBom```. The generated _sbom_
+destination is ```build/reports/bom.json```
