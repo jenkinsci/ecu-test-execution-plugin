@@ -35,11 +35,11 @@ jenkinsPlugin {
     displayName = 'ecu.test execution plugin'
 
     url = 'https://plugins.jenkins.io/ecu-test-execution/'
-    gitHubUrl = 'https://github.com/jenkinsci/ecu-test-execution-plugin'
+    gitHub = new URI('https://github.com/jenkinsci/ecu-test-execution-plugin')
 
     generateTests = false
     configurePublishing = false
-    fileExtension = 'hpi'
+    extension = 'hpi'
 }
 
 repositories {
@@ -47,16 +47,23 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jenkins-ci.plugins:credentials:1087.v16065d268466'
-    implementation 'org.jenkins-ci.plugins:script-security:1158.v7c1b_73a_69a_08'
-    implementation 'org.jenkins-ci.plugins:structs:318.va_f3ccb_729b_71'
-    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8'
+    // provides to correct versions of typical needed plugins
+    implementation platform('io.jenkins.tools.bom:bom-2.426.x:3041.ve87ce2cdf223')
+
+    implementation 'org.jenkins-ci.plugins:credentials'
+    implementation 'org.jenkins-ci.plugins:script-security'
+    implementation 'org.jenkins-ci.plugins:structs'
+    implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+
+    // codenarc
+    codenarc('org.codenarc:CodeNarc:3.5.0')
+    codenarc('org.codehaus.groovy:groovy-all:3.0.19')
 
     // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.6'
     api 'com.google.code.gson:gson:2.9.1'
     api 'io.gsonfire:gson-fire:1.8.5'
-    api 'com.squareup.okhttp3:okhttp:4.10.0'
+    api 'com.squareup.okhttp3:okhttp:4.11.0'
     api 'com.squareup.okhttp3:logging-interceptor:4.10.0'
     api 'org.apache.commons:commons-lang3:3.12.0'
     api 'javax.annotation:javax.annotation-api:1.3.2'
@@ -64,29 +71,43 @@ dependencies {
     api 'org.slf4j:slf4j-api:2.0.0'
 
     // test
-    testImplementation 'io.swagger:swagger-parser:1.0.61'
-    testImplementation "com.github.spotbugs:spotbugs:${project.properties['spotBugsVersion']}"
-    testImplementation 'org.cyclonedx:cyclonedx-gradle-plugin:1.4.0'
-    testImplementation('com.google.inject:guice') {
-        version {
-            strictly '4.0'
-        }
+    testImplementation 'io.swagger:swagger-parser:1.0.71'
+
+    // sandbox 1.34 seems to be incompatible with jenkins 2.426.3
+    testImplementation('org.kohsuke:groovy-sandbox') { version { strictly '1.33'}}
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-basic-steps') {//:1042.ve7b_140c4a_e0c') {
+        exclude group: 'org.jenkins-ci.modules', module: 'instance-identity'
     }
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:941.vdfe1b_a_132c64'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps:2689.v434009a_31b_f1:tests'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:1130.v8fd69d0b_8857'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job:1180.v04c4e75dce43'
-    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-step-api:625.vd896b_f445a_f8:tests'
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps'
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-cps') {artifact{ classifier = 'tests'}}
+    testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job'
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-step-api') {artifact{ classifier = 'tests'}}
+    testImplementation('org.jenkins-ci.plugins.workflow:workflow-support') {artifact{ classifier = 'tests'}}
+    testImplementation 'org.jenkins-ci.plugins:credentials-binding'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation('org.testcontainers:spock:1.17.6') {
+    testImplementation('org.testcontainers:spock:1.19.8') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'cglib:cglib-nodep:3.3.0'
     testImplementation 'org.objenesis:objenesis:3.3'
-    testImplementation 'com.google.guava:guava:31.1-jre'
+}
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+            /* org.jenkins-ci.main:jenkins-core:2.426.3 use com.google.guava:guava:32.1.1-jre
+             * which has dependency issues https://github.com/google/guava/issues/6657
+             */
+            details.useVersion '33.2.0-jre'
+        }
+    }
+}
+
+// jenkins-bom is added by the jpi plugin since version 0.46, but creates issues with the spockframework
+configurations.testImplementation {
+    exclude group: 'org.jenkins-ci.main', module: 'jenkins-bom'
 }
 
 // remove at runtime, as it provides a not fully functional SAXParser which makes integration tests fail
@@ -104,7 +125,7 @@ publishing {
             from components.java
 
             pom {
-                packaging = "$jenkinsPlugin.fileExtension"
+                packaging = "$jenkinsPlugin.extension"
                 name = "$jenkinsPlugin.displayName"
                 description = "$project.description"
                 url = 'https://plugins.jenkins.io/ecu-test-execution/'
@@ -126,11 +147,6 @@ publishing {
                         id = 'MartinGroscheTT'
                         name = 'Martin Grosche'
                         email = 'martin.grosche@tracetronic.de'
-                    }
-                    developer {
-                        id = 'cwellmtt'
-                        name = 'Christoph Wellm'
-                        email = 'christoph.wellm@tracetronic.de'
                     }
                     developer {
                         id = 'ErikRehmTT'
@@ -181,11 +197,11 @@ publishing {
     }
 }
 
-task cleanJenkins(type: Delete) {
+tasks.register('cleanJenkins', Delete) {
     delete 'work'
 }
 
-task cleanApi(type: Delete) {
+tasks.register('cleanApi', Delete) {
     delete 'generated'
 }
 clean.dependsOn cleanApi
@@ -201,7 +217,7 @@ test {
     dependsOn 'integrationTest'
 }
 
-task unitTest(type: Test) {
+tasks.register('unitTest', Test) {
     filter {
         excludeTestsMatching '*ContainerTest'
         excludeTestsMatching '*IT'
@@ -212,10 +228,17 @@ task unitTest(type: Test) {
     systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
 }
 
-task integrationTest(type: Test) {
+jacoco {
+    toolVersion = "0.8.11" // Java 17 and 21
+}
+
+tasks.register('integrationTest', Test) {
     // exclude code, which can not be instrumented correctly
     jacoco {
-        excludes = ["com/gargoylesoftware/**"]
+        excludes = [
+                "com/gargoylesoftware/**",
+                "org/htmlunit/**"
+        ]
     }
 
     filter {
@@ -227,14 +250,15 @@ task integrationTest(type: Test) {
     systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
 }
 
-task containerTest(type: Test) {
+tasks.register('containerTest', Test) {
     doFirst {
         def propFile = "src/test/resources/containerTest.properties"
-        assert file(propFile).exists() : "No property file '$propFile' for container test found"
+        assert file(propFile).exists(): "No property file '$propFile' for container test found"
 
         def containerProps = new Properties()
         file(propFile).withInputStream {
-            containerProps.load(it) }
+            containerProps.load(it)
+        }
         containerProps.each {
             environment it.key, it.value
         }
@@ -249,8 +273,8 @@ task containerTest(type: Test) {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
     }
 }
 
@@ -263,8 +287,8 @@ spotbugsMain {
     release = version
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
     }
 }
 
@@ -275,12 +299,13 @@ codenarcMain {
 }
 
 codenarcTest {
+    enabled = false
     compilationClasspath = codenarcMain.compilationClasspath + sourceSets.test.compileClasspath + sourceSets.test.output
     configFile = file('config/codenarc/rules-test.groovy')
     ignoreFailures = true
 }
 
-task openApiGenerateV1(type: GenerateTask){
+tasks.register('openApiGenerateV1', GenerateTask) {
     inputSpec = "$rootDir/specs/openapi_v1.yml".toString()
     generatorName = "java"
     id = 'ecu-test-rest-java-client_v1'
@@ -301,7 +326,7 @@ task openApiGenerateV1(type: GenerateTask){
     ]
 }
 
-task openApiGenerateV2(type: GenerateTask){
+tasks.register('openApiGenerateV2', GenerateTask) {
     inputSpec = "$rootDir/specs/openapi_v2.yml".toString()
     generatorName = "java"
     id = 'ecu-test-rest-java-client_v2'
@@ -364,7 +389,7 @@ sourceSets {
     }
 }
 
-task generateApi {dependsOn openApiGenerateV1, openApiGenerateV2}
+tasks.register('generateApi') { dependsOn openApiGenerateV1, openApiGenerateV2 }
 tasks.compileJava.dependsOn generateApi
 
 idea {
@@ -381,5 +406,5 @@ idea {
 }
 
 wrapper {
-    gradleVersion = "$gradleVersion"
+    gradleVersion = "${project.properties['gradleVersion']}"
 }

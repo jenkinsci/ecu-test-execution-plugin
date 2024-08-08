@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/*
 =============
 Prerequisites
 =============
@@ -30,10 +36,11 @@ pipeline {
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
         TEST_LEVEL = "pipeline"
+        JENKINS_VERSION = "2.426.3"
     }
 
     tools {
-        jdk 'JDK11'
+        jdk 'JDK17'
     }
 
     parameters {

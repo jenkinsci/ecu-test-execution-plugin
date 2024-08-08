@@ -42,9 +42,9 @@
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "2.9.2",
+      "moduleVersion": "3.1.8",
       "moduleName": "com.github.ben-manes.caffeine:caffeine",
-      "licenseUrl": "https://github.com/ben-manes/caffeine/blob/v2.9.2/LICENSE",
+      "licenseUrl": "https://github.com/ben-manes/caffeine/blob/v3.1.8/LICENSE",
       "moduleCopyright": "Copyright 2014 Ben Manes. All Rights Reserved."
     },
     {
@@ -89,9 +89,9 @@
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "31.0.1-jre",
+      "moduleVersion": "33.2.0-jre",
       "moduleName": "com.google.guava:guava",
-      "licenseUrl": "https://github.com/google/guava/blob/v31.0.1/COPYING",
+      "licenseUrl": "https://github.com/google/guava/blob/v33.2.0/LICENSE",
       "moduleCopyright": "Copyright (C) 2009 The Guava Authors",
       "actualLicense" : "$moduleLicense"
     },
@@ -121,17 +121,17 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.10.0",
+      "moduleVersion": "4.11.0",
       "moduleName": "com.squareup.okhttp3:okhttp",
-      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.10.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.11.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2014 Square, Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": null,
-      "moduleVersion": "3.0.0",
+      "moduleVersion": "3.2.0",
       "moduleName": "com.squareup.okio:okio",
-      "licenseUrl": "https://github.com/square/okio/blob/parent-3.0.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.2.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2020 Square, Inc.",
       "actualLicense" : "The Apache Software License, Version 2.0"
     },
@@ -153,9 +153,9 @@
     },
     {
       "moduleLicense": "Apache License v2",
-      "moduleVersion": "2.9.2-29.v717aac953ff3",
+      "moduleVersion": "3.1.8-133.v17b_1ff2e0599",
       "moduleName": "io.jenkins.plugins:caffeine-api",
-      "licenseUrl": "https://github.com/jenkinsci/caffeine-api-plugin/blob/2.9.2-29.v717aac953ff3/LICENSE",
+      "licenseUrl": "https://github.com/jenkinsci/caffeine-api-plugin/blob/3.1.8-133.v17b_1ff2e0599/LICENSE",
       "moduleCopyright": null,
       "actualLicense" : "$moduleLicense"
     },
@@ -241,23 +241,23 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "625.vd896b_f445a_f8",
+      "moduleVersion": "657.v03b_e8115821b_",
       "moduleName": "org.jenkins-ci.plugins.workflow:workflow-step-api",
-      "licenseUrl": "https://github.com/jenkinsci/workflow-step-api-plugin/blob/625.vd896b_f445a_f8/src/main/resources/index.jelly",
+      "licenseUrl": "https://github.com/jenkinsci/workflow-step-api-plugin/blob/657.v03b_e8115821b_/src/main/resources/index.jelly",
       "moduleCopyright": "Copyright (c) 2013-2014, CloudBees, Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The MIT license",
-      "moduleVersion": "1087.v16065d268466",
+      "moduleVersion": "1337.v60b_d7b_c7b_c9f",
       "moduleName": "org.jenkins-ci.plugins:credentials",
-      "licenseUrl": "https://github.com/jenkinsci/credentials-plugin/blob/1087.v16065d268466/LICENSE.txt",
+      "licenseUrl": "https://github.com/jenkinsci/credentials-plugin/blob/1337.v60b_d7b_c7b_c9f/LICENSE.txt",
       "moduleCopyright": "Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "1158.v7c1b_73a_69a_08",
+      "moduleVersion": "1336.vf33a_a_9863911",
       "moduleName": "org.jenkins-ci.plugins:script-security",
       "licenseUrl": "https://github.com/jenkinsci/script-security-plugin/blob/1158.v7c1b_73a_69a_08/src/main/java/org/jenkinsci/plugins/scriptsecurity/scripts/ApprovalContext.java",
       "moduleCopyright": "Copyright 2014 CloudBees, Inc.",
@@ -265,9 +265,9 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "318.va_f3ccb_729b_71",
+      "moduleVersion": "337.v1b_04ea_4df7c8",
       "moduleName": "org.jenkins-ci.plugins:structs",
-      "licenseUrl": "https://github.com/jenkinsci/structs-plugin/blob/318.va_f3ccb_729b_71/src/main/java/org/jenkinsci/plugins/structs/describable/CustomDescribableModel.java",
+      "licenseUrl": "https://github.com/jenkinsci/structs-plugin/blob/337.v1b_04ea_4df7c8/src/main/java/org/jenkinsci/plugins/structs/describable/CustomDescribableModel.java",
       "moduleCopyright": "Copyright 2019 CloudBees, Inc.",
       "actualLicense" : "$moduleLicense"
     },
@@ -289,17 +289,17 @@
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.10",
+      "moduleVersion": "1.6.20",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.10/license/LICENSE.txt",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
       "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.10",
+      "moduleVersion": "1.6.20",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.10/license/LICENSE.txt",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
       "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
@@ -312,12 +312,20 @@
       "actualLicense" : "$moduleLicense"
     },
     {
-      "moduleLicense": "MIT license",
-      "moduleVersion": "1.27",
+      "moduleLicense": "MIT License",
+      "moduleVersion": "1.34",
       "moduleName": "org.kohsuke:groovy-sandbox",
-      "licenseUrl": "https://github.com/jenkinsci/groovy-sandbox/blob/groovy-sandbox-1.27/LICENSE.md",
+      "licenseUrl": "https://github.com/jenkinsci/groovy-sandbox/blob/groovy-sandbox-1.34/LICENSE.md",
       "moduleCopyright": "Copyright (c) 2012-2014 Kohsuke Kawaguchi, CloudBees, Inc., other contributors",
       "actualLicense" : "$moduleLicense"
+    },
+    {
+      "moduleLicense": null,
+      "moduleVersion": "3041.ve87ce2cdf223",
+      "moduleName": "io.jenkins.tools.bom:bom-2.426.x",
+      "licenseUrl": "https://github.com/jenkinsci/bom/blob/e87ce2cdf2235a7b2cb7012a3d8fa25a4a21120f/pom.xml#L16",
+      "moduleCopyright": null,
+      "actualLicense" : "MIT License"
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
@@ -329,9 +337,9 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "3.0.0",
+      "moduleVersion": "3.2.0",
       "moduleName": "com.squareup.okio:okio-jvm",
-      "licenseUrl": "https://github.com/square/okio/blob/parent-3.0.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.2.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2019 Square, Inc.",
       "actualLicense" : "$moduleLicense"
     },
