@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
-class ProvideLogStepIT extends IntegrationTestBase {
+class ProvideReportsStepIT extends IntegrationTestBase {
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
@@ -21,9 +21,9 @@ class ProvideLogStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
-            ProvideLogsStep before = new ProvideLogsStep()
+            ProvideReportsStep before = new ProvideReportsStep()
         when:
-            ProvideLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+            ProvideReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -31,18 +31,18 @@ class ProvideLogStepIT extends IntegrationTestBase {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            ProvideLogsStep step = new ProvideLogsStep(60)
+            ProvideReportsStep step = new ProvideReportsStep(60)
         then:
-            st.assertRoundTrip(step, "ttProvideLogs timeout: 60")
+            st.assertRoundTrip(step, "ttProvideReports timeout: 60")
     }
 
     def 'Run pipeline'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideReports()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test reports to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found", run)
     }
 
@@ -50,11 +50,11 @@ class ProvideLogStepIT extends IntegrationTestBase {
             int timeout = 1
             given:
                 WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-                job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs timeout:${timeout}}", true))
+                job.setDefinition(new CpsFlowDefinition("node {ttProvideReports timeout:${timeout}}", true))
             expect:
                 WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-                jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
+                jenkins.assertLogContains("Providing ecu.test reports to jenkins.", run)
                 jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-                jenkins.assertLogContains("Providing ecu.test logs failed!", run)
+                jenkins.assertLogContains("Providing ecu.test reports failed!", run)
         }
 }

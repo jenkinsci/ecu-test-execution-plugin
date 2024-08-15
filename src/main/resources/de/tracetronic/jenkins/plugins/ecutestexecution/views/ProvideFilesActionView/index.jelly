@@ -9,13 +9,15 @@
                 <j:forEach var="entry" items="${it.LogPathMap}">
                     <tr>
                         <td>
-                            <h4>${entry.key}</h4>
+                            <big>
+                                <b>${entry.key}</b>
+                            </big>
                         </td>
                         <td>
                             <ul>
                                 <j:forEach var="fileName" items="${entry.value}">
                                     <li>
-                                        <a href="${rootURL}/${it.run.url}artifact/${it.logDirName}/${entry.key}/${fileName}">
+                                        <a href="${rootURL}/${it.run.url}artifact/${it.dirName}/${entry.key}/${fileName}">
                                             ${fileName}
                                         </a>
                                     </li>

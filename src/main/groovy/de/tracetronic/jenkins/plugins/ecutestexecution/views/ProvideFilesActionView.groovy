@@ -3,13 +3,13 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.views
 import hudson.model.Action
 import hudson.model.Run
 
-class ProvideLogsActionView implements Action {
+class ProvideFilesActionView implements Action {
     private String runId
-    private String logDirName
+    private String dirName
 
-    ProvideLogsActionView(String runID, String logDirName) {
+    ProvideFilesActionView(String runID, String dirName) {
         this.runId = runID
-        this.logDirName = logDirName
+        this.dirName = dirName
     }
 
     @Override
@@ -19,20 +19,20 @@ class ProvideLogsActionView implements Action {
 
     @Override
     String getDisplayName() {
-        return "ecu.test logs"
+        return dirName
     }
 
     @Override
     String getUrlName() {
-        return "et-logs"
+        return dirName
     }
 
     Run getRun() {
         return Run.fromExternalizableId(runId)
     }
 
-    String getLogDirName() {
-        return logDirName
+    String getDirName() {
+        return dirName
     }
 
     /**
@@ -45,7 +45,7 @@ class ProvideLogsActionView implements Action {
         def map = new HashMap<String, List<String>>()
         getRun()?.artifacts?.each { artifact ->
             def pathParts = artifact.relativePath.split("/")
-            if (pathParts[0] == logDirName) {
+            if (pathParts[0] == dirName) {
                 def key = pathParts[1..-2].join("/")
                 map.computeIfAbsent(key) { [] }.add(pathParts[-1])
             }
