@@ -41,12 +41,12 @@ class ProvideLogsStep extends Step {
     public static final int DEFAULT_TIMEOUT = 36000
     private int timeout
 
+    @DataBoundConstructor
     ProvideLogsStep() {
         super()
         this.timeout = DEFAULT_TIMEOUT
     }
 
-    @DataBoundConstructor
     ProvideLogsStep(int timeout) {
         super()
         this.timeout = timeout
