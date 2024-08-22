@@ -16,7 +16,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiExceptio
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
-
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.AbortException
 import hudson.EnvVars
@@ -25,6 +25,7 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
+import hudson.util.FormValidation
 import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
@@ -32,6 +33,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
+import org.kohsuke.stapler.QueryParameter
 
 import java.text.SimpleDateFormat
 
@@ -214,6 +216,10 @@ class ProvideReportsStep extends Step {
         @Override
         Set<? extends Class<?>> getRequiredContext() {
             return ImmutableSet.of(Launcher.class, EnvVars.class, TaskListener.class)
+        }
+
+        FormValidation doCheckTimeout(@QueryParameter int value) {
+            return ValidationUtil.validateTimeout(value)
         }
     }
 }
