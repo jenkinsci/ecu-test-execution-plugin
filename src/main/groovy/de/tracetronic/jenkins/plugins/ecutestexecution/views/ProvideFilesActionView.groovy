@@ -38,10 +38,18 @@ class ProvideFilesActionView implements Action {
     }
 
     /**
-     * Creates and returns a map containing the relative path (minus the first folder as its always the same)
-     * as key and filename as entry for each artifact.
-     * This is used to group the logs for each folder in the jelly view.
-     * @return Map
+     * Generates a map representing the hierarchical structure of artifact paths.
+     * <p>
+     * This method processes the artifacts associated with the current run and organizes
+     * them into a nested map structure where the keys represent directories and files.
+     * Each level of the map corresponds to a directory, and the final level contains
+     * the artifact object associated with the file.
+     * </p>
+     *
+     * @return A map where the keys represent directory names or file names and the
+     *         values are either nested maps (for directories) or artifact objects
+     *         (for files). The map structure mirrors the directory structure of the
+     *         artifacts relative to a specified directory.
      */
     Map<String, Object> getLogPathMap() {
         def map = [:]
