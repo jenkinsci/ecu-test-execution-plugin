@@ -16,7 +16,7 @@ class ProvideFilesBuilder implements Serializable {
         this.context = context
     }
 
-    boolean archiveFiles(List<String> filePaths, String outDirName, boolean cleanWorkspaceAfter) throws Exception {
+    boolean archiveFiles(List<String> filePaths, String outDirName, boolean cleanWorkspaceAfter, String iconName) throws Exception {
         Run run = context.get(Run.class)
         FilePath workspace = context.get(FilePath.class)
         TaskListener listener = context.get(TaskListener.class)
@@ -31,9 +31,10 @@ class ProvideFilesBuilder implements Serializable {
             artifactsMap.put(relPath, relPath)
         }
         run.artifactManager.archive(workspace, context.get(Launcher.class), listener, artifactsMap)
-        run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName))
+        run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName, iconName))
+
         if (cleanWorkspaceAfter) {
-            workspace.child(outDirName).deleteContents()
+            workspace.child(outDirName).deleteRecursive()
         }
         return true
     }

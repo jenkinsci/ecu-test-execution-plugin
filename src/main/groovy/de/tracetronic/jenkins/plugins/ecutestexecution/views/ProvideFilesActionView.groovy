@@ -6,15 +6,17 @@ import hudson.model.Run
 class ProvideFilesActionView implements Action {
     private String runId
     private String dirName
+    private String iconFileName
 
-    ProvideFilesActionView(String runID, String dirName) {
+    ProvideFilesActionView(String runID, String dirName, String iconName) {
         this.runId = runID
         this.dirName = dirName
+        this.iconFileName = iconName
     }
 
     @Override
     String getIconFileName() {
-        return "plugin/ecu-test-execution/images/ecu.test.svg"
+        return "plugin/ecu-test-execution/images/file/${iconFileName}.svg"
     }
 
     @Override
@@ -41,16 +43,27 @@ class ProvideFilesActionView implements Action {
      * This is used to group the logs for each folder in the jelly view.
      * @return Map
      */
-    Map<String, List<String>> getLogPathMap() {
-        def map = new HashMap<String, List<String>>()
+    Map<String, Object> getLogPathMap() {
+        def map = [:]
+
         getRun()?.artifacts?.each { artifact ->
-            def pathParts = artifact.relativePath.split("/")
-            if (pathParts[0] == dirName) {
-                def key = pathParts[1..-2].join("/")
-                map.computeIfAbsent(key) { [] }.add(pathParts[-1])
+            def parts = artifact.relativePath.split("/");
+            if (parts[0] != dirName) {
+                return
+            }
+            parts = parts.drop(1)
+
+            def currentLevel = map;
+            parts.eachWithIndex{ part,  i ->
+                boolean isDirectory = (i < parts.length - 1);
+
+                if (isDirectory) {
+                    currentLevel = currentLevel.computeIfAbsent(part) { [:] }
+                } else {
+                    currentLevel[part] = artifact
+                }
             }
         }
         return map
     }
-
 }

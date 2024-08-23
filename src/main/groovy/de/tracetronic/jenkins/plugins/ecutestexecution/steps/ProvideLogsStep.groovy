@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat
 
 class ProvideLogsStep extends Step {
     public static final int DEFAULT_TIMEOUT = 36000
+    private static String iconName = 'logFile'
     private int timeout
 
     @DataBoundConstructor
@@ -90,7 +91,7 @@ class ProvideLogsStep extends Step {
                 ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(step.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener)
                 )
-                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, outDirName, true)
+                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, outDirName, true, iconName)
                 if (result) {
                     listener.logger.println("Successfully added ecu.test logs to jenkins.")
                 }
