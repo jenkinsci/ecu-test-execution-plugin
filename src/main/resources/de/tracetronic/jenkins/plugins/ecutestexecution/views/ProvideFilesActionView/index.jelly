@@ -21,7 +21,7 @@
                         <div style="margin-top: 1em">
                             <l:icon class="icon-package icon-sm"/>
                             <a href="${rootURL}/${it.run.url}artifact/${it.dirName}/*zip*/${it.dirName}.zip">
-                                Download all as .zip
+                                Download as .zip
                             </a>
                         </div>
                     </td>

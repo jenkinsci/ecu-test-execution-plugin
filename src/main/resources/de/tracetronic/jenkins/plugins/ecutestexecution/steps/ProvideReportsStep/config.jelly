@@ -4,11 +4,7 @@
     <f:description>${%step.description}
         <b>${%step.compatNote}</b>
     </f:description>
-    <f:section title="Settings">
-        <f:advanced>
-            <f:entry title="${%timeout.title}" description="${%timeout.description}" field="timeout">
-                <f:number clazz="non-negative-number-required" min="0" default="${descriptor.defaultTimeout}"/>
-            </f:entry>
-        </f:advanced>
-    </f:section>
+     <f:advanced>
+        <f:property field="publishConfig"/>
+    </f:advanced>
 </j:jelly>

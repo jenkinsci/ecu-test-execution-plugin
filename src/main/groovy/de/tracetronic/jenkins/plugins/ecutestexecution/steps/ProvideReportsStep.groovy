@@ -14,6 +14,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
@@ -35,31 +36,28 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
 
+import javax.annotation.Nonnull
 import java.text.SimpleDateFormat
 
 class ProvideReportsStep extends Step {
-    public static final int DEFAULT_TIMEOUT = 36000
     private static String iconName = 'testreport'
-    private int timeout
+    private static String outDirName = "ecu.test-reports"
+    private PublishConfig publishConfig
 
     @DataBoundConstructor
     ProvideReportsStep() {
         super()
-        this.timeout = DEFAULT_TIMEOUT
+        this.publishConfig = new PublishConfig()
     }
 
-    ProvideReportsStep(int timeout) {
-        super()
-        this.timeout = timeout
-    }
-
-    int getTimeout() {
-        return timeout
+    @Nonnull
+    PublishConfig getPublishConfig() {
+        return new PublishConfig(publishConfig)
     }
 
     @DataBoundSetter
-    void setTimeout(int timeout) {
-        this.timeout = timeout < 0 ? 0 : timeout
+    void setPublishConfig(PublishConfig publishConfig) {
+        this.publishConfig = publishConfig ?: new PublishConfig()
     }
 
     @Override
@@ -84,17 +82,19 @@ class ProvideReportsStep extends Step {
             TaskListener listener = context.get(TaskListener.class)
 
             long startTimeMillis = run.getStartTimeInMillis()
-            String outDirName = "ecu.test-reports"
             String outDirPath = PathUtil.makeAbsoluteInPipelineHome(outDirName, context)
 
             try {
                 ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
-                        new ExecutionCallable(step.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener)
+                        new ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener)
                 )
-                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, outDirName, true, iconName)
-                if (result) {
-                    listener.logger.println("Successfully added ecu.test reports to jenkins.")
+                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, outDirName, step.publishConfig.keepAll, iconName)
+                if (!result && !step.publishConfig.allowMissing) {
+                    run.setResult(Result.FAILURE)
+                    throw new Exception("Missing reports aren't allowed by step property.")
                 }
+
+                result && listener.logger.println("Successfully added ecu.test reports to jenkins.")
             } catch (Exception e) {
                 if (e instanceof AbortException) {
                     run.setResult(Result.UNSTABLE)
@@ -199,11 +199,6 @@ class ProvideReportsStep extends Step {
 
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
-
-        static int getDefaultTimeout() {
-            DEFAULT_TIMEOUT
-        }
-
         @Override
         String getFunctionName() {
             'ttProvideReports'
@@ -217,10 +212,6 @@ class ProvideReportsStep extends Step {
         @Override
         Set<? extends Class<?>> getRequiredContext() {
             return ImmutableSet.of(Launcher.class, EnvVars.class, TaskListener.class)
-        }
-
-        FormValidation doCheckTimeout(@QueryParameter int value) {
-            return ValidationUtil.validateTimeout(value)
         }
     }
 }
