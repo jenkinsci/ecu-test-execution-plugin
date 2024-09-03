@@ -28,7 +28,6 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundSetter
 
 import javax.annotation.Nonnull
-import java.text.SimpleDateFormat
 
 abstract class AbstractProvideStep extends Step {
     protected static String iconName
