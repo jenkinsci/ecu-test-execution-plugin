@@ -113,25 +113,25 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.10.0",
+      "moduleVersion": "4.12.0",
       "moduleName": "com.squareup.okhttp3:logging-interceptor",
-      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.10.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.12.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2015 Square, Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.11.0",
+      "moduleVersion": "4.12.0",
       "moduleName": "com.squareup.okhttp3:okhttp",
-      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.11.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.12.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2014 Square, Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": null,
-      "moduleVersion": "3.2.0",
+      "moduleVersion": "3.6.0",
       "moduleName": "com.squareup.okio:okio",
-      "licenseUrl": "https://github.com/square/okio/blob/parent-3.2.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.6.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2020 Square, Inc.",
       "actualLicense" : "The Apache Software License, Version 2.0"
     },
@@ -273,34 +273,34 @@
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.20",
+      "moduleVersion": "1.9.10",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
-      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.9.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.20",
+      "moduleVersion": "1.9.10",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
-      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.9.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.20",
+      "moduleVersion": "1.9.10",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
-      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.9.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.6.20",
+      "moduleVersion": "1.9.10",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.6.20/license/LICENSE.txt",
-      "moduleCopyright": "Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.9.10/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2000-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense" : "$moduleLicense"
     },
     {
@@ -337,9 +337,9 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "3.2.0",
+      "moduleVersion": "3.6.0",
       "moduleName": "com.squareup.okio:okio-jvm",
-      "licenseUrl": "https://github.com/square/okio/blob/parent-3.2.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/square/okio/blob/parent-3.6.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2019 Square, Inc.",
       "actualLicense" : "$moduleLicense"
     },
