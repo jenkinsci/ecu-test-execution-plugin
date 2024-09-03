@@ -28,7 +28,7 @@ pipeline {
     }
 
     agent {
-        label 'docker'
+        label 'docker && linux' // linux only to keep windows docker runners free, so they can run the systemTests job
     }
 
     environment {
