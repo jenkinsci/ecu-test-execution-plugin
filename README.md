@@ -86,7 +86,10 @@ node('windows') {
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
     stage('Provide ecu.test logs in jenkins') {
-        ttProvideLogs timeout: 60
+        ttProvideLogs(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
+    }
+    stage('Provide ecu.test trf/prf reports in jenkins') {
+        ttProvideReports(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
     }
     stage('Generate Reports') {
         ttGenerateReports 'HTML'
@@ -138,15 +141,16 @@ create an [issue](#contribution).
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
 
-| Version |    latest - 3.5    |     3.4 - 3.1      |        3.0         |
-|:-------:|:------------------:|:------------------:|:------------------:|
-| 2024.2  | :heavy_check_mark: |        :x:         |        :x:         |
-| 2024.1  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.4  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.3  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.2  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| 2023.1  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| 2022.4  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| Version | latest - 3.6       |        3.5         |     3.4 - 3.1      |        3.0         |
+|---------|--------------------|:------------------:|:------------------:|:------------------:|
+| 2024.3  | :heavy_check_mark: |        :x:         |                    |                    |
+| 2024.2  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
+| 2024.1  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| 2023.4  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| 2023.3  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| 2023.2  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 2023.1  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 2022.4  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
