@@ -2,6 +2,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import hudson.Functions
 import hudson.model.Result
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -30,31 +31,48 @@ class ProvideLogStepIT extends IntegrationTestBase {
     def 'Snippet generator'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
+            PublishConfig publishConfig = new PublishConfig()
+            publishConfig.setTimeout(10)
+            publishConfig.setKeepAll(false)
+            publishConfig.setAllowMissing(true)
+            ProvideLogsStep step = new ProvideLogsStep()
         when:
-            ProvideLogsStep step = new ProvideLogsStep(60)
+            step.setPublishConfig(publishConfig)
         then:
-            st.assertRoundTrip(step, "ttProvideLogs timeout: 60")
+            st.assertRoundTrip(step, "ttProvideLogs(publishConfig: [allowMissing: true, keepAll: false, timeout: 10])")
     }
 
-    def 'Run pipeline'() {
+    def 'Run pipeline default'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
         expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found", run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("ERROR: Missing ecu.test-logs aren't allowed by step property. Set build result to FAILURE", run)
     }
 
-        def 'Run pipeline timeout'() {
-            int timeout = 1
-            given:
-                WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-                job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs timeout:${timeout}}", true))
-            expect:
-                WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-                jenkins.assertLogContains("Providing ecu.test logs to jenkins.", run)
-                jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-                jenkins.assertLogContains("Providing ecu.test logs failed!", run)
-        }
+    def 'Run pipeline allow missing logs'() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [allowMissing: true])}", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogNotContains("Successfully added ecu.test-logs to jenkins.", run)
+    }
+
+    def 'Run pipeline exceeds timeout'() {
+        int timeout = 1
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [timeout: ${timeout}])}", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
+            jenkins.assertLogContains("Providing ecu.test-logs failed!", run)
+    }
 }
