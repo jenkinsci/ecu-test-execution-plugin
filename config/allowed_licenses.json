@@ -161,33 +161,33 @@
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
+      "moduleVersion": "1.6.14",
       "moduleName": "io.swagger:swagger-annotations",
-      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
-      "moduleCopyright": "Copyright 2016 SmartBear Software",
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.14/LICENSE",
+      "moduleCopyright": "Copyright 2020 SmartBear Software",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
+      "moduleVersion": "1.6.14",
       "moduleName": "io.swagger:swagger-core",
-      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.14/LICENSE",
       "moduleCopyright": "Copyright 2020 SmartBear Software Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.6.6",
+      "moduleVersion": "1.6.14",
       "moduleName": "io.swagger:swagger-models",
-      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.6/LICENSE",
+      "licenseUrl": "https://github.com/swagger-api/swagger-core/blob/v1.6.14/LICENSE",
       "moduleCopyright": "Copyright 2020 SmartBear Software Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "Apache License 2.0",
-      "moduleVersion": "1.0.61",
+      "moduleVersion": "1.0.71",
       "moduleName": "io.swagger:swagger-parser",
-      "licenseUrl": "https://github.com/swagger-api/swagger-parser/blob/v1.0.61/LICENSE",
+      "licenseUrl": "https://github.com/swagger-api/swagger-parser/blob/v1.0.71/LICENSE",
       "moduleCopyright": "Copyright 2020 SmartBear Software Inc.",
       "actualLicense" : "$moduleLicense"
     },
