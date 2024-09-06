@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
     // codenarc
-    codenarc('org.codenarc:CodeNarc:3.5.0')
+    codenarc('org.codenarc:CodeNarc:3.5.0-groovy-4.0')
     codenarc('org.codehaus.groovy:groovy-all:3.0.22')
 
     // ecu.test-java-rest-client
