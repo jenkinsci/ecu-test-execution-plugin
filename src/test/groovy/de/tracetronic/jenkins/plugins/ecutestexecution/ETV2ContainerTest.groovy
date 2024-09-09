@@ -36,6 +36,7 @@ class ETV2ContainerTest extends ETContainerTest {
                 .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
                         BindMode.READ_ONLY)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .withEnv("TZ", TimeZone.getDefault().getID())
                 .waitingFor(Wait.forHttp("/api/v2/live"))
     }
 
@@ -100,7 +101,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Successfully added ecu.test-logs to jenkins.", run)
     }
 
-    def "Perform provide logs step with reports"() {
+    def "Perform provide reports step with reports"() {
         given: "a pipeline with test packages and report provider"
             String script = """
             node {
@@ -116,8 +117,8 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect log information about successful pipeline run"
-        jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
-        jenkins.assertLogNotContains("[WARNING] ecu.test-reports contains folder older than this run.", run)
-        jenkins.assertLogContains("Successfully added ecu.test-reports to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
+            jenkins.assertLogNotContains("[WARNING] ecu.test-reports contains folder older than this run.", run)
+            jenkins.assertLogContains("Successfully added ecu.test-reports to jenkins.", run)
     }
 }
