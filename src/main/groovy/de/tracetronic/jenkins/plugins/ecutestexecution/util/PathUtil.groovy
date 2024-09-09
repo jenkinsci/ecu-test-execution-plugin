@@ -38,30 +38,4 @@ class PathUtil {
 
         return forwardSlashBuildDirectory + "/" + forwardSlashInputPath
     }
-
-
-    /**
-     * This method extracts a date from the report directory name, which is expected to be in the format
-     * "yyyy-MM-dd_HHmmss", and compares it with the provided reference time.
-     *
-     * @param reportDir The name of the report directory, expected to contain a date string in the format "yyyy-MM-dd_HHmmss".
-     * @param referenceTimeMillis The reference time in milliseconds since the epoch, typically the start time of the build.
-     * @return true if the extracted date is after the reference time, false otherwise.
-     *         If no valid date can be extracted from the reportDir, the method returns false.
-     */
-    static boolean isCreationDateAfter(String reportDir, long referenceTimeMillis) {
-        String df = "yyyy-MM-dd_HHmmss"
-        SimpleDateFormat dateFormat = new SimpleDateFormat(df)
-        String pattern = /\d{4}-\d{2}-\d{2}_\d{6}/
-        def matcher = reportDir =~ pattern
-        if (matcher.find()) {
-            String matchedText = matcher.group(0)
-            try {
-                return dateFormat.parse(matchedText).time > referenceTimeMillis
-            } catch (ParseException ignore ) {
-                return false
-            }
-        }
-        return false
-    }
 }
