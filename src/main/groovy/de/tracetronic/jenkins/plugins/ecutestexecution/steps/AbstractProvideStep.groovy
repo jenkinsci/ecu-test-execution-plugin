@@ -142,7 +142,7 @@ abstract class AbstractProvideStep extends Step {
                 reports.each {report ->
                     String reportDir = report.reportDir.split('/').last()
                     if (!isCreationDateAfter(reportDir, startTimeMillis)) {
-                        listener.logger.println("[WARNING] ${outDirName}  contains folder older than this run. Path: ${report.reportDir}")
+                        listener.logger.println("[WARNING] ${outDirName} contains folder older than this run. Path: ${report.reportDir}")
                     }
 
                     File reportFolder = apiClient.downloadReportFolder(report.testReportId)
