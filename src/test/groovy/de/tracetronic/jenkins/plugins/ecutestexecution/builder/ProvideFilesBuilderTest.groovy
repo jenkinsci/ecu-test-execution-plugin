@@ -8,6 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideFilesActionView
 import hudson.FilePath
 import hudson.Launcher
+import hudson.model.BuildListener
 import hudson.model.Run
 import hudson.model.TaskListener
 import jenkins.model.ArtifactManager
@@ -69,7 +70,7 @@ class ProvideFilesBuilderTest extends Specification {
 
         then:
             result
-            1 * artifactManager.archive(workspace, launcher, listener, _) >> { args ->
+            1 * artifactManager.archive(_, _, _, _) >> { args ->
                 assert args[3] == ["Reports/report1.trf": "Reports/report1.trf", "Reports/report2.prf": "Reports/report2.prf"]
             }
             1 * run.addAction(_) >> { args ->
@@ -110,7 +111,7 @@ class ProvideFilesBuilderTest extends Specification {
 
         then:
             result
-            1 * artifactManager.archive(workspace, launcher, listener, ["Reports/report.trf": "Reports/report.trf"])
+            1 * artifactManager.archive(_, _, _, ["Reports/report.trf": "Reports/report.trf"])
             1 * run.addAction(_)
             1 * outDir.deleteRecursive()
     }
