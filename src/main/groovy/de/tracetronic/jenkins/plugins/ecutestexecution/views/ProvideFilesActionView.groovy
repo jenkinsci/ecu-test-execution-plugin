@@ -52,7 +52,7 @@ class ProvideFilesActionView implements Action {
      *         artifacts relative to a specified directory.
      */
     Map<String, Object> getLogPathMap() {
-        def map = [:]
+        def map = new LinkedHashMap()
 
         getRun()?.artifacts?.each { artifact ->
             def parts = artifact.relativePath.split("/");

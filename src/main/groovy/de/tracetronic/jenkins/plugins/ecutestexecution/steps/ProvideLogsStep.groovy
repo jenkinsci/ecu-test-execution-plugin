@@ -7,9 +7,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -32,29 +29,15 @@ class ProvideLogsStep extends AbstractProvideStep {
     }
 
     @Override
-    protected ArrayList<String> processReports(RestApiClientV2 apiClient, String outDirPath, TaskListener listener, long startTime) {
+    protected ArrayList<String> processReport(File reportFolder, String reportDir, String outDirPath, TaskListener listener) {
         ArrayList<String> logFileNames = ["ecu.test_out.log", "ecu.test_err.log"]
-        ArrayList<String> logPaths = []
-        List<ReportInfo> reports = apiClient.getAllReports()
 
-        if (reports == null || reports.isEmpty()) {
-            return []
+        ArrayList<String> extractedFiles = ZipUtil.extractFilesByExtension(reportFolder, logFileNames, "${outDirPath}/${reportDir}")
+        if (extractedFiles.size() != logFileNames.size()) {
+            listener.logger.println("[WARNING] ${reportDir} is missing one or all log files!")
         }
 
-        for (def report : reports) {
-            String reportDir = report.reportDir.split('/').last()
-            if (!PathUtil.isCreationDateAfter(reportDir, startTime)) {
-                listener.logger.println("[WARNING] ${outDirName}  contains folder older than this run. Path: ${report.reportDir}")
-            }
-            File reportFolderZip = apiClient.downloadReportFolder(report.testReportId)
-            List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportFolderZip, logFileNames, "${outDirPath}/${reportDir}")
-            if (extractedFiles.size() != logFileNames.size()) {
-                listener.logger.println("[WARNING] ${report.reportDir} is missing one or all log files!")
-            }
-            logPaths.addAll(extractedFiles)
-        }
-
-        return logPaths
+        return extractedFiles
     }
 
     @Extension

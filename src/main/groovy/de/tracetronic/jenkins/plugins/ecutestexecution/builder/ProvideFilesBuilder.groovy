@@ -3,6 +3,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideFilesActionView
 import hudson.FilePath
 import hudson.Launcher
+import hudson.model.BuildListener
 import hudson.model.Run
 import hudson.model.TaskListener
 import org.jenkinsci.plugins.workflow.steps.StepContext
@@ -28,9 +29,11 @@ class ProvideFilesBuilder implements Serializable {
         def artifactsMap = new HashMap<String, String>()
         filePaths.each { path ->
             def relPath = path.substring(workspace.getRemote().length() + 1)
+                    .replaceAll('\\\\+', '/')
+
             artifactsMap.put(relPath, relPath)
         }
-        run.artifactManager.archive(workspace, context.get(Launcher.class), listener, artifactsMap)
+        run.artifactManager.archive(workspace, context.get(Launcher.class), listener as BuildListener, artifactsMap)
         run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName, iconName))
 
         if (!keepArtifacts) {

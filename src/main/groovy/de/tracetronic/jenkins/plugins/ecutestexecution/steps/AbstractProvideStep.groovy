@@ -12,6 +12,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
@@ -28,6 +29,8 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundSetter
 
 import javax.annotation.Nonnull
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 abstract class AbstractProvideStep extends Step {
     protected static String iconName
@@ -55,7 +58,7 @@ abstract class AbstractProvideStep extends Step {
         return new Execution(this, context)
     }
 
-    protected abstract ArrayList<String> processReports(RestApiClientV2 apiClient, String outDirPath, TaskListener listener, long startTimeMillis)
+    protected abstract ArrayList<String> processReport(File reportFolder, String reportDir, String outDirPath, TaskListener listener)
 
     static class Execution extends SynchronousNonBlockingStepExecution<Void> {
         private static final long serialVersionUID = 1L
@@ -129,7 +132,28 @@ abstract class AbstractProvideStep extends Step {
                     throw new AbortException(unsupportedVersionMsg)
                 }
                 apiClient = (RestApiClientV2) apiClient
-                return step.processReports(apiClient, outDirPath, listener, startTimeMillis)
+                List<ReportInfo> reports = apiClient.getAllReports()
+
+                if (reports == null || reports.isEmpty()) {
+                    return []
+                }
+
+                ArrayList<String> reportPaths = []
+                reports.each {report ->
+                    String reportDir = report.reportDir.split('/').last()
+                    if (!isCreationDateAfter(reportDir, startTimeMillis)) {
+                        listener.logger.println("[WARNING] ${outDirName}  contains folder older than this run. Path: ${report.reportDir}")
+                    }
+
+                    File reportFolder = apiClient.downloadReportFolder(report.testReportId)
+                    ArrayList<String> reportPath = step.processReport(reportFolder, reportDir, outDirPath, listener)
+                    if (reportPath) {
+                        reportPaths.addAll(reportPath)
+                    }
+
+                }
+
+                return reportPaths
             }
             catch (ApiException e) {
                 if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
@@ -143,6 +167,31 @@ abstract class AbstractProvideStep extends Step {
         @Override
         void cancel() {
             !apiClient ? RestApiClientFactory.setTimeoutExceeded() : apiClient.setTimeoutExceeded()
+        }
+
+        /**
+         * This method extracts a date from the report directory name, which is expected to be in the format
+         * "yyyy-MM-dd_HHmmss", and compares it with the provided reference time.
+         *
+         * @param reportDir The name of the report directory, expected to contain a date string in the format "yyyy-MM-dd_HHmmss".
+         * @param referenceTimeMillis The reference time in milliseconds since the epoch, typically the start time of the build.
+         * @return true if the extracted date is after the reference time, false otherwise.
+         *         If no valid date can be extracted from the reportDir, the method returns false.
+         */
+        private static boolean isCreationDateAfter(String reportDir, long referenceTimeMillis) {
+            String df = "yyyy-MM-dd_HHmmss"
+            SimpleDateFormat dateFormat = new SimpleDateFormat(df)
+            String pattern = /\d{4}-\d{2}-\d{2}_\d{6}/
+            def matcher = reportDir =~ pattern
+            if (matcher.find()) {
+                String matchedText = matcher.group(0)
+                try {
+                    return dateFormat.parse(matchedText).time> referenceTimeMillis
+                } catch (ParseException ignore ) {
+                    return false
+                }
+            }
+            return false
         }
     }
 }
