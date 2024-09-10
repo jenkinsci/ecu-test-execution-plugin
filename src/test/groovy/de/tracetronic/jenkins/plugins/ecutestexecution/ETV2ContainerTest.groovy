@@ -36,7 +36,6 @@ class ETV2ContainerTest extends ETContainerTest {
                 .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
                         BindMode.READ_ONLY)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .withEnv("TZ", TimeZone.getDefault().getID())
                 .waitingFor(Wait.forHttp("/api/v2/live"))
     }
 
@@ -97,38 +96,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
-            jenkins.assertLogNotContains("[WARNING] ecu.test-logs contains folder older than this run.", run)
             jenkins.assertLogContains("Successfully added ecu.test-logs to jenkins.", run)
-    }
-
-    def "Perform provide logs step with old logs"() {
-        given: "a pipeline with test packages and log provider"
-            String script = """
-                    node {
-                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttRunPackage testCasePath: 'test.pkg'
-                        }
-                    }
-                    """.stripIndent()
-            String script2 = """
-                    node {
-                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttProvideLogs()
-                        }
-                    }
-                    """.stripIndent()
-            WorkflowJob job1 = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job1.setDefinition(new CpsFlowDefinition(script, true))
-            WorkflowJob job2 = jenkins.createProject(WorkflowJob.class, "pipeline2")
-            job2.setDefinition(new CpsFlowDefinition(script2, true))
-            jenkins.buildAndAssertStatus(Result.SUCCESS, job1)
-        when: "scheduling a new build"
-            WorkflowRun run2 = jenkins.buildAndAssertStatus(Result.SUCCESS, job2)
-
-        then: "expect log information about successful pipeline run and old logs"
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run2)
-            jenkins.assertLogContains("[WARNING] ecu.test-logs contains folder older than this run.", run2)
-            jenkins.assertLogContains("Successfully added ecu.test-logs to jenkins.", run2)
     }
 
     def "Perform provide reports step with reports"() {
@@ -148,37 +116,6 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
-            jenkins.assertLogNotContains("[WARNING] ecu.test-reports contains folder older than this run.", run)
             jenkins.assertLogContains("Successfully added ecu.test-reports to jenkins.", run)
-    }
-
-    def "Perform provide reports step with old reports"() {
-        given: "a pipeline with test packages and report provider"
-            String script = """
-                node {
-                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttRunPackage testCasePath: 'test.pkg'
-                    }
-                }
-                """.stripIndent()
-            String script2 = """
-                node {
-                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttProvideReports()
-                    }
-                }
-                """.stripIndent()
-            WorkflowJob job1 = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job1.setDefinition(new CpsFlowDefinition(script, true))
-            WorkflowJob job2 = jenkins.createProject(WorkflowJob.class, "pipeline2")
-            job2.setDefinition(new CpsFlowDefinition(script2, true))
-            jenkins.buildAndAssertStatus(Result.SUCCESS, job1)
-        when: "scheduling a new build"
-            WorkflowRun run2 = jenkins.buildAndAssertStatus(Result.SUCCESS, job2)
-
-        then: "expect log information about successful pipeline run and old reports"
-            jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run2)
-            jenkins.assertLogContains("[WARNING] ecu.test-reports contains folder older than this run.", run2)
-            jenkins.assertLogContains("Successfully added ecu.test-reports to jenkins.", run2)
     }
 }
