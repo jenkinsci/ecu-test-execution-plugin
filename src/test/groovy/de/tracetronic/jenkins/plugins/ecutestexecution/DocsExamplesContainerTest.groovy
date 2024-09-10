@@ -3,6 +3,8 @@ package de.tracetronic.jenkins.plugins.ecutestexecution
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
+import org.junit.Rule
+import org.jvnet.hudson.test.GroovyJenkinsRule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
@@ -12,9 +14,14 @@ import org.testcontainers.containers.wait.strategy.Wait
 import spock.lang.Shared
 import spock.lang.Unroll
 
-class RunAdvancedDocExamples extends ETContainerTest  {
+class DocsExamplesContainerTest extends ContainerTest  {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ETV2ContainerTest.class)
+    private static final Logger LOGGER = LoggerFactory.getLogger(ETContainerTest.class)
+
+    @Rule
+    protected GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
+
+    protected GenericContainer etContainer = getETContainer()
 
     GenericContainer getETContainer() {
             return new GenericContainer<>(ET_V2_IMAGE_NAME)
@@ -40,10 +47,12 @@ class RunAdvancedDocExamples extends ETContainerTest  {
 
         new File(filepath).eachLine { line ->
             if (line.contains('node {')) {
+                line += "\nwithEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {"
                 inTestableBlock = true
             }
 
             if (inTestableBlock && line.contains('```')) {
+                currentBlock.append("}\n")
                 codeBlocks.add(currentBlock.toString().trim())
                 currentBlock.delete(0, currentBlock.length())
                 inTestableBlock = false
@@ -52,8 +61,6 @@ class RunAdvancedDocExamples extends ETContainerTest  {
             if (inTestableBlock) {
                 currentBlock.append(line).append('\n')
             }
-
-
         }
 
         return codeBlocks
