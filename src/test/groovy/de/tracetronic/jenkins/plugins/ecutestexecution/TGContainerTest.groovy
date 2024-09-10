@@ -107,8 +107,8 @@ class TGContainerTest extends ContainerTest {
             String script = """
             node {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    def result = ttRunPackage testCasePath: 'test.pkg'
-                    ttRunProject testCasePath: 'test.prj'
+                    ttRunPackage testCasePath: 'test.pkg'
+                    def result = ttRunProject testCasePath: 'test.prj'
                     ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
                         credentialsId: 'authKey', reportIds: [result.reportId], 
                         useSettingsFromServer: false
