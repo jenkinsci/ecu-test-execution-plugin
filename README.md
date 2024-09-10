@@ -156,12 +156,13 @@ create an [issue](#contribution).
 
 </details>
 <details>
-    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.114.3)</summary>
+    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.142.0)</summary>
 
-| Version |    latest - 3.0    |
-|:-------:|:------------------:|
-| 1.147.0 | :heavy_check_mark: |
-| 1.142.0 | :heavy_check_mark: |
+| Version | latest - 3.6       |     3.5 - 3.0      |
+|---------|--------------------|:------------------:|
+| 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.147.0 | :x:                | :heavy_check_mark: |
+| 1.142.0 | :x:                | :heavy_check_mark: |
 
  </details>
 
