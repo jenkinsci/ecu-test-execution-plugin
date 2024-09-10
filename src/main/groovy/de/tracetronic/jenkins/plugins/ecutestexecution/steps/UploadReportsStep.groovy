@@ -207,7 +207,7 @@ class UploadReportsStep extends Step {
             List<UploadResult> result = []
             RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
 
-            TGUploadOrder uploadOrder = new TGUploadOrder(testGuideUrl,authKey, projectId, useSettingsFromServer, additionalSettings)
+            TGUploadOrder uploadOrder = new TGUploadOrder(testGuideUrl, authKey, projectId, useSettingsFromServer, additionalSettings)
             listener.logger.println("Uploading reports to test.guide ${this.testGuideUrl}...")
 
             if (reportIds == null || reportIds.isEmpty()) {
