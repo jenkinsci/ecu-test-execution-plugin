@@ -57,17 +57,17 @@
     },
     {
       "moduleLicense": "Apache-2.0",
-      "moduleVersion": "2.9.1",
+      "moduleVersion": "2.11.0",
       "moduleName": "com.google.code.gson:gson",
-      "licenseUrl": "https://github.com/google/gson/blob/gson-parent-2.9.1/gson/LICENSE",
+      "licenseUrl": "https://github.com/google/gson/blob/gson-parent-2.11.0/gson/LICENSE",
       "moduleCopyright": "Copyright 2008-2011 Google Inc.",
       "actualLicense" : "$moduleLicense"
     },
     {
       "moduleLicense": "Apache 2.0",
-      "moduleVersion": "2.7.1",
+      "moduleVersion": "2.27.0",
       "moduleName": "com.google.errorprone:error_prone_annotations",
-      "licenseUrl": "https://github.com/google/error-prone/blob/v2.7.1/COPYING",
+      "licenseUrl": "https://github.com/google/error-prone/blob/v2.27.0/COPYING",
       "moduleCopyright": "Copyright 2015 The Error Prone Authors.",
       "actualLicense" : "$moduleLicense"
     },
