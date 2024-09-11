@@ -217,10 +217,10 @@
     },
     {
       "moduleLicense": "Apache License, Version 2.0",
-      "moduleVersion": "3.12.0",
+      "moduleVersion": "3.17.0",
       "moduleName": "org.apache.commons:commons-lang3",
-      "licenseUrl": "https://github.com/apache/commons-lang/blob/rel/commons-lang-3.12.0/LICENSE.txt",
-      "moduleCopyright": "Copyright 2001-2021 The Apache Software Foundation",
+      "licenseUrl": "https://github.com/apache/commons-lang/blob/rel/commons-lang-3.17.0/LICENSE.txt",
+      "moduleCopyright": "Copyright 2001-2024 The Apache Software Foundation",
       "actualLicense" : "$moduleLicense"
     },
     {
