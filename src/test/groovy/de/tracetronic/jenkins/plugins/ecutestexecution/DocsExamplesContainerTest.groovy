@@ -47,12 +47,10 @@ class DocsExamplesContainerTest extends ContainerTest  {
 
         new File(filepath).eachLine { line ->
             if (line.contains('node {')) {
-                line += "\nwithEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {"
                 inTestableBlock = true
             }
 
             if (inTestableBlock && line.contains('```')) {
-                currentBlock.append("}\n")
                 codeBlocks.add(currentBlock.toString().trim())
                 currentBlock.delete(0, currentBlock.length())
                 inTestableBlock = false
@@ -66,13 +64,17 @@ class DocsExamplesContainerTest extends ContainerTest  {
         return codeBlocks
     }
 
+    def addContainerDataToString(String input){
+        return output = input.replaceAll(/(?ms)node \{(.*)\}/, "node {withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) { \$1}}")
+    }
+
     @Shared
     def codeBlocks = extractCodeBlocks("./docs/AdvancedUsage.md")
 
     @Unroll
     def "Run example #index"() {
         given:
-            def code = codeBlocks[index]
+            def code = addContainerDataToString(codeBlocks[index])
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-${index}")
             job.setDefinition(new CpsFlowDefinition(code, true))
 
