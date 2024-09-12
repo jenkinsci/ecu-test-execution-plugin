@@ -14,7 +14,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 import spock.lang.Shared
 import spock.lang.Unroll
 
-class DocsExamplesContainerTest extends ContainerTest  {
+class DocsExamplesContainerTest extends ETContainerTest  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ETContainerTest.class)
 
