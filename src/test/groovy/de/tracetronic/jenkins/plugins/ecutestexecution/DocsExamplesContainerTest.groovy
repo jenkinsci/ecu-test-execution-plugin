@@ -14,7 +14,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 import spock.lang.Shared
 import spock.lang.Unroll
 
-class DocsExamplesContainerTest extends ETContainerTest  {
+class DocsExamplesContainerTest extends ContainerTest  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ETContainerTest.class)
 
@@ -22,6 +22,9 @@ class DocsExamplesContainerTest extends ETContainerTest  {
     protected GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
 
     protected GenericContainer etContainer = getETContainer()
+
+    @Shared
+    def codeBlocks = extractCodeBlocks("./docs/AdvancedUsage.md")
 
     GenericContainer getETContainer() {
             return new GenericContainer<>(ET_V2_IMAGE_NAME)
@@ -64,17 +67,11 @@ class DocsExamplesContainerTest extends ETContainerTest  {
         return codeBlocks
     }
 
-    def addContainerDataToString(String input){
-        return output = input.replaceAll(/(?ms)node \{(.*)\}/, "node {withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) { \$1}}")
-    }
-
-    @Shared
-    def codeBlocks = extractCodeBlocks("./docs/AdvancedUsage.md")
-
     @Unroll
     def "Run example #index"() {
         given:
-            def code = addContainerDataToString(codeBlocks[index])
+            def code = codeBlocks[index]
+            code = code.replaceAll(/(?ms)node \{(.*)\}/, "node {withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) { \$1}}")
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-${index}")
             job.setDefinition(new CpsFlowDefinition(code, true))
 
