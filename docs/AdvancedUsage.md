@@ -2,15 +2,15 @@
 
 | Step-Name         | Parameters                                                                                                                                                                                                      | Return                                       |
 |-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| ttCheckPackage    | testCasePath: String <br/> executionConfig: [ExecutionConfig](#executionConfig)                                                                                                                                 | [CheckPackageResult](#checkPackageResult)    |
-| ttGenerateReports | generatorName: String <br/> additionalSettings:List\<[AdditionalSetting](#additionalSetting)> <br/> reportIds: List\<String>                                                                                    | List\<[GenerationResult](#generationResult)> |
+| ttCheckPackage    | testCasePath: String <br/> executionConfig: [ExecutionConfig](#executionconfig)                                                                                                                                 | [CheckPackageResult](#checkpackageresult)    |
+| ttGenerateReports | generatorName: String <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List\<String>                                                                                    | List\<[GenerationResult](#generationresult)> |
 | ttProvideLogs     | timeout: int                                                                                                                                                                                                    | /                                            |
-| ttRunPackage      | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageConfig) <br/> analysisConfig: [AnalysisConfig](#analysisConfig)                                                                               | [TestResult](#testResult)                    |
-| ttRunProject      | testCasePath: String                                                                                                                                                                                            | [TestResult](#testResult)                    |
-| ttRunTestFolder   | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageConfig) <br/> analysisConfig: [AnalysisConfig](#analysisConfig)                                                                               | List<[TestResult](#testResult)>              |
+| ttRunPackage      | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | [TestResult](#testresult)                    |
+| ttRunProject      | testCasePath: String                                                                                                                                                                                            | [TestResult](#testresult)                    |
+| ttRunTestFolder   | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | List<[TestResult](#testresult)>              |
 | ttStartTool       | toolName: String <br/> workspaceDir: String <br/> settingsDir: String <br/> timeout: int <br/> keepInstance: boolean <br/> stopUndefinedTools: boolean                                                          | /                                            |
 | ttStopTool        | toolName: String <br/> timeout: int,<br/> stopUndefinedTools: boolean                                                                                                                                           | /                                            |
-| ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalSetting)> <br/> reportIds: List<String> | List\<[UploadResult](#uploadResult)>         |
+| ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List<String> | List\<[UploadResult](#uploadresult)>         |
 
 ## Advanced Pipeline Examples
 
@@ -39,7 +39,7 @@ node {
 
 | Properties                                                      | Default Value |
 |-----------------------------------------------------------------|---------------|
-| packageParameters: List\<[PackageParameter](#packageParameter)> | []            |
+| packageParameters: List\<[PackageParameter](#packageparameter)> | []            |
 
 ## PackageParameter
 
