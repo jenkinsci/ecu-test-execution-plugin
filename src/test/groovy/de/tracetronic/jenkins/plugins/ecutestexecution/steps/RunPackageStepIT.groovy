@@ -170,10 +170,11 @@ class RunPackageStepIT extends IntegrationTestBase {
     def 'Run pipeline by declaring .tbc and .tcf files in testConfig'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
@@ -185,7 +186,8 @@ class RunPackageStepIT extends IntegrationTestBase {
     def 'Run pipeline by declaring KEEP in testConfig'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }", true))
 
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
@@ -200,11 +202,12 @@ class RunPackageStepIT extends IntegrationTestBase {
 
     def 'Run pipeline with invalid data type for testConfig'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [] }", true))
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [] }", true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())

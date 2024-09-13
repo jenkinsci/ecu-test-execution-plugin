@@ -117,49 +117,52 @@ class RunProjectStepIT extends IntegrationTestBase {
 
     def 'Run pipeline by declaring .tbc and .tcf files in testConfig'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', testConfig: [tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', " +
+                    "testConfig: [tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
-        WorkflowRun run = job.scheduleBuild2(0).get()
-        jenkins.assertLogContains("Executing project 'test.prj'...", run)
-        jenkins.assertLogContains("-> With TBC=test.tbc", run)
-        jenkins.assertLogContains("-> With TCF=test.tcf", run)
+            WorkflowRun run = job.scheduleBuild2(0).get()
+            jenkins.assertLogContains("Executing project 'test.prj'...", run)
+            jenkins.assertLogContains("-> With TBC=test.tbc", run)
+            jenkins.assertLogContains("-> With TCF=test.tcf", run)
     }
 
     def 'Run pipeline by declaring KEEP in testConfig'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }", true))
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', " +
+                    "testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }", true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
-        WorkflowRun run = job.scheduleBuild2(0).get()
-        jenkins.assertLogContains("Executing project 'test.prj'...", run)
-        jenkins.assertLogContains("-> With TBC=KEEP", run)
-        jenkins.assertLogContains("-> With TCF=KEEP", run)
+            WorkflowRun run = job.scheduleBuild2(0).get()
+            jenkins.assertLogContains("Executing project 'test.prj'...", run)
+            jenkins.assertLogContains("-> With TBC=KEEP", run)
+            jenkins.assertLogContains("-> With TCF=KEEP", run)
 
     }
 
     def 'Run pipeline with invalid data type for testConfig'() {
         given:
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', testConfig: [] }", true))
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', " +
+                    "testConfig: [] }", true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
-        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains("java.lang.ClassCastException", run)
-        jenkins.assertLogContains("expects class " +
-                "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
-        jenkins.assertLogContains("but received class java.util.ArrayList", run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("java.lang.ClassCastException", run)
+            jenkins.assertLogContains("expects class " +
+                    "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
+            jenkins.assertLogContains("but received class java.util.ArrayList", run)
     }
 
     def 'Run pipeline with package check'() {
