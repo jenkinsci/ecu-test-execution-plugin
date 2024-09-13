@@ -234,23 +234,23 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
     def 'Run pipeline with invalid data type for testConfig'() {
         given:
-        setupTestFolder()
-        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-        job.setDefinition(new CpsFlowDefinition(
-                "node { ttRunTestFolder  recursiveScan: true, " +
-                        "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                        ", testConfig: [] }",
-                true))
+            setupTestFolder()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttRunTestFolder  recursiveScan: true, " +
+                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
+                            ", testConfig: [] }",
+                    true))
 
-        GroovyMock(RestApiClientFactory, global: true)
-        RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
         expect:
-        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains("java.lang.ClassCastException", run)
-        jenkins.assertLogContains("expects class " +
-                "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
-        jenkins.assertLogContains("but received class java.util.ArrayList", run)
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("java.lang.ClassCastException", run)
+            jenkins.assertLogContains("expects class " +
+                    "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
+            jenkins.assertLogContains("but received class java.util.ArrayList", run)
     }
 
     def 'Run recursive scan pipeline'() {
