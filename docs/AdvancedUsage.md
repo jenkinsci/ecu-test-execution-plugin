@@ -14,13 +14,67 @@
 
 ## Advanced Pipeline Examples
 
+Conditional execution based on package check results
+
+```groovy
+node {
+    def checkResult = ttCheckPackage(
+            testCasePath: 'test.pkg',
+            executionConfig: [timeout: 1800, stopOnError: false]
+    )
+
+    if (checkResult.getResult() == 'SUCCESS') {
+        def testResult = ttRunPackage(
+                testCasePath: checkResult.getTestCasePath(),
+                packageConfig: [packageParameters: [
+                        [label: 'ExampleLabel', value: 'ExampleValue']
+                ]]
+        )
+
+        ttGenerateReports(
+                generatorName: 'HTML',
+                reportIds: [testResult.getReportId()]
+        )
+    } else {
+        //Handle Failed Check
+        ttProvideLogs(timeout: 120)
+    }
+}
+```
+
 Using returned ReportIds to generate specific reports.
 
 ```groovy
-
 node {
-    def res = ttRunPackage 'test.pkg'
-    ttGenerateReports generatorName: 'HTML', reportIds: [res.getReportId()]
+    ttRunPackage 'test.pkg'
+    def testResults = ttRunTestFolder(
+            testCasePath: 'tests/',
+            packageConfig: [packageParameters: [
+                    [label: 'ExampleLabel', value: 'ExampleValue']
+            ]],
+            analysisConfig: [analysisName: 'Example']
+    )
+    def reportIds = testResults.collect { it.getReportId() }
+
+    // Only generate reports for given reportIds, ignores the test.pkg run
+    ttGenerateReports(
+            generatorName: 'HTML',
+            reportIds: reportIds,
+            additionalSettings: [[name: 'ExampleSetting', value: 'true']]
+    )
+
+    // Only upload reports for given reportIds, ignores the test.pkg run
+    /*
+    def uploadResult = ttUploadReports(
+            testGuideUrl: '',
+            credentialsId: 'serverCreds',
+            projectId: 1,
+            useSettingsFromServer: true,
+            reportIds: reportIds
+    )
+
+    echo "Upload Result: ${uploadResult.collect { it.getUploadResult() }}"
+     */
 }
 ```
 
