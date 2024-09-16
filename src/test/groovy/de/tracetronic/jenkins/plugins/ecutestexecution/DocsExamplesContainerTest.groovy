@@ -21,10 +21,15 @@ class DocsExamplesContainerTest extends ContainerTest  {
     @Rule
     protected GroovyJenkinsRule jenkins = new GroovyJenkinsRule()
 
-    protected GenericContainer etContainer = getETContainer()
+    protected GenericContainer etContainer
 
     @Shared
     def codeBlocks = extractCodeBlocks("./docs/AdvancedUsage.md")
+
+    def setup() {
+        etContainer = getETContainer()
+        etContainer.start()
+    }
 
     GenericContainer getETContainer() {
             return new GenericContainer<>(ET_V2_IMAGE_NAME)
