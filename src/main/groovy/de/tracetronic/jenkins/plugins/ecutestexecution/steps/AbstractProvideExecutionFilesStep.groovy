@@ -30,13 +30,13 @@ import org.kohsuke.stapler.DataBoundSetter
 
 import javax.annotation.Nonnull
 
-abstract class AbstractProvideStep extends Step {
-    protected static String iconName
-    protected static String outDirName
-    protected static String supportVersion
+abstract class AbstractProvideExecutionFilesStep extends Step implements Serializable {
+    protected String iconName
+    protected String outDirName
+    protected String supportVersion
     protected PublishConfig publishConfig
 
-    AbstractProvideStep() {
+    AbstractProvideExecutionFilesStep() {
         super()
         this.publishConfig = new PublishConfig()
     }
@@ -56,14 +56,14 @@ abstract class AbstractProvideStep extends Step {
         return new Execution(this, context)
     }
 
-    protected abstract ArrayList<String> processReport(File reportFolder, String reportDir, String outDirPath, TaskListener listener)
+    protected abstract ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener)
 
     static class Execution extends SynchronousNonBlockingStepExecution<Void> {
         private static final long serialVersionUID = 1L
 
-        private final transient AbstractProvideStep step
+        private final transient AbstractProvideExecutionFilesStep step
 
-        Execution(AbstractProvideStep step, StepContext context) {
+        Execution(AbstractProvideExecutionFilesStep step, StepContext context) {
             super(context)
             this.step = step
         }
@@ -72,35 +72,33 @@ abstract class AbstractProvideStep extends Step {
         protected Void run() throws Exception {
             Run run = context.get(Run.class)
             TaskListener listener = context.get(TaskListener.class)
-
             long startTimeMillis = run.getStartTimeInMillis()
-            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(outDirName, context)
+            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
 
             try {
                 ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
                 )
-                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, outDirName, step.publishConfig.keepAll, iconName)
+                def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
                 if (!result && !step.publishConfig.allowMissing) {
-                    run.setResult(Result.FAILURE)
-                    throw new Exception("Missing ${outDirName} aren't allowed by step property. Set build result to ${Result.FAILURE.toString()}")
+                    throw new Exception("Missing ${step.outDirName} aren't allowed by step property. Set build result to ${Result.FAILURE.toString()}")
                 }
 
-                result && listener.logger.println("Successfully added ${outDirName} to jenkins.")
+                result && listener.logger.println("Successfully added ${step.outDirName} to jenkins.")
             } catch (Exception e) {
                 if (e instanceof AbortException) {
                     run.setResult(Result.UNSTABLE)
                 } else {
                     run.setResult(Result.FAILURE)
                 }
-                listener.logger.println("Providing ${outDirName} failed!")
+                listener.logger.println("Providing ${step.outDirName} failed!")
                 listener.error(e.message)
             }
             listener.logger.flush()
         }
     }
 
-    private static final class ExecutionCallable extends ControllerToAgentCallableWithTimeout<ArrayList<String>, IOException> {
+    private static final class ExecutionCallable extends ControllerToAgentCallableWithTimeout<ArrayList<String>, IOException> implements Serializable {
         private static final long serialVersionUID = 1L
 
         private final long startTimeMillis
@@ -108,11 +106,10 @@ abstract class AbstractProvideStep extends Step {
         private final String outDirPath
         private final TaskListener listener
         private RestApiClient apiClient
-        private final AbstractProvideStep step
+        private final AbstractProvideExecutionFilesStep step
 
-        private final unsupportedVersionMsg = "Downloading ${outDirName} is not supported for this ecu.test version. Please use ecu.test >= ${supportVersion} instead."
 
-        ExecutionCallable(long timeout, long startTimeMillis, EnvVars envVars, String outDirPath, TaskListener listener, AbstractProvideStep step) {
+        ExecutionCallable(long timeout, long startTimeMillis, EnvVars envVars, String outDirPath, TaskListener listener, AbstractProvideExecutionFilesStep step) {
             super(timeout, listener)
             this.startTimeMillis = startTimeMillis
             this.envVars = envVars
@@ -123,7 +120,9 @@ abstract class AbstractProvideStep extends Step {
 
         @Override
         ArrayList<String> execute() throws IOException {
-            listener.logger.println("Providing ${outDirName} to jenkins.")
+            String unsupportedVersionMsg = "Downloading ${step.outDirName} is not supported for this ecu.test version. Please use ecu.test >= ${step.supportVersion} instead."
+
+            listener.logger.println("Providing ${step.outDirName} to jenkins.")
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
                 if (apiClient instanceof RestApiClientV1) {
@@ -138,9 +137,9 @@ abstract class AbstractProvideStep extends Step {
 
                 ArrayList<String> reportPaths = []
                 reports.each {report ->
-                    String reportDir = report.reportDir.split('/').last()
-                    File reportFolder = apiClient.downloadReportFolder(report.testReportId)
-                    ArrayList<String> reportPath = step.processReport(reportFolder, reportDir, outDirPath, listener)
+                    String reportDirName = report.reportDir.split('/').last()
+                    File reportZip = apiClient.downloadReportFolder(report.testReportId)
+                    ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
                     if (reportPath) {
                         reportPaths.addAll(reportPath)
                     }

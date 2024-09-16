@@ -22,9 +22,9 @@ class ProvideLogStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
-            ProvideLogsStep before = new ProvideLogsStep()
+            ProvideExecutionLogsStep before = new ProvideExecutionLogsStep()
         when:
-            ProvideLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+            ProvideExecutionLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -35,7 +35,7 @@ class ProvideLogStepIT extends IntegrationTestBase {
             publishConfig.setTimeout(10)
             publishConfig.setKeepAll(false)
             publishConfig.setAllowMissing(true)
-            ProvideLogsStep step = new ProvideLogsStep()
+            ProvideExecutionLogsStep step = new ProvideExecutionLogsStep()
         when:
             step.setPublishConfig(publishConfig)
         then:

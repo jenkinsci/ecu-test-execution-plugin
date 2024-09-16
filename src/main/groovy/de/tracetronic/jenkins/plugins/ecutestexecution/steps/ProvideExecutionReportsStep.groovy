@@ -15,32 +15,31 @@ import hudson.model.TaskListener
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.kohsuke.stapler.DataBoundConstructor
 
-class ProvideReportsStep extends AbstractProvideStep {
+class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep{
     private static final String ICON_NAME = 'testreport'
     private static final String OUT_DIR_NAME = "ecu.test-reports"
     private static final String SUPPORT_VERSION = "2024.3"
 
     @DataBoundConstructor
-    ProvideReportsStep() {
+    ProvideExecutionReportsStep() {
         super()
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
     }
 
-    @Override
-    protected ArrayList<String> processReport(File reportFolder, String reportDir, String outDirPath, TaskListener listener) {
+    protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
         ArrayList<String> reportPaths = []
 
-        if (ZipUtil.containsFileOfType(reportFolder, ".prf")) {
-            def outputFile = new File("${outDirPath}/${reportDir}/${reportDir}.zip")
+        if (ZipUtil.containsFileOfType(reportZip, ".prf")) {
+            def outputFile = new File("${outDirPath}/${reportDirName}/${reportDirName}.zip")
             outputFile.parentFile.mkdirs()
-            String zipPath = ZipUtil.recreateWithFilesOfType(reportFolder, [".trf", ".prf"], outputFile)
+            String zipPath = ZipUtil.recreateWithFilesOfType(reportZip, [".trf", ".prf"], outputFile)
             reportPaths.add(zipPath)
         } else {
-            List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportFolder, [".trf", ".prf"], "${outDirPath}/${reportDir}")
+            List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, [".trf"], "${outDirPath}/${reportDirName}")
             if (extractedFiles.size() == 0) {
-                listener.logger.println("[WARNING] Could not find any report files in ${reportDir}!")
+                listener.logger.println("[WARNING] Could not find any report files in ${reportDirName}!")
             }
             reportPaths.addAll(extractedFiles)
         }

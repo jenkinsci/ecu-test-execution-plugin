@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import java.util.zip.ZipEntry

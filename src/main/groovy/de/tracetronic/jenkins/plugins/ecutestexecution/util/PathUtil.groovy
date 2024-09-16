@@ -9,9 +9,6 @@ import hudson.FilePath
 import hudson.Launcher
 import org.jenkinsci.plugins.workflow.steps.StepContext
 
-import java.text.ParseException
-import java.text.SimpleDateFormat
-
 class PathUtil {
 
     /**

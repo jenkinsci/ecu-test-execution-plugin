@@ -15,13 +15,13 @@ import hudson.model.TaskListener
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.kohsuke.stapler.DataBoundConstructor
 
-class ProvideLogsStep extends AbstractProvideStep {
+class ProvideExecutionLogsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'logFile'
     private static final String OUT_DIR_NAME = "ecu.test-logs"
     private static final String SUPPORT_VERSION = "2024.2"
 
     @DataBoundConstructor
-    ProvideLogsStep() {
+    ProvideExecutionLogsStep() {
         super()
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
@@ -29,12 +29,13 @@ class ProvideLogsStep extends AbstractProvideStep {
     }
 
     @Override
-    protected ArrayList<String> processReport(File reportFolder, String reportDir, String outDirPath, TaskListener listener) {
+    ArrayList<String> processReport(final File reportZip, final String reportDirName, final String outDirPath,
+                                    final TaskListener listener) {
         ArrayList<String> logFileNames = ["ecu.test_out.log", "ecu.test_err.log"]
 
-        ArrayList<String> extractedFiles = ZipUtil.extractFilesByExtension(reportFolder, logFileNames, "${outDirPath}/${reportDir}")
+        ArrayList<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, logFileNames, "${outDirPath}/${reportDirName}")
         if (extractedFiles.size() != logFileNames.size()) {
-            listener.logger.println("[WARNING] ${reportDir} is missing one or all log files!")
+            listener.logger.println("[WARNING] ${reportDirName} is missing one or all log files!")
         }
 
         return extractedFiles
