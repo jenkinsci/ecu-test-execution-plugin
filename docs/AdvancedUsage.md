@@ -26,9 +26,6 @@ node {
     if (checkResult.getResult() == 'SUCCESS') {
         def testResult = ttRunPackage(
                 testCasePath: checkResult.getTestCasePath(),
-                packageConfig: [packageParameters: [
-                        [label: 'ExampleLabel', value: 'ExampleValue']
-                ]]
         )
 
         ttGenerateReports(
@@ -48,19 +45,14 @@ Using returned ReportIds to generate specific reports.
 node {
     ttRunPackage 'test.pkg'
     def testResults = ttRunTestFolder(
-            testCasePath: 'tests/',
-            packageConfig: [packageParameters: [
-                    [label: 'ExampleLabel', value: 'ExampleValue']
-            ]],
-            analysisConfig: [analysisName: 'Example']
+            testCasePath: "/build/resources/test/workspace/Packages/"
     )
     def reportIds = testResults.collect { it.getReportId() }
 
     // Only generate reports for given reportIds, ignores the test.pkg run
     ttGenerateReports(
-            generatorName: 'HTML',
-            reportIds: reportIds,
-            additionalSettings: [[name: 'ExampleSetting', value: 'true']]
+            generatorName: 'ATX',
+            reportIds: reportIds
     )
 
     // Only upload reports for given reportIds, ignores the test.pkg run
