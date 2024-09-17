@@ -24,14 +24,7 @@ node {
     )
 
     if (checkResult.getResult() == 'SUCCESS') {
-        def testResult = ttRunPackage(
-                testCasePath: checkResult.getTestCasePath(),
-        )
-
-        ttGenerateReports(
-                generatorName: 'HTML',
-                reportIds: [testResult.getReportId()]
-        )
+        ttRunPackage(testCasePath: checkResult.getTestCasePath())
     } else {
         //Handle Failed Check
         ttProvideLogs(timeout: 120)
@@ -39,22 +32,16 @@ node {
 }
 ```
 
-Using returned ReportIds to generate specific reports.
+Using returned reportId to generate specific reports.
 
 ```groovy
 node {
-    ttRunPackage 'test.pkg'
-    def testResults = ttRunTestFolder(
-            testCasePath: "${ET_WS_PATH}/Packages",
-            recursiveScan: true,
-            failFast: false
-    )
-    def reportIds = testResults.collect { it.getReportId() }
-
+    def testResult = ttRunPackage 'test.pkg'
+    def reportId = testResult.getReportId()
     // Only generate reports for given reportIds, ignores the test.pkg run
     ttGenerateReports(
             generatorName: 'ATX',
-            reportIds: reportIds
+            reportIds: [reportId]
     )
 
     // Only upload reports for given reportIds, ignores the test.pkg run
