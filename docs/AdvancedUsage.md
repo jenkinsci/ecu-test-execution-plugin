@@ -7,7 +7,7 @@
 | ttProvideLogs     | timeout: int                                                                                                                                                                                                    | /                                            |
 | ttRunPackage      | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | [TestResult](#testresult)                    |
 | ttRunProject      | testCasePath: String                                                                                                                                                                                            | [TestResult](#testresult)                    |
-| ttRunTestFolder   | scanMode:  testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                    | List<[TestResult](#testresult)>              |
+| ttRunTestFolder   | testCasePath: String, <br/>scanMode: [ScanMode](#scanmode), <br/>failFast: boolean,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                 | List<[TestResult](#testresult)>              |
 | ttStartTool       | toolName: String <br/> workspaceDir: String <br/> settingsDir: String <br/> timeout: int <br/> keepInstance: boolean <br/> stopUndefinedTools: boolean                                                          | /                                            |
 | ttStopTool        | toolName: String <br/> timeout: int,<br/> stopUndefinedTools: boolean                                                                                                                                           | /                                            |
 | ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List<String> | List\<[UploadResult](#uploadresult)>         |
@@ -110,6 +110,27 @@ node {
 | analysisName: String                  | ''            |
 | mapping: String                       | ''            |
 | recordings: List\<RecordingAsSetting> | []            |
+
+## ScanMode
+
+```groovy
+enum ScanMode {
+    /**
+     * Scan packages only.
+     */
+    PACKAGES_ONLY,
+
+    /**
+     * Scan projects only.
+     */
+    PROJECTS_ONLY,
+
+    /**
+     * Scan both packages and projects.
+     */
+    PACKAGES_AND_PROJECTS
+}
+```
 
 # Return Objects and their properties
 
