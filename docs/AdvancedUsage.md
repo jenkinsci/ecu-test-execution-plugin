@@ -45,7 +45,7 @@ Using returned ReportIds to generate specific reports.
 node {
     ttRunPackage 'test.pkg'
     def testResults = ttRunTestFolder(
-            testCasePath: "/app/workspace/Packages/"
+            testCasePath: "/app/workspace/Packages"
     )
     def reportIds = testResults.collect { it.getReportId() }
 
