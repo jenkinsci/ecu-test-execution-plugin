@@ -7,7 +7,7 @@
 | ttProvideLogs     | timeout: int                                                                                                                                                                                                    | /                                            |
 | ttRunPackage      | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | [TestResult](#testresult)                    |
 | ttRunProject      | testCasePath: String                                                                                                                                                                                            | [TestResult](#testresult)                    |
-| ttRunTestFolder   | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | List<[TestResult](#testresult)>              |
+| ttRunTestFolder   | scanMode:  testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                    | List<[TestResult](#testresult)>              |
 | ttStartTool       | toolName: String <br/> workspaceDir: String <br/> settingsDir: String <br/> timeout: int <br/> keepInstance: boolean <br/> stopUndefinedTools: boolean                                                          | /                                            |
 | ttStopTool        | toolName: String <br/> timeout: int,<br/> stopUndefinedTools: boolean                                                                                                                                           | /                                            |
 | ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List<String> | List\<[UploadResult](#uploadresult)>         |
@@ -45,7 +45,9 @@ Using returned ReportIds to generate specific reports.
 node {
     ttRunPackage 'test.pkg'
     def testResults = ttRunTestFolder(
-            testCasePath: "/app/workspace/Packages"
+            testCasePath: "${ET_WS_PATH}/Packages",
+            recursiveScan: true,
+            failFast: false
     )
     def reportIds = testResults.collect { it.getReportId() }
 
