@@ -56,7 +56,7 @@ class ETV2ContainerTest extends ETContainerTest {
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Missing ecu.test-logs aren't allowed by step property. Set build result to FAILURE", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test-logs. Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def "Perform provide reports step with no reports"() {
@@ -76,7 +76,7 @@ class ETV2ContainerTest extends ETContainerTest {
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Missing ecu.test-reports aren't allowed by step property. Set build result to FAILURE", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test-reports. Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def "Perform provide logs step with logs"() {
