@@ -41,8 +41,8 @@ class ProvideFilesBuilder implements Serializable {
         }
 
         run.artifactManager.archive(workspace, context.get(Launcher.class), listener as BuildListener, artifactsMap)
-        List<Action> fileProviderActions = run.getActions(ProvideFilesActionView.class)
-        if (fileProviderActions.empty || fileProviderActions.every { it.displayName != outDirName}) {
+        def fileProviderActions = run.getActions(ProvideFilesActionView.class)
+        if (fileProviderActions == null || fileProviderActions.empty || fileProviderActions.every { it.displayName != outDirName}) {
             run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName, iconName))
         }
 
