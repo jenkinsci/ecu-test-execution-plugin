@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideFilesActionView
 import hudson.FilePath
 import hudson.Launcher
+import hudson.model.Action
 import hudson.model.BuildListener
 import hudson.model.Run
 import hudson.model.TaskListener
@@ -33,8 +39,12 @@ class ProvideFilesBuilder implements Serializable {
 
             artifactsMap.put(relPath, relPath)
         }
+
         run.artifactManager.archive(workspace, context.get(Launcher.class), listener as BuildListener, artifactsMap)
-        run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName, iconName))
+        List<Action> fileProviderActions = run.getActions(ProvideFilesActionView.class)
+        if (fileProviderActions.empty || fileProviderActions.every { it.displayName != outDirName}) {
+            run.addAction(new ProvideFilesActionView(run.externalizableId, outDirName, iconName))
+        }
 
         if (!keepArtifacts) {
             workspace.child(outDirName).deleteRecursive()

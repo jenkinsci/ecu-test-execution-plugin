@@ -81,7 +81,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
                 )
                 def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
                 if (!result && !step.publishConfig.allowMissing) {
-                    throw new Exception("Missing ${step.outDirName} aren't allowed by step property. Set build result to ${Result.FAILURE.toString()}")
+                    throw new Exception("Build Result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
                 }
 
                 result && listener.logger.println("Successfully added ${step.outDirName} to jenkins.")

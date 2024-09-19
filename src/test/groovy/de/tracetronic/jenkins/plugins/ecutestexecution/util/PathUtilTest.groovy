@@ -10,7 +10,6 @@ import hudson.Launcher
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import spock.lang.IgnoreIf
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PathUtilTest extends Specification {
 
