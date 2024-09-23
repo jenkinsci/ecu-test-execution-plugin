@@ -1,16 +1,16 @@
 # Advanced Usage Documentation
 
-| Step-Name         | Parameters                                                                                                                                                                                                      | Return                                       |
-|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| ttCheckPackage    | testCasePath: String <br/> executionConfig: [ExecutionConfig](#executionconfig)                                                                                                                                 | [CheckPackageResult](#checkpackageresult)    |
-| ttGenerateReports | generatorName: String <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List\<String>                                                                                    | List\<[GenerationResult](#generationresult)> |
-| ttProvideLogs     | timeout: int                                                                                                                                                                                                    | /                                            |
-| ttRunPackage      | testCasePath: String,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                                               | [TestResult](#testresult)                    |
-| ttRunProject      | testCasePath: String                                                                                                                                                                                            | [TestResult](#testresult)                    |
-| ttRunTestFolder   | testCasePath: String, <br/>scanMode: [ScanMode](#scanmode), <br/>failFast: boolean,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                 | List<[TestResult](#testresult)>              |
-| ttStartTool       | toolName: String <br/> workspaceDir: String <br/> settingsDir: String <br/> timeout: int <br/> keepInstance: boolean <br/> stopUndefinedTools: boolean                                                          | /                                            |
-| ttStopTool        | toolName: String <br/> timeout: int,<br/> stopUndefinedTools: boolean                                                                                                                                           | /                                            |
-| ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List<String> | List\<[UploadResult](#uploadresult)>         |
+| Step-Name         | Parameters                                                                                                                                                                                                                                                                                               | Return                                       |
+|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| ttCheckPackage    | testCasePath: String <br/> executionConfig: [ExecutionConfig](#executionconfig)                                                                                                                                                                                                                          | [CheckPackageResult](#checkpackageresult)    |
+| ttGenerateReports | generatorName: String <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List\<String>                                                                                                                                                                             | List\<[GenerationResult](#generationresult)> |
+| ttProvideLogs     | timeout: int                                                                                                                                                                                                                                                                                             | /                                            |
+| ttRunPackage      | testCasePath: String, <br/> testConfig: [TestConfig](#testconfig) <br/> executionConfig: [ExecutionConfig](#executionconfig)  <br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig)                                                               | [TestResult](#testresult)                    |
+| ttRunProject      | testCasePath: String, <br/> testConfig: [TestConfig](#testconfig) <br/> executionConfig: [ExecutionConfig](#executionconfig)                                                                                                                                                                             | [TestResult](#testresult)                    |
+| ttRunTestFolder   | testCasePath: String, <br/> testConfig: [TestConfig](#testconfig) <br/> executionConfig: [ExecutionConfig](#executionconfig)  <br/> scanMode: [ScanMode](#scanmode), <br/>failFast: boolean,<br/> packageConfig: [PackageConfig](#packageconfig) <br/> analysisConfig: [AnalysisConfig](#analysisconfig) | List<[TestResult](#testresult)>              |
+| ttStartTool       | toolName: String <br/> workspaceDir: String <br/> settingsDir: String <br/> timeout: int <br/> keepInstance: boolean <br/> stopUndefinedTools: boolean                                                                                                                                                   | /                                            |
+| ttStopTool        | toolName: String <br/> timeout: int,<br/> stopUndefinedTools: boolean                                                                                                                                                                                                                                    | /                                            |
+| ttUploadReports   | testGuideUrl: String <br/> credentialsId: String <br/>projectId: int <br/> useSettingsFromServer: boolean <br/> additionalSettings:List\<[AdditionalSetting](#additionalsetting)> <br/> reportIds: List<String>                                                                                          | List\<[UploadResult](#uploadresult)>         |
 
 ## Advanced Pipeline Examples
 
@@ -59,7 +59,7 @@ node {
 }
 ```
 
-# Input Objects and their properties
+# Objects and their properties
 
 ## ExecutionConfig
 
@@ -69,6 +69,22 @@ node {
 | stopOnError: boolean         | true          |
 | stopUndefinedTools: boolean  | true          |
 | executePackageCheck: boolean | false         |
+
+## TestConfig
+
+| Properties                              | Default Value |
+|-----------------------------------------|---------------|
+| tbcPath: String                         | ''            |
+| tcfPath: String                         | ''            |
+| forceConfigurationReload: boolean       | false         |
+| constants:  List<[Constant](#constant)> | []            |
+
+## Constant
+
+| Properties    | Default Value |
+|---------------|---------------|
+| label: String | /             |
+| value: String | /             |
 
 ## PackageConfig
 
@@ -100,26 +116,9 @@ node {
 
 ## ScanMode
 
-```groovy
-enum ScanMode {
-    /**
-     * Scan packages only.
-     */
-    PACKAGES_ONLY,
-
-    /**
-     * Scan projects only.
-     */
-    PROJECTS_ONLY,
-
-    /**
-     * Scan both packages and projects.
-     */
-    PACKAGES_AND_PROJECTS
-}
-```
-
-# Return Objects and their properties
+| Properties    | Possible Values                                               |
+|---------------|---------------------------------------------------------------|
+| enum ScanMode | PACKAGES_ONLY <br/> PROJECTS_ONLY <br/> PACKAGES_AND_PROJECTS |
 
 ## CheckPackageResult
 
