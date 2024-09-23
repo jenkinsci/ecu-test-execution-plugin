@@ -75,6 +75,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Publish Code Coverage') {
+            steps {
+                jacoco execPattern: '**/build/jacoco/unitTest.exec,**/build/jacoco/integrationTest.exec',
+                       classPattern: '**/build/classes/groovy/main',
+                       sourcePattern: '**/src/main/groovy',
+                       exclusionPattern: '**/build/classes/groovy/test'
+            }
+        }
+
         stage('Run Parallel') {
             failFast false
             parallel {
