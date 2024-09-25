@@ -36,7 +36,7 @@ class ProvideFilesBuilderTest extends Specification {
             1 * logger.flush()
     }
 
-    def "Test archiveFiles and add action successfully"() {
+    def "Test archiveFiles and add action #addActionCalled time with current run actions are #actionsView"() {
         given:
             def context = GroovyMock(StepContext)
             def run = GroovyMock(Run)
@@ -59,6 +59,7 @@ class ProvideFilesBuilderTest extends Specification {
             context.get(TaskListener) >> listener
             context.get(Launcher) >> launcher
             run.getArtifactManager() >> artifactManager
+            run.getActions(_) >> actionsView
             workspace.getRemote() >> workspacePath
             workspace.child(_) >> outDir
             listener.getLogger() >> logger
@@ -73,15 +74,24 @@ class ProvideFilesBuilderTest extends Specification {
             1 * artifactManager.archive(_, _, _, _) >> { args ->
                 assert args[3] == ["Reports/report1.trf": "Reports/report1.trf", "Reports/report2.prf": "Reports/report2.prf"]
             }
-            1 * run.addAction(_) >> { args ->
+            addActionCalled * run.addAction(_) >> { args ->
                 assert args[0] instanceof ProvideFilesActionView
                 assert args[0].dirName == "reportsDir"
                 assert args[0].iconFileName == "plugin/ecu-test-execution/images/file/${iconName}.svg"
             }
             0 * outDir.deleteRecursive()
+
+        where:
+            actionsView << [
+                    null,
+                    [],
+                    [new ProvideFilesActionView('1', 'reportsDir', 'iconName')],
+                    [new ProvideFilesActionView('1', 'logsDir', 'iconLogsName')]
+                    ]
+            addActionCalled << [1, 1, 0, 1]
     }
 
-    def "Test archiveFiles delete reportsDir"() {
+    def "Test archiveFiles keep artifacts #keep"() {
         given:
             def context = GroovyMock(StepContext)
             def run = GroovyMock(Run)
@@ -107,12 +117,16 @@ class ProvideFilesBuilderTest extends Specification {
             def builder = new ProvideFilesBuilder(context)
 
         when:
-            def result = builder.archiveFiles(filePaths, "reportsDir", false, "viewIcon")
+            def result = builder.archiveFiles(filePaths, "reportsDir", keep, "viewIcon")
 
         then:
             result
             1 * artifactManager.archive(_, _, _, ["Reports/report.trf": "Reports/report.trf"])
             1 * run.addAction(_)
-            1 * outDir.deleteRecursive()
+            deleteCalled * outDir.deleteRecursive()
+
+        where:
+            keep << [false, true]
+            deleteCalled << [1, 0]
     }
 }

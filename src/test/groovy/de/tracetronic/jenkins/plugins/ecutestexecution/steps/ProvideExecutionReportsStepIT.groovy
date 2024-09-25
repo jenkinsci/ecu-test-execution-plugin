@@ -12,7 +12,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
-class ProvideLogStepIT extends IntegrationTestBase {
+class ProvideExecutionReportsStepIT extends IntegrationTestBase {
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
@@ -22,9 +22,9 @@ class ProvideLogStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
-            ProvideExecutionLogsStep before = new ProvideExecutionLogsStep()
+            ProvideExecutionReportsStep before = new ProvideExecutionReportsStep()
         when:
-            ProvideExecutionLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+            ProvideExecutionReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -35,44 +35,44 @@ class ProvideLogStepIT extends IntegrationTestBase {
             publishConfig.setTimeout(10)
             publishConfig.setKeepAll(false)
             publishConfig.setAllowMissing(true)
-            ProvideExecutionLogsStep step = new ProvideExecutionLogsStep()
+            ProvideExecutionReportsStep step = new ProvideExecutionReportsStep()
         when:
             step.setPublishConfig(publishConfig)
         then:
-            st.assertRoundTrip(step, "ttProvideLogs(publishConfig: [allowMissing: true, keepAll: false, timeout: 10])")
+            st.assertRoundTrip(step, "ttProvideReports(publishConfig: [allowMissing: true, keepAll: false, timeout: 10])")
     }
 
     def 'Run pipeline default'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideReports()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test-logs. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test-reports. Adjust AllowMissing step property if this is not intended.", run)
     }
 
-    def 'Run pipeline allow missing logs'() {
+    def 'Run pipeline allow missing reports'() {
         given:
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [allowMissing: true])}", true))
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+        job.setDefinition(new CpsFlowDefinition("node {ttProvideReports(publishConfig: [allowMissing: true])}", true))
         expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogNotContains("Successfully added ecu.test-logs to jenkins.", run)
+        WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
+        jenkins.assertLogContains("[WARNING] No files found!", run)
+        jenkins.assertLogNotContains("Successfully added ecu.test-logs to jenkins.", run)
     }
 
     def 'Run pipeline exceeds timeout'() {
         int timeout = 1
         given:
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [timeout: ${timeout}])}", true))
+        WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+        job.setDefinition(new CpsFlowDefinition("node {ttProvideReports(publishConfig: [timeout: ${timeout}])}", true))
         expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
-            jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-            jenkins.assertLogContains("Providing ecu.test-logs failed!", run)
+        WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
+        jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
+        jenkins.assertLogContains("Providing ecu.test-reports failed!", run)
     }
 }

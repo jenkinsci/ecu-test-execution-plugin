@@ -10,6 +10,7 @@ target/
 build/
 out/
 work/
+htmlReport/
 
 *.DS_Store
 *.class

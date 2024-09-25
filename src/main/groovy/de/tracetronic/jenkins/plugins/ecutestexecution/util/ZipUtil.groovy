@@ -16,11 +16,8 @@ class ZipUtil {
         Set<String> fileEndingsSet = fileEndings.toSet()
         new File(saveToDirPath).mkdirs()
 
-        ZipInputStream zipInputStream = null
-        try {
-            zipInputStream = new ZipInputStream(new FileInputStream(reportFolderZip))
+        new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
             ZipEntry entry
-
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
                     boolean shouldExtract = fileEndingsSet.any { ending ->
@@ -30,22 +27,12 @@ class ZipUtil {
                     if (shouldExtract) {
                         File outputFile = new File(saveToDirPath, entry.name)
                         outputFile.parentFile.mkdirs() // Ensure the directory structure is created
-                        FileOutputStream outputStream = null
-                        try {
-                            outputStream = new FileOutputStream(outputFile)
+                        outputFile.withOutputStream { outputStream ->
                             outputStream << zipInputStream
-                        } finally {
-                            if (outputStream != null) {
-                                outputStream.close()
-                            }
                         }
-                        extractedFilePaths.add(outputFile.getPath())
+                        extractedFilePaths.add(outputFile.path)
                     }
                 }
-            }
-        } finally {
-            if (zipInputStream != null) {
-                zipInputStream.close()
             }
         }
 
