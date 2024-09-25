@@ -8,7 +8,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.builder
 import de.tracetronic.jenkins.plugins.ecutestexecution.views.ProvideFilesActionView
 import hudson.FilePath
 import hudson.Launcher
-import hudson.model.BuildListener
 import hudson.model.Run
 import hudson.model.TaskListener
 import jenkins.model.ArtifactManager
@@ -22,9 +21,12 @@ class ProvideFilesBuilderTest extends Specification {
             def context = GroovyMock(StepContext)
             def listener = GroovyMock(TaskListener)
             def logger = GroovyMock(PrintStream)
+
+        and:
             context.get(TaskListener) >> listener
             listener.getLogger() >> logger
 
+        and:
             def builder = new ProvideFilesBuilder(context)
 
         when:
@@ -54,6 +56,7 @@ class ProvideFilesBuilderTest extends Specification {
             ]
             def iconName = "viewIcon"
 
+        and:
             context.get(Run) >> run
             context.get(FilePath) >> workspace
             context.get(TaskListener) >> listener
@@ -64,6 +67,7 @@ class ProvideFilesBuilderTest extends Specification {
             workspace.child(_) >> outDir
             listener.getLogger() >> logger
 
+        and:
             ProvideFilesBuilder builder = new ProvideFilesBuilder(context)
 
         when:
@@ -105,6 +109,7 @@ class ProvideFilesBuilderTest extends Specification {
             def workspacePath = "/path/to/remote/workspace"
             def filePaths = ["${workspacePath}/Reports/report.trf"]
 
+        and:
             context.get(Run) >> run
             context.get(FilePath) >> workspace
             context.get(TaskListener) >> listener
@@ -114,6 +119,7 @@ class ProvideFilesBuilderTest extends Specification {
             workspace.child(_) >> outDir
             listener.getLogger() >> logger
 
+        and:
             def builder = new ProvideFilesBuilder(context)
 
         when:
