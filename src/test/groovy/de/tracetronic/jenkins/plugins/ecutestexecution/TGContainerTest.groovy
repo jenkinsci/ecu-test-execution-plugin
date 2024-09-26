@@ -93,7 +93,6 @@ class TGContainerTest extends ContainerTest {
             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-            TaskListener taskListener = jenkins.createTaskListener()
 
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
@@ -105,7 +104,6 @@ class TGContainerTest extends ContainerTest {
 
     def "Upload a specific test report"() {
         given: "a test execution and upload pipeline"
-            Secret authKey = Secret.fromString(TG_AUTH_KEY)
             String script = """
             node {
                 withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
@@ -130,7 +128,6 @@ class TGContainerTest extends ContainerTest {
 
     def "Upload an invalid test report"() {
         given: "a test execution and upload pipeline"
-            Secret authKey = Secret.fromString(TG_AUTH_KEY)
             String reportID = '0815-241543903-0815'
             String script = """
                 node {
@@ -158,7 +155,6 @@ class TGContainerTest extends ContainerTest {
 
     def "Upload test report invalid config"() {
         given: "a test execution and upload pipeline"
-            Secret authKey = Secret.fromString('invalid_key')
             String script = """
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {

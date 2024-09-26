@@ -1,0 +1,35 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+    <tr>
+        <j:choose>
+            <j:when test="${entry.value.getClass().getName() != 'java.util.LinkedHashMap'}">
+                <td>
+                    <div style="text-indent: ${indent}px;">
+                        <img src='${rootURL}/${it.iconFileName}' alt='Icon'
+                             style='margin-right:0.5em;width:1em;height:1em;vertical-align:middle;'/>
+                        <!-- get artifact file name of relative path -->
+                        <a href="${rootURL}/${it.run.url}artifact/${entry.value.relativePath}" style="margin-right:2em">
+                            ${entry.value.getFileName()}
+                        </a>
+                    </div>
+                </td>
+                <td class="fileSize">
+                    ${h.humanReadableByteSize(entry.value.getFileSize())}
+                </td>
+            </j:when>
+            <j:otherwise>
+                <td colspan="2">
+                    <div style="text-indent: ${indent}px;">
+                        <img src='${rootURL}/images/svgs/folder.svg' alt='Folder'
+                             style='margin-right:0.5em;width:1em;height:1em;vertical-align:middle;'/>
+                        ${entry.key}
+                        <!-- Recursively include this page for each child entry -->
+                        <j:set var="indent" value="${indent+20}"/>
+                        <j:forEach var="entry" items="${entry.value}">
+                            <st:include page="fileTree.jelly"/>
+                        </j:forEach>
+                    </div>
+                </td>
+            </j:otherwise>
+        </j:choose>
+    </tr>
+</j:jelly>

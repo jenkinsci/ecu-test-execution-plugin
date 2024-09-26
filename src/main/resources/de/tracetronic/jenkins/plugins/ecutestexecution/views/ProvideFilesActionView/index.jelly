@@ -1,0 +1,32 @@
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler">
+    <j:set var="owner" value="${it.owner}"/>
+    <j:set var="build" value="${it.build}"/>
+    <l:layout title="${it.displayName}">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
+        </l:side-panel>
+        <l:main-panel>
+            <j:set var="build" value="${it.getBuild(request)}"/>
+            <h1>
+                <img src='${rootURL}/${it.iconFileName}' alt='Icon' style='margin-right:0.5em;width:2em;height:2em;vertical-align:middle;'/>
+                ${it.displayName}
+            </h1>
+            <table class="fileList">
+                <j:set var="indent" value="0"/>
+                <j:forEach var="entry" items="${it.LogPathMap}">
+                    <st:include page="fileTree.jelly" />
+                </j:forEach>
+                <tr>
+                    <td style="text-align:right;" colspan="2">
+                        <div style="margin-top: 1em">
+                            <l:icon class="icon-package icon-sm"/>
+                            <a href="${rootURL}/${it.run.url}artifact/${it.dirName}/*zip*/${it.dirName}.zip">
+                                Download as .zip
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

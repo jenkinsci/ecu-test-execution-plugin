@@ -86,7 +86,10 @@ node('windows') {
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
     stage('Provide ecu.test logs in jenkins') {
-        ttProvideLogs timeout: 60
+        ttProvideLogs(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
+    }
+    stage('Provide ecu.test trf/prf reports in jenkins') {
+        ttProvideReports(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
     }
     stage('Generate Reports') {
         ttGenerateReports 'HTML'
@@ -139,7 +142,8 @@ create an [issue](#contribution).
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
 
 | Version |    latest - 3.5    |     3.4 - 3.1      |        3.0         |
-|:-------:|:------------------:|:------------------:|:------------------:|
+|---------|:------------------:|:------------------:|:------------------:|
+| 2024.3  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.2  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.1  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
 | 2023.4  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
@@ -152,12 +156,13 @@ create an [issue](#contribution).
 
 </details>
 <details>
-    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.114.3)</summary>
+    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.142.0)</summary>
 
-| Version |    latest - 3.0    |
-|:-------:|:------------------:|
-| 1.147.0 | :heavy_check_mark: |
-| 1.142.0 | :heavy_check_mark: |
+| Version | latest - 3.6       |     3.5 - 3.0      |
+|---------|--------------------|:------------------:|
+| 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.147.0 | :x:                | :heavy_check_mark: |
+| 1.142.0 | :x:                | :heavy_check_mark: |
 
  </details>
 
