@@ -44,6 +44,7 @@ pipeline {
     }
 
     parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'The specified branch name to use for testing.')
         string(name: 'ET_VERSION', defaultValue: '2023.4.0', description: 'The specified ecu.test version to use for testing.')
         string(name: 'ET_V1_VERSION', defaultValue: '2023.3.0', description: 'The specified ecu.test v1 version to use for testing.')
         string(name: 'ET_V2_VERSION', defaultValue: '2024.3.0_RC', description: 'The specified ecu.test v2 version to use for testing.')
@@ -101,7 +102,7 @@ pipeline {
                             steps {
                                 script {
                                     catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
-                                        copyArtifacts fingerprintArtifacts: true, projectName: '../prepareContainerTestData', selector: lastSuccessful()
+                                        copyArtifacts fingerprintArtifacts: true, projectName: "../containerTestData/${params.BRANCH_NAME}", selector: lastSuccessful()
                                     }
                                     def properties = readFile('src/test/resources/containerTest.properties')
                                         .replaceAll(/ET_VERSION=.*/, "ET_VERSION=${params.ET_VERSION}")
