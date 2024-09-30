@@ -801,10 +801,10 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "2.0.0",
+      "moduleVersion": "2.0.16",
       "moduleName": "org.slf4j:slf4j-api",
-      "licenseUrl": "https://github.com/qos-ch/slf4j/blob/v_2.0.0/slf4j-api/LICENSE.txt",
-      "moduleCopyright": "Copyright (c) 2004-2007 QOS.ch",
+      "licenseUrl": "https://github.com/qos-ch/slf4j/blob/v_2.0.16/slf4j-api/LICENSE.txt",
+      "moduleCopyright": "Copyright (c) 2004-2023 QOS.ch",
       "actualLicense" : "$moduleLicense"
     },
     {
