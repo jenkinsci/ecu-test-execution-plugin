@@ -107,6 +107,8 @@ The [test.guide](https://www.tracetronic.com/products/test-guide/) authenticatio
 [credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the
 *ttUploadReports* step.
 
+Check out the [advanced usage docs](./docs/AdvancedUsage.md) for more detailed information
+
 ## Migration
 
 See [migration guide](docs/Migration.md) for information about how to migrate from previous plugin version 2.x to 3.x
