@@ -145,9 +145,9 @@
     },
     {
       "moduleLicense": "Apache-2.0",
-      "moduleVersion": "1.8.5",
+      "moduleVersion": "1.9.0",
       "moduleName": "io.gsonfire:gson-fire",
-      "licenseUrl": "https://github.com/julman99/gson-fire/blob/master/LICENSE",
+      "licenseUrl": "https://github.com/julman99/gson-fire/blob/v1.9.0/LICENSE",
       "moduleCopyright": "Copyright 2015 Julio Viera",
       "actualLicense" : "$moduleLicense"
     },
