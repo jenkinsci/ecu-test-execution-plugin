@@ -26,7 +26,7 @@ class ZipUtil {
 
                     if (shouldExtract) {
                         File outputFile = new File(saveToDirPath, entry.name)
-                        outputFile.parentFile.mkdirs() // Ensure the directory structure is created
+                        outputFile.parentFile.mkdirs()
                         outputFile.withOutputStream { outputStream ->
                             outputStream << zipInputStream
                         }

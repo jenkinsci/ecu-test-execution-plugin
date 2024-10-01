@@ -80,4 +80,25 @@ class ETV1ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Providing ecu.test-reports failed!", run)
             jenkins.assertLogContains("Downloading ecu.test-reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
     }
+
+        def "Perform provide reports step unsupported"() {
+            given: "a pipeline with test package and report provider"
+                String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttRunPackage testCasePath: 'test.pkg'
+                            ttProvideGeneratedReports()
+                        }
+                    }
+                    """.stripIndent()
+                WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+                job.setDefinition(new CpsFlowDefinition(script, true))
+            when: "scheduling a new build"
+                WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+
+            then: "expect log information about unstable pipeline run"
+                jenkins.assertLogContains("Providing generated-ecu.test-reports to jenkins.", run)
+                jenkins.assertLogContains("Providing generated-ecu.test-reports failed!", run)
+                jenkins.assertLogContains("Downloading generated-ecu.test-reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
+        }
 }
