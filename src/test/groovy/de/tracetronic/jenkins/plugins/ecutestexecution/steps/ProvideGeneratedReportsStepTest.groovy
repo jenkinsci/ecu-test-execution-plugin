@@ -24,33 +24,10 @@ class ProvideGeneratedReportsStepTest extends Specification {
         zos.close()
         return reportZip
     }
-
-    def "Test processReport with all files included"() {
-        given:
-            def step = new ProvideGeneratedReportsStep()
-            def reportDirName = "testreport"
-            def outDirPath = "/tmp/output"
-            def listener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-        and:
-            listener.logger >> logger
-
-        when:
-            def result = step.processReport(createTestZip(), reportDirName, outDirPath, listener)
-
-        then:
-            result.collect { it.replaceAll("\\\\", "/") } == extractedFiles
-            loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
-
-        where:
-            scenario               | extractedFiles                                   | loggerCalled
-            "all files included"   | ["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"] | 0
-    }
-
-    def "Test processReport with all files excluded"() {
+    def "Test processReport #scenario"() {
             given:
                 def step = new ProvideGeneratedReportsStep()
-                step.setIncludePattern("nothing matches")
+                step.setIncludePattern(pattern)
                 def reportDirName = "testreport"
                 def outDirPath = "/tmp/output"
                 def listener = Mock(TaskListener)
@@ -62,12 +39,13 @@ class ProvideGeneratedReportsStepTest extends Specification {
                 def result = step.processReport(createTestZip(), reportDirName, outDirPath, listener)
 
             then:
-                result == extractedFiles
+                result.collect { it.replaceAll("\\\\", "/") } == extractedFiles
                 loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
 
             where:
-                scenario               | extractedFiles                           | loggerCalled
-                "files missing"        | []                                       | 1
+                scenario      | pattern           |extractedFiles                                                                | loggerCalled
+                "exclude all" | "nothing matches" |[]                                                                    | 1
+                "include all" | "*"               |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
         }
 
     def "Test DescriptorImpl returns correct values"() {
