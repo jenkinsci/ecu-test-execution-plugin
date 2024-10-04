@@ -45,8 +45,6 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
 
     protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
-        listener.logger.println(reportZip.path)
-        listener.logger.flush()
         ArrayList<String> reportPaths = []
         HashMap<String, ArrayList<String>> folderMap = [:]
         new ZipInputStream(new FileInputStream(reportZip)).withCloseable { zipInputStream ->

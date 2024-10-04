@@ -23,6 +23,7 @@ class ETV2ContainerTest extends ETContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ETV2ContainerTest.class)
     private static final String etLogsFolderName = 'ecu.test-logs'
     private static final String etReportsFolderName = 'ecu.test-reports'
+    private static final String etGeneratedReportsFolderName = 'generated-ecu.test-reports'
 
     GenericContainer getETContainer() {
         return new GenericContainer<>(ET_V2_IMAGE_NAME)
@@ -177,9 +178,9 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
 
         then: "expect log information about failed pipeline run"
-            jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etGeneratedReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def "Perform provide generated reports step allow missing"() {
@@ -198,7 +199,7 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect log information about successful pipeline run"
-            jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
     }
 
@@ -219,8 +220,8 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect log information about successful pipeline run"
-            jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
-            jenkins.assertLogContains("Successfully added $etReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Successfully added $etGeneratedReportsFolderName to jenkins.", run)
     }
 
     def "Perform provide generated reports step with excluded reports"() {
@@ -240,7 +241,7 @@ class ETV2ContainerTest extends ETContainerTest {
                 WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
             then: "expect log information about successful pipeline run"
-                jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
+                jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
                 jenkins.assertLogContains("[WARNING] Could not find any matching generated report files", run)
                 jenkins.assertLogContains("[WARNING] No files found!", run)
         }
