@@ -86,7 +86,10 @@ node('windows') {
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
     stage('Provide ecu.test logs in jenkins') {
-        ttProvideLogs timeout: 60
+        ttProvideLogs(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
+    }
+    stage('Provide ecu.test trf/prf reports in jenkins') {
+        ttProvideReports(publishConfig: [allowMissing: true, timeout: 10, keepAll: true])
     }
     stage('Generate Reports') {
         ttGenerateReports 'HTML'
