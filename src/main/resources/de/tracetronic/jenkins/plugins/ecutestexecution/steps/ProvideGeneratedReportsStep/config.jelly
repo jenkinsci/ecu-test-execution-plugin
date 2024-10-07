@@ -5,8 +5,12 @@
         <b>${%step.compatNote}</b>
     </f:description>
     <f:advanced>
-        <f:entry title="${%includePattern.title}" description="${%includePattern.description}" field="includePattern">
-            <f:textbox default="*"/>
+        <f:entry title="${%selectedReportTypes.title}" description="${%selectedReportTypes.description}"
+                 field="selectedReportTypes">
+            <j:forEach var="selectedReportType" items="${descriptor.getSelectedReportTypes()}">
+                <f:checkbox title="${selectedReportType.name}" json="${selectedReportType.value}" checked="true"/>
+                <br/>
+            </j:forEach>
         </f:entry>
         <f:property field="publishConfig"/>
     </f:advanced>
