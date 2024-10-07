@@ -27,7 +27,7 @@ class ProvideGeneratedReportsStepTest extends Specification {
     def "Test processReport #scenario"() {
             given:
                 def step = new ProvideGeneratedReportsStep()
-                step.setIncludePattern(pattern)
+                step.setSelectedReportTypes(pattern)
                 def reportDirName = "testreport"
                 def outDirPath = "/tmp/output"
                 def listener = Mock(TaskListener)
@@ -44,8 +44,8 @@ class ProvideGeneratedReportsStepTest extends Specification {
 
             where:
                 scenario      | pattern           |extractedFiles                                                                | loggerCalled
-                "exclude all" | "nothing matches" |[]                                                                    | 1
-                "include all" | "*"               |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
+                "exclude all" | ["nothing matches"] |[]                                                                    | 1
+                "include all" | ["html","json"]               |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
         }
 
     def "Test DescriptorImpl returns correct values"() {
