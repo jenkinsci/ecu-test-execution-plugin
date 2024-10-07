@@ -102,20 +102,6 @@ node('windows') {
     }
 }
 ```
-#### Further Information
-
-The `testConfig` parameter consists of both the **Test Configuration** (`.tcf`) and **Test Bench Configuration** (`.tbc`) files. These files are essential for defining test settings in ecu.test.
-
-- **New Configurations**: Both `.tbc` and `.tcf` files must be explicitly set whenever a new configuration is needed.
-
-- **KEEP Option**: The `KEEP` option prevents reloading new configurations and keeps the currently active ones.
-  This feature is considered **advanced** and is not recommended for most use cases.
-  `KEEP` must always be set for both configurations and no constants may be set.
-
-- **Unload Configurations**: Keeping values empty, such as `[tbcPath: '', tcfPath: '']` will unload the configuration.
-  Providing an invalid data type for `testConfig` (e.g., an empty list) will result in an error and halt the pipeline execution.
-
-- **Force Reload**: In ecu.test versions prior to 2023.4, setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
 
 The [test.guide](https://www.tracetronic.com/products/test-guide/) authentication key has to be set as a Jenkins
 [credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the
