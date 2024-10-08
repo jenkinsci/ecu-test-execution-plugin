@@ -17,7 +17,7 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
 class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
-    private static final String ICON_NAME = 'testreport' //TODO get generate report icon
+    private static final String ICON_NAME = 'generateReport'
     private static final String OUT_DIR_NAME = "generated-ecu.test-reports"
     private static final String SUPPORT_VERSION = "2024.3"
     private List<String> selectedReportTypes
