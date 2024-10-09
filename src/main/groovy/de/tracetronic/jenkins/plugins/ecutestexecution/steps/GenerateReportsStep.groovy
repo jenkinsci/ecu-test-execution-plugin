@@ -47,7 +47,7 @@ class GenerateReportsStep extends Step {
     }
 
     List<AdditionalSetting> getAdditionalSettings() {
-        return additionalSettings.collect({new AdditionalSetting(it)})
+        return additionalSettings.collect({ new AdditionalSetting(it) })
     }
 
     @DataBoundSetter
@@ -108,13 +108,13 @@ class GenerateReportsStep extends Step {
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
-                return [ new GenerationResult("A problem occured during the report generation. See caused exception for more details.", "", null) ]
+                return [new GenerationResult("A problem occured during the report generation. See caused exception for more details.", "", null)]
             }
         }
     }
 
     private static final class ExecutionCallable extends MasterToSlaveCallable<List<GenerationResult>, IOException> {
-        
+
         private static final long serialVersionUID = 1L
 
         private final String generatorName
@@ -164,8 +164,8 @@ class GenerateReportsStep extends Step {
 
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
-        private static final List<String> REPORT_GENERATORS = Arrays.asList('ATX', 'EXCEL', 'HTML', 'JSON', 'OMR',
-                'TestSpec', 'TRF-SPLIT', 'TXT', 'UNIT')
+        static final List<String> REPORT_GENERATORS = Arrays.asList('ATX', 'EXCEL', 'HTML', 'JSON',
+                'TRF-SPLIT', 'TXT', 'UNIT')
 
         static ListBoxModel doFillGeneratorNameItems() {
             ListBoxModel model = new ListBoxModel()

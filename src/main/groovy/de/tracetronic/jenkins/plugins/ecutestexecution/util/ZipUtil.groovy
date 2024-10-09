@@ -6,6 +6,8 @@
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import org.apache.tools.ant.types.selectors.SelectorUtils
+
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -26,7 +28,7 @@ class ZipUtil {
 
                     if (shouldExtract) {
                         File outputFile = new File(saveToDirPath, entry.name)
-                        outputFile.parentFile.mkdirs() // Ensure the directory structure is created
+                        outputFile.parentFile.mkdirs()
                         outputFile.withOutputStream { outputStream ->
                             outputStream << zipInputStream
                         }
@@ -67,5 +69,18 @@ class ZipUtil {
             }
         }
         return outputZip.getPath()
+    }
+
+    static List<String> getAllMatchingPaths(zip, pattern) {
+        ArrayList<String> matchingPaths = []
+        new ZipInputStream(new FileInputStream(zip)).withCloseable { zipInputStream ->
+            ZipEntry entry
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (SelectorUtils.match(pattern, entry.name)) {
+                    matchingPaths.add(entry.getName())
+                }
+            }
+        }
+        return matchingPaths
     }
 }
