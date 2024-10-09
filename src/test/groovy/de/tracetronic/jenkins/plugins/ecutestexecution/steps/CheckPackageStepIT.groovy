@@ -12,11 +12,13 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import hudson.Functions
+import hudson.Proc
 import hudson.model.Result
+import hudson.tools.ToolInstallation
 import okhttp3.Call
-import okhttp3.HttpUrl
-import okhttp3.Request
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -57,8 +59,9 @@ class CheckPackageStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
-        expect:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
     }
 
@@ -76,6 +79,10 @@ class CheckPackageStepIT extends IntegrationTestBase {
 
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killProcesses(_, _) >> true
+            ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
         then:
@@ -93,14 +100,15 @@ class CheckPackageStepIT extends IntegrationTestBase {
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy()
-
+        and:
             GroovySpy(ChecksApi, global: true) {
                 createCheckExecutionOrder(*_) >> { restApiClient.apiClient.execute(mockCall, null) }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
-        expect:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains("Execution has exceeded the configured timeout of 2 seconds", run)

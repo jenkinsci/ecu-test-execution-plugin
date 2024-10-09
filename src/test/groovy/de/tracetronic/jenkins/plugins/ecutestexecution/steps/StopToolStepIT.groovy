@@ -80,8 +80,9 @@ class StopToolStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStopTool '${toolName}' }", true))
-        expect:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Stopping ${toolName}...", run)
         where:
             toolName = 'ecu.test'
@@ -91,8 +92,13 @@ class StopToolStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStopTool '${toolName}' }", true))
-        expect:
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killProcess(_, _) >> true
+            ProcessUtil.killTTProcesses(_) >> true
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Stopping ${toolName}...", run)
             jenkins.assertLogContains("${toolName} stopped successfully", run)
             jenkins.assertLogContains('Stop tracetronic tool instances.', run)
@@ -105,11 +111,12 @@ class StopToolStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStopTool '${toolName}' }", true))
-        when:
+        and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killProcess(_, _) >> false
-        then:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Timeout of 30 seconds exceeded for stopping ${toolName}! " +
                     "Please ensure that the tool is not already stopped or "  +
                     "blocked by another process.", run)
@@ -122,11 +129,16 @@ class StopToolStepIT extends IntegrationTestBase {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStopTool toolName: '${toolName}', " +
                     "stopUndefinedTools: false }", true))
-        expect:
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killProcess(_, _) >> true
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Stopping ${toolName}...", run)
             jenkins.assertLogContains("${toolName} stopped successfully", run)
             jenkins.assertLogNotContains('Stop tracetronic tool instances.', run)
+            0* ProcessUtil.killTTProcesses(_)
         where:
             toolName = 'ecu.test'
     }
@@ -135,12 +147,13 @@ class StopToolStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStopTool 'ecu.test' }", true))
-        when:
+        and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killProcess(_, _) >> true
             ProcessUtil.killTTProcesses(_) >> false
-        then:
+        when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+        then:
             jenkins.assertLogContains("Timeout of 30 seconds exceeded for stopping tracetronic tools! " +
                     "Please ensure that tracetronic tools are not already stopped or "  +
                     "blocked by another process.", run)
