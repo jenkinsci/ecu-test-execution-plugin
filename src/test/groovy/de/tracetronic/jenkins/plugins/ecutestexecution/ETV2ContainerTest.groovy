@@ -231,7 +231,7 @@ class ETV2ContainerTest extends ETContainerTest {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                         ttRunPackage testCasePath: 'test.pkg'
                         ttGenerateReports 'HTML'
-                        ttProvideGeneratedReports publishConfig: [allowMissing: true], selectedReportTypes: ['NOMATCH']
+                        ttProvideGeneratedReports publishConfig: [allowMissing: true], selectedReportTypes: 'NOMATCH'
                     }
                 }
                 """.stripIndent()

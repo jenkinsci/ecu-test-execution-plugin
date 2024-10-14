@@ -43,9 +43,9 @@ class ProvideGeneratedReportsStepTest extends Specification {
                 loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
 
             where:
-                scenario      | pattern           |extractedFiles                                                                | loggerCalled
-                "exclude all" | ["nothing matches"] |[]                                                                    | 1
-                "include all" | ["html","json"]               |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
+                scenario      | pattern           |extractedFiles                                                        | loggerCalled
+                "exclude all" | "nothing matches" |[]                                                                    | 1
+                "include all" | "html, json"      |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
         }
 
     def "Test DescriptorImpl returns correct values"() {

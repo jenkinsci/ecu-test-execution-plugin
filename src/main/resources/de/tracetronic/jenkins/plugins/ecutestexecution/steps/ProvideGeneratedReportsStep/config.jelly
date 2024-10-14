@@ -7,10 +7,7 @@
     <f:advanced>
         <f:entry title="${%selectedReportTypes.title}" description="${%selectedReportTypes.description}"
                  field="selectedReportTypes">
-            <j:forEach var="selectedReportType" items="${descriptor.getSelectedReportTypes()}">
-                <f:checkbox title="${selectedReportType.name}" json="${selectedReportType.value}" checked="true"/>
-                <br/>
-            </j:forEach>
+            <f:textbox value="${descriptor.getSelectedReportTypes()}"/>
         </f:entry>
         <f:property field="publishConfig"/>
     </f:advanced>

@@ -38,9 +38,9 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
             ProvideGeneratedReportsStep step = new ProvideGeneratedReportsStep()
         when:
             step.setPublishConfig(publishConfig)
-            step.setSelectedReportTypes(["ATX"])
+            step.setSelectedReportTypes("ATX")
         then:
-            st.assertRoundTrip(step, "ttProvideGeneratedReports publishConfig: [allowMissing: true, keepAll: false, timeout: 10], selectedReportTypes: ['ATX']")
+            st.assertRoundTrip(step, "ttProvideGeneratedReports publishConfig: [allowMissing: true, keepAll: false, timeout: 10], selectedReportTypes: 'ATX'")
     }
 
     def 'Run pipeline default'() {

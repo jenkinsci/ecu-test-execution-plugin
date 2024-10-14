@@ -20,30 +20,30 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'generateReport'
     private static final String OUT_DIR_NAME = "generated-ecu.test-reports"
     private static final String SUPPORT_VERSION = "2024.3"
-    private List<String> selectedReportTypes
+    private String selectedReportTypes
 
     @DataBoundConstructor
     ProvideGeneratedReportsStep() {
         super()
-        this.selectedReportTypes = GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect()
+        this.selectedReportTypes = GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect().join(", ")
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
     }
 
-    List<String> getSelectedReportTypes() {
+    String getSelectedReportTypes() {
         return this.selectedReportTypes
     }
 
     @DataBoundSetter
-    void setSelectedReportTypes(List<String> selectedReportTypes) {
-        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect();
+    void setSelectedReportTypes(String selectedReportTypes) {
+        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.join(", ")
     }
 
 
     protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
         ArrayList<String> reportPaths = []
-        selectedReportTypes.each { reportType ->
+        selectedReportTypes.split(",\\s*").each { reportType ->
             def folderEntryPaths = ZipUtil.getAllMatchingPaths(reportZip, "${reportType}*/**")
             if (folderEntryPaths) {
                 def folderName = folderEntryPaths[0].substring(0, folderEntryPaths[0].indexOf('/'))
@@ -62,12 +62,8 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 
-        static ListBoxModel getSelectedReportTypes() {
-            ListBoxModel reportGenerators = new ListBoxModel();
-            GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { reportType ->
-                reportGenerators.add(reportType, reportType)
-            }
-            return reportGenerators;
+        static String getSelectedReportTypes() {
+            return GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.join(", ")
         }
 
         @Override
