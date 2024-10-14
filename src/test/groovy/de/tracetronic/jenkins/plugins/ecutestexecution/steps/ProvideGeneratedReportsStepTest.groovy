@@ -44,8 +44,10 @@ class ProvideGeneratedReportsStepTest extends Specification {
 
             where:
                 scenario      | pattern           |extractedFiles                                                        | loggerCalled
+                "select one"  | "html"            |["/tmp/output/testreport/html.zip"]                                   | 0
+                "select all"  | "html, json"      |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
+                "select all"  | "html,json"       |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
                 "exclude all" | "nothing matches" |[]                                                                    | 1
-                "include all" | "html, json"      |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
         }
 
     def "Test DescriptorImpl returns correct values"() {
