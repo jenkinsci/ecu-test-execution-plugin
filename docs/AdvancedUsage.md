@@ -91,25 +91,18 @@ node {
 
 ## TestConfig
 
-| Properties                                   | Default Value | Description                                                                                                                                                                                                                 |
-|----------------------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **tbcPath**: String                          | ''            | The relative path of the .tbc file in the Configurations directory to be started for this execution. Use "KEEP" to use the currently loaded test bench configuration. If empty, no test bench configuration will be loaded. |
-| **tcfPath**: String                          | ''            | The relative path of the .tcf file in the Configurations directory to be started for this execution. Use "KEEP" to use the currently loaded test configuration. If empty, no test configuration will be loaded.             |
-| **forceConfigurationReload**: boolean        | false         | If true, always reload the configuration even if the same one is still active. Hint: This flag is only required for ecu.test versions less than 2023.4!                                                                     |
-| **constants**:  List\<[Constant](#constant)> | []            | The configured global constants remain available throughout the entire test execution.                                                                                                                                      |
+| Properties                                   | Default Value | Description                                                                                                                                                  |
+|----------------------------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **tbcPath**: String                          | ''            | The relative path of the .tbc file in the Configurations directory to be started for this execution. If empty, no test bench configuration will be loaded.   |
+| **tcfPath**: String                          | ''            | The relative path of the .tcf file in the Configurations directory to be started for this execution. If empty, no test configuration will be loaded.         |
+| **forceConfigurationReload**: boolean        | false         | If true, always reload the configuration even if the same one is still active. Hint: This flag is only required for ecu.test versions less than 2023.4!      |
+| **constants**:  List\<[Constant](#constant)> | []            | The configured global constants remain available throughout the entire test execution.                                                                       |
 
 ### Configuration Change Options
 
-- **New Configurations**: Both `.tbc` and `.tcf` files must be explicitly set whenever a new configuration is needed.
-
-- **KEEP Option**: The `KEEP` option prevents reloading new configurations and keeps the currently active ones.
-  This feature is considered **advanced** and is not recommended for most use cases.
-  `KEEP` must always be set for both configurations and no constants may be set.
-
+- **Load Configuration**: Both `.tbc` and `.tcf` files must be explicitly set whenever a new configuration is needed.
+- **Keep Configuration**: In ecu.test versions prior to 2023.4, setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
 - **Unload Configurations**: Keeping values empty, such as `[tbcPath: '', tcfPath: '']` will unload the configuration.
-  Providing an invalid data type for `testConfig` (e.g., an empty list) will result in an error and halt the pipeline execution.
-
-- **Force Reload**: In ecu.test versions prior to 2023.4, setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
 
 ## PublishConfig
 

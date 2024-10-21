@@ -210,14 +210,14 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("-> With TCF=test.tcf", run)
     }
 
-    def 'Run pipeline by declaring KEEP in testConfig'() {
+    def 'Run pipeline by forcing configuration to reload in testConfig'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttRunTestFolder  recursiveScan: true, " +
                             "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                            ", testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }",
+                            ", testConfig: [forceConfigurationReload: true] }",
                     true))
 
             GroovyMock(RestApiClientFactory, global: true)
@@ -228,29 +228,6 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Found 3 package(s)', run)
             jenkins.assertLogContains('Found 3 project(s)', run)
             jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
-            jenkins.assertLogContains("-> With TBC=KEEP", run)
-            jenkins.assertLogContains("-> With TCF=KEEP", run)
-    }
-
-    def 'Run pipeline with invalid data type for testConfig'() {
-        given:
-            setupTestFolder()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition(
-                    "node { ttRunTestFolder  recursiveScan: true, " +
-                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                            ", testConfig: [] }",
-                    true))
-
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
-
-        expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("java.lang.ClassCastException", run)
-            jenkins.assertLogContains("expects class " +
-                    "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
-            jenkins.assertLogContains("but received class java.util.ArrayList", run)
     }
 
     def 'Run recursive scan pipeline'() {

@@ -73,8 +73,6 @@ class ValidationUtilTest extends Specification {
             configFilePath | fileExtension | expectedKind
             'test.tcf'     | '.tcf'        | FormValidation.Kind.OK
             'test.tcf'     | '.tbc'        | FormValidation.Kind.ERROR
-            'KEEP'         | ''            | FormValidation.Kind.OK
-            'KEEP'         | '.tcf'        | FormValidation.Kind.OK
             '${CONFIG}'    | ''            | FormValidation.Kind.WARNING
             ''             | ''            | FormValidation.Kind.OK
             null           | null          | FormValidation.Kind.OK

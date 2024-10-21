@@ -183,11 +183,11 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("-> With TCF=test.tcf", run)
     }
 
-    def 'Run pipeline by declaring KEEP in testConfig'() {
+    def 'Run pipeline by forcing configuration to reload in testConfig'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
-                    "testConfig: [tbcPath: 'KEEP', tcfPath: 'KEEP'] }", true))
+                    "testConfig: [forceConfigurationReload: true] }", true))
 
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
@@ -195,28 +195,7 @@ class RunPackageStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
-            jenkins.assertLogContains("-> With TBC=KEEP", run)
-            jenkins.assertLogContains("-> With TCF=KEEP", run)
-
     }
-
-    def 'Run pipeline with invalid data type for testConfig'() {
-        given:
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
-                    "testConfig: [] }", true))
-
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
-
-        expect:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("java.lang.ClassCastException", run)
-            jenkins.assertLogContains("expects class " +
-                    "de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig", run)
-            jenkins.assertLogContains("but received class java.util.ArrayList", run)
-    }
-
 
     def 'Run pipeline with package check'(){
         given:
