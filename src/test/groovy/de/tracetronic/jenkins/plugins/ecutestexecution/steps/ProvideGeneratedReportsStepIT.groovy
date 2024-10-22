@@ -49,9 +49,9 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node {ttProvideGeneratedReports()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing generated-ecu.test-reports to jenkins.", run)
+            jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing generated-ecu.test-reports. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing Generated ecu.test Reports. Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def 'Run pipeline allow missing reports'() {
@@ -60,9 +60,9 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
         job.setDefinition(new CpsFlowDefinition("node {ttProvideGeneratedReports(publishConfig: [allowMissing: true])}", true))
         expect:
         WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains("Providing generated-ecu.test-reports to jenkins.", run)
+        jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
         jenkins.assertLogContains("[WARNING] No files found!", run)
-        jenkins.assertLogNotContains("Successfully added generated-ecu.test-reports to jenkins.", run)
+        jenkins.assertLogNotContains("Successfully added Generated ecu.test Reports to jenkins.", run)
     }
 
     def 'Run pipeline exceeds timeout'() {
@@ -72,8 +72,8 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
         job.setDefinition(new CpsFlowDefinition("node {ttProvideGeneratedReports(publishConfig: [timeout: ${timeout}])}", true))
         expect:
         WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        jenkins.assertLogContains("Providing generated-ecu.test-reports to jenkins.", run)
+        jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
         jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-        jenkins.assertLogContains("Providing generated-ecu.test-reports failed!", run)
+        jenkins.assertLogContains("Providing Generated ecu.test Reports failed!", run)
     }
 }

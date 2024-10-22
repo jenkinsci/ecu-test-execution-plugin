@@ -21,9 +21,9 @@ import org.testcontainers.spock.Testcontainers
 class ETV2ContainerTest extends ETContainerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ETV2ContainerTest.class)
-    private static final String etLogsFolderName = 'ecu.test-logs'
-    private static final String etReportsFolderName = 'ecu.test-reports'
-    private static final String etGeneratedReportsFolderName = 'generated-ecu.test-reports'
+    private static final String etLogsFolderName = 'ecu.test Logs'
+    private static final String etReportsFolderName = 'ecu.test Reports'
+    private static final String etGeneratedReportsFolderName = 'Generated ecu.test Reports'
 
     GenericContainer getETContainer() {
         return new GenericContainer<>(ET_V2_IMAGE_NAME)

@@ -55,20 +55,39 @@ class ZipUtil {
         return result
     }
 
-    static String recreateWithFilesOfType(File reportDirZip, List<String> includeEndings, File outputZip) {
-        new ZipInputStream(new FileInputStream(reportDirZip)).withCloseable { zipInputStream ->
-            new ZipOutputStream(new FileOutputStream(outputZip)).withCloseable { zipOutputStream ->
-                ZipEntry entry
-                while ((entry = zipInputStream.getNextEntry()) != null) {
-                    if (!entry.isDirectory() && includeEndings.any { entry.name.endsWith(it) }) {
-                        zipOutputStream.putNextEntry(new ZipEntry(entry.name))
+    static String recreateZipWithFilteredFilesFromSubfolder(File reportDirZip, String subfolderToExtractFrom, List<String> includeEndings, File outputZip) {
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportDirZip))
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
+
+        try {
+            ZipEntry entry
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (!entry.isDirectory() && includeEndings.any { ending -> entry.name.toLowerCase().endsWith(ending.toLowerCase()) }) {
+                    def pathComponents = entry.name.split('/') as List
+
+                    def newPath
+                    if (!subfolderToExtractFrom || subfolderToExtractFrom == "/") {
+                        newPath = entry.name
+                    }
+
+                    def subfolderIndex = pathComponents.indexOf(subfolderToExtractFrom)
+                    if (subfolderIndex != -1 && subfolderIndex < pathComponents.size() - 1) {
+                        newPath = pathComponents[(subfolderIndex + 1)..-1].join('/')
+                    }
+
+                    if (newPath) {
+                        ZipEntry newEntry = new ZipEntry(newPath)
+                        zipOutputStream.putNextEntry(newEntry)
                         zipOutputStream << zipInputStream
                         zipOutputStream.closeEntry()
                     }
                 }
             }
+        } finally {
+            zipInputStream.close()
+            zipOutputStream.close()
         }
-        return outputZip.getPath()
+        return outputZip.path
     }
 
     static List<String> getAllMatchingPaths(zip, pattern) {

@@ -17,7 +17,7 @@ import org.kohsuke.stapler.DataBoundConstructor
 
 class ProvideExecutionLogsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'logFile'
-    private static final String OUT_DIR_NAME = "ecu.test-logs"
+    private static final String OUT_DIR_NAME = "ecu.test Logs"
     private static final String SUPPORT_VERSION = "2024.2"
 
     @DataBoundConstructor

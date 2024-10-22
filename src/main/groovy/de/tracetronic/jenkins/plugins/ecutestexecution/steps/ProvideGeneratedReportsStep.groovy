@@ -18,14 +18,14 @@ import org.kohsuke.stapler.DataBoundSetter
 
 class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'generateReport'
-    private static final String OUT_DIR_NAME = "generated-ecu.test-reports"
+    private static final String OUT_DIR_NAME = "Generated ecu.test Reports"
     private static final String SUPPORT_VERSION = "2024.3"
     private String selectedReportTypes
 
     @DataBoundConstructor
     ProvideGeneratedReportsStep() {
         super()
-        this.selectedReportTypes = GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect().join(", ")
+        this.selectedReportTypes = GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
@@ -37,19 +37,20 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
     @DataBoundSetter
     void setSelectedReportTypes(String selectedReportTypes) {
-        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.join(", ")
+        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
     }
 
 
     protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
         ArrayList<String> reportPaths = []
         selectedReportTypes.split(",\\s*").each { reportType ->
-            def folderEntryPaths = ZipUtil.getAllMatchingPaths(reportZip, "${reportType}*/**")
-            if (folderEntryPaths) {
-                def folderName = folderEntryPaths[0].substring(0, folderEntryPaths[0].indexOf('/'))
+            def folderEntryPaths = ZipUtil.getAllMatchingPaths(reportZip, "${reportType}/**")
+            def uniqueFolders = new HashSet<String>()
+            folderEntryPaths.collect { uniqueFolders.add(it.substring(0, it.indexOf('/'))) }
+            uniqueFolders.each { folderName ->
                 def outputFile = new File("${outDirPath}/${reportDirName}/${folderName}.zip")
                 outputFile.parentFile.mkdirs()
-                reportPaths.add(ZipUtil.recreateWithFilesOfType(reportZip, folderEntryPaths, outputFile))
+                reportPaths.add(ZipUtil.recreateZipWithFilteredFilesFromSubfolder(reportZip, folderName, folderEntryPaths, outputFile))
             }
         }
         if (reportPaths.size() == 0) {
@@ -63,7 +64,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     static final class DescriptorImpl extends StepDescriptor {
 
         static String getSelectedReportTypes() {
-            return GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.join(", ")
+            return GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
         }
 
         @Override

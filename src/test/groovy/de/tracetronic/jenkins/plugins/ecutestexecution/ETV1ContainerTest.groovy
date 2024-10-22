@@ -55,9 +55,9 @@ class ETV1ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
 
         then: "expect log information about unstable pipeline run"
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
-            jenkins.assertLogContains("Providing ecu.test-logs failed!", run)
-            jenkins.assertLogContains("Downloading ecu.test-logs is not supported for this ecu.test version. Please use ecu.test >= 2024.2 instead.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs failed!", run)
+            jenkins.assertLogContains("Downloading ecu.test Logs is not supported for this ecu.test version. Please use ecu.test >= 2024.2 instead.", run)
     }
 
     def "Perform provide reports step unsupported"() {
@@ -76,9 +76,9 @@ class ETV1ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
 
         then: "expect log information about unstable pipeline run"
-            jenkins.assertLogContains("Providing ecu.test-reports to jenkins.", run)
-            jenkins.assertLogContains("Providing ecu.test-reports failed!", run)
-            jenkins.assertLogContains("Downloading ecu.test-reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
+            jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Reports failed!", run)
+            jenkins.assertLogContains("Downloading ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
     }
 
         def "Perform provide reports step unsupported"() {
@@ -97,8 +97,8 @@ class ETV1ContainerTest extends ETContainerTest {
                 WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
 
             then: "expect log information about unstable pipeline run"
-                jenkins.assertLogContains("Providing generated-ecu.test-reports to jenkins.", run)
-                jenkins.assertLogContains("Providing generated-ecu.test-reports failed!", run)
-                jenkins.assertLogContains("Downloading generated-ecu.test-reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
+                jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
+                jenkins.assertLogContains("Providing Generated ecu.test Reports failed!", run)
+                jenkins.assertLogContains("Downloading Generated ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
         }
 }

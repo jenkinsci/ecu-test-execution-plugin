@@ -15,9 +15,9 @@ import hudson.model.TaskListener
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.kohsuke.stapler.DataBoundConstructor
 
-class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep{
+class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'testreport'
-    private static final String OUT_DIR_NAME = "ecu.test-reports"
+    private static final String OUT_DIR_NAME = "ecu.test Reports"
     private static final String SUPPORT_VERSION = "2024.3"
 
     @DataBoundConstructor
@@ -34,7 +34,7 @@ class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep{
         if (ZipUtil.containsFileOfType(reportZip, ".prf")) {
             def outputFile = new File("${outDirPath}/${reportDirName}/${reportDirName}.zip")
             outputFile.parentFile.mkdirs()
-            String zipPath = ZipUtil.recreateWithFilesOfType(reportZip, [".trf", ".prf"], outputFile)
+            String zipPath = ZipUtil.recreateZipWithFilteredFilesFromSubfolder(reportZip, "/", [".trf", ".prf"], outputFile)
             reportPaths.add(zipPath)
         } else {
             List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, [".trf"], "${outDirPath}/${reportDirName}")
