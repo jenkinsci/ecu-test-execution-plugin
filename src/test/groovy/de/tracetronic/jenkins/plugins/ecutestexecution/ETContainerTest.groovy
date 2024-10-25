@@ -188,11 +188,7 @@ abstract class ETContainerTest extends ContainerTest {
             String script = """
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttRunPackage testCasePath: 'testDoesNotExist.pkg', 
-                            testConfig: [tbcPath: 'test.tbc', 
-                                         tcfPath: 'test.tcf', 
-                                         forceConfigurationReload: false, 
-                                         constants: [[label: 'test', value: '123']]]
+                        ttRunPackage testCasePath: 'testDoesNotExist.pkg'
                     }
                 }
                 """.stripIndent()
@@ -329,6 +325,27 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
+    def "Execute test case with api constant - without config"() {
+        given: "a test execution pipeline with usage of constants"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test_api_constant.pkg', 
+                        testConfig: [constants: [[label: 'API_CONSTANT', value: 'True']]]
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+    }
+
     def "Execute test case with tcf constant"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
@@ -348,6 +365,26 @@ abstract class ETContainerTest extends ContainerTest {
 
         then: "expect successful test completion"
             jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+    }
+
+    def "Execute test case with tcf constant - without config"() {
+        given: "a test execution pipeline with usage of constants"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test_tcf_constant.pkg'
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+
+        then: "expect successful test completion"
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 }
