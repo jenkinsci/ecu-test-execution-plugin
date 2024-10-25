@@ -339,10 +339,10 @@ abstract class ETContainerTest extends ContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
 
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("-> result: SUCCESS", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
