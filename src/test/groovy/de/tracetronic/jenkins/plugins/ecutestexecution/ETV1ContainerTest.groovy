@@ -39,7 +39,7 @@ class ETV1ContainerTest extends ETContainerTest {
                 .waitingFor(Wait.forHttp("/api/v1/live"))
     }
 
-    def "Perform provide logs step unsupported"() {
+    def "ttProvideLogs: Test unsupported step"() {
         given: "a pipeline with test package and log provider"
             String script = """
             node {
@@ -60,7 +60,7 @@ class ETV1ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Downloading ecu.test Logs is not supported for this ecu.test version. Please use ecu.test >= 2024.2 instead.", run)
     }
 
-    def "Perform provide reports step unsupported"() {
+    def "ttProvideReports: Test unsupported step"() {
         given: "a pipeline with test package and report provider"
             String script = """
                 node {

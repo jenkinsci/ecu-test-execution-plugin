@@ -42,7 +42,7 @@ class ETV2ContainerTest extends ETContainerTest {
                 .waitingFor(Wait.forHttp("/api/v2/live"))
     }
 
-    def "Perform provide logs step with no logs"() {
+    def "ttProvideLogs: Test for missing files"() {
         given: "a pipeline with log provider"
             String script = """
             node {
@@ -62,7 +62,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etLogsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
-    def "Perform provide logs step allow missing"() {
+    def "ttProvideLogs: Test for allowed missing files"() {
         given: "a pipeline logs provider"
             String script = """
                     node {
@@ -210,7 +210,7 @@ class ETV2ContainerTest extends ETContainerTest {
             containerLogs.contains("Start TBC")
     }
 
-    def "Perform provide logs step with logs"() {
+    def "ttProvideLogs: Test happy path"() {
         given: "a pipeline with test packages and log provider"
             String script = """
                 node {
@@ -231,7 +231,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Successfully added $etLogsFolderName to jenkins.", run)
     }
 
-    def "Perform provide reports step with no reports"() {
+    def "ttProvideReports: Test for missing files"() {
         given: "a pipeline reports provider"
             String script = """
                 node {
@@ -251,7 +251,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
-    def "Perform provide reports step allow missing"() {
+    def "ttProvideReports: Test for allowed missing files"() {
         given: "a pipeline reports provider"
             String script = """
                     node {
@@ -271,7 +271,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("[WARNING] No files found!", run)
     }
 
-    def "Perform provide reports step with reports"() {
+    def "ttProvideReports: test happy path"() {
         given: "a pipeline with test packages and report provider"
             String script = """
             node {

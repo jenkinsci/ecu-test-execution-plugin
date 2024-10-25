@@ -31,7 +31,7 @@ abstract class ETContainerTest extends ContainerTest {
 
     abstract GenericContainer getETContainer()
 
-    def "Perform check step"() {
+    def "ttCheckPackage: Test package without findings"() {
         given: "a test execution pipeline"
             String script = """
                 node {
@@ -51,7 +51,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
-    def "Perform check step on non-existing package"() {
+    def "ttCheckPackage: Test for non existing package"() {
         given: "a test execution pipeline"
             String script = """
                     node {
@@ -73,7 +73,7 @@ abstract class ETContainerTest extends ContainerTest {
             assertThat(jenkins.getLog(run), containsStringIgnoringCase("BAD REQUEST"))
     }
 
-    def "Perform check on invalid package"() {
+    def "ttCheckPackage: Test package with findings"() {
         given: "a test execution pipeline"
             String script = """
                         node {
@@ -95,7 +95,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Description must not be empty!",run)
     }
 
-    def "Perform check with timeout"() {
+    def "ttCheckPackage: Test package with timeout"() {
         given: "a test execution pipeline"
             int timeout = 1
             String testPkg = 'invalid_package_desc.pkg'
@@ -119,7 +119,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> result: ERROR", run)
     }
 
-    def "Perform check on project"() {
+    def "ttCheckPackage: Test project without findings"() {
         given: "a test execution pipeline"
             String script = """
                             node {
@@ -138,7 +138,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> result: SUCCESS", run)
     }
 
-    def "Perform check on project with invalid packages"() {
+    def "ttCheckPackage: Test project with findings"() {
         given: "a test execution pipeline"
             String script = """
                         node {
@@ -159,7 +159,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Description must not be empty!",run)
     }
 
-    def "Execute test case"() {
+    def "ttRunPackage: Test happy path"() {
         given: "a test execution pipeline"
             String script = """
             node {
@@ -183,7 +183,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
-    def "Execute nonexisting test case"() {
+    def "ttRunPackage: Test for non existing package"() {
         given: "a test execution pipeline"
             String script = """
                 node {
@@ -203,7 +203,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Executing package 'testDoesNotExist.pkg' failed!", run)
     }
 
-    def "Execute test case including package check"() {
+    def "ttRunPackage: Test with package check without stop on error"() {
         given: "a test execution pipeline"
             String script = """
                 node {
@@ -233,7 +233,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
 
-    def "Execute package with timeout"() {
+    def "ttRunPackage: Test with timeout"() {
         given: "a test execution pipeline"
             int timeout = 1
             String testPkg = 'test.pkg'
@@ -256,7 +256,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
         }
 
-    def "Generate report format"() {
+    def "ttGenerateReports: Test generate html report"() {
         given: "a test execution and report generation pipeline"
             String script = """
             node {
@@ -281,7 +281,7 @@ abstract class ETContainerTest extends ContainerTest {
             StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
     }
 
-    def "Generate report format for a specific test report"() {
+    def "ttGenerateReports: Test generation for one test report id"() {
         given: "a test execution and report generation pipeline"
             String script = """
             node {
@@ -302,7 +302,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> FINISHED", run)
     }
 
-    def "Execute test case with api constant"() {
+    def "ttRunPackage: Test package with defined constant"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
             node {
@@ -325,7 +325,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
-    def "Execute test case with api constant - without config"() {
+    def "ttRunPackage: Test package with defined constant - without config"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
             node {
@@ -346,7 +346,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
-    def "Execute test case with tcf constant"() {
+    def "ttRunPackage: Test with config"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
             node {
@@ -368,7 +368,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
-    def "Execute test case with tcf constant - without config"() {
+    def "ttRunPackage: Test with missing config"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
             node {
