@@ -62,10 +62,16 @@ pipeline {
                 }
             }
         }
+        stage ('Build Artifact') {
+            steps {
+                cmd '"./gradlew" clean publishMavenPublicationToArtifactsRepository'
+                archiveArtifacts artifacts: 'build/artifacts/**/*.hpi'
+            }
+        }
         stage('Unit Tests') {
             steps {
                 catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
-                        cmd '"./gradlew" clean unitTest'
+                        cmd '"./gradlew" unitTest'
                 }
             }
         }
