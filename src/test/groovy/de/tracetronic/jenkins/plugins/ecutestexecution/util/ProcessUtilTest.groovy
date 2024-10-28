@@ -5,10 +5,22 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import hudson.Functions
+import hudson.Proc
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class ProcessUtilTest extends Specification {
+
+    def "Unsupported class exception"() {
+        when:
+            new ProcessUtil()
+        then:
+            def e = thrown(UnsupportedOperationException)
+            e.cause == null
+            e.message == "Utility class"
+    }
+
     @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
     def 'test killProcess'(int timeout, expected) {
         expect:
