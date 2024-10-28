@@ -12,7 +12,7 @@ import spock.lang.Specification
 
 class ConverterUtilTest extends Specification {
 
-    def "should convert empty list of RecordingAsSetting to empty list of Recording"() {
+    def "Unsupported class exception"() {
         expect:
             ConverterUtil.recordingConverter(new ArrayList<RecordingAsSetting>())
                     .isEmpty()
