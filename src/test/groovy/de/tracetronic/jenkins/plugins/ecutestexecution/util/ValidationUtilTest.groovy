@@ -6,12 +6,20 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import hudson.util.FormValidation
-import org.apache.http.client.fluent.Form
 import spock.lang.Specification
 
 import java.nio.file.Paths
 
 class ValidationUtilTest extends Specification {
+
+    def "Unsupported class exception"() {
+        when:
+            new ValidationUtil()
+        then:
+            def e = thrown(UnsupportedOperationException)
+            e.cause == null
+            e.message == "Utility class"
+    }
 
     def 'Validate parametrized values'(String value, boolean required, FormValidation.Kind expectedKind) {
         given:
@@ -38,6 +46,11 @@ class ValidationUtilTest extends Specification {
                        Paths.get('src', 'test', 'resources', 'workspace', 'TestFolder')
                                .toFile().getAbsolutePath()]
             expectedKind << [FormValidation.Kind.ERROR, FormValidation.Kind.OK]
+    }
+
+    def 'Validate absolute path values with invalid param'() {
+        expect:
+            FormValidation.Kind.ERROR == ValidationUtil.validateAbsolutePath("").kind
     }
 
     def 'Validate timeout values'(int value, FormValidation.Kind expectedKind) {
