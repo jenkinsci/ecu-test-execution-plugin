@@ -43,23 +43,26 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
     protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
         ArrayList<String> reportPaths = []
+
         selectedReportTypes.split(",\\s*").each { reportType ->
             def folderEntryPaths = ZipUtil.getAllMatchingPaths(reportZip, "${reportType}/**")
-            def uniqueFolders = new HashSet<String>()
-            folderEntryPaths.collect { uniqueFolders.add(it.substring(0, it.indexOf('/'))) }
+            def uniqueFolders = folderEntryPaths.collect { it.split("/")[0] }.toSet()
+
             uniqueFolders.each { folderName ->
+                def paths = folderEntryPaths.findAll { it.startsWith("$folderName/") }
                 def outputFile = new File("${outDirPath}/${reportDirName}/${folderName}.zip")
                 outputFile.parentFile.mkdirs()
-                reportPaths.add(ZipUtil.recreateZipWithFilteredFilesFromSubfolder(reportZip, folderName, folderEntryPaths, outputFile))
+                reportPaths.add(ZipUtil.recreateZipWithFilteredFiles(reportZip, paths, outputFile))
             }
         }
-        if (reportPaths.size() == 0) {
+
+        if (reportPaths.isEmpty()) {
             listener.logger.println("[WARNING] Could not find any matching generated report files in ${reportDirName}!")
         }
 
         return reportPaths
     }
-
+    
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 

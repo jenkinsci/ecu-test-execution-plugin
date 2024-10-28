@@ -55,38 +55,29 @@ class ZipUtil {
         return result
     }
 
-    static String recreateZipWithFilteredFilesFromSubfolder(File reportDirZip, String subfolderToExtractFrom, List<String> includeEndings, File outputZip) {
+    static String recreateZipWithFilteredFiles(File reportDirZip, List<String> includePaths, File outputZip) {
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportDirZip))
         ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
 
         try {
             ZipEntry entry
             while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (!entry.isDirectory() && includeEndings.any { ending -> entry.name.toLowerCase().endsWith(ending.toLowerCase()) }) {
-                    def pathComponents = entry.name.split('/') as List
+                if (!entry.isDirectory() && includePaths.any { path -> entry.name.endsWith(path) }) {
+                    def baseFolderName = includePaths[0].split('/')[0]
+                    def newEntryName = entry.name.startsWith("$baseFolderName/")
+                            ? entry.name.substring(baseFolderName.length() + 1)
+                            : entry.name
 
-                    def newPath
-                    if (!subfolderToExtractFrom || subfolderToExtractFrom == "/") {
-                        newPath = entry.name
-                    }
-
-                    def subfolderIndex = pathComponents.indexOf(subfolderToExtractFrom)
-                    if (subfolderIndex != -1 && subfolderIndex < pathComponents.size() - 1) {
-                        newPath = pathComponents[(subfolderIndex + 1)..-1].join('/')
-                    }
-
-                    if (newPath) {
-                        ZipEntry newEntry = new ZipEntry(newPath)
-                        zipOutputStream.putNextEntry(newEntry)
-                        zipOutputStream << zipInputStream
-                        zipOutputStream.closeEntry()
-                    }
+                    zipOutputStream.putNextEntry(new ZipEntry(newEntryName))
+                    zipOutputStream << zipInputStream
+                    zipOutputStream.closeEntry()
                 }
             }
         } finally {
             zipInputStream.close()
             zipOutputStream.close()
         }
+
         return outputZip.path
     }
 
