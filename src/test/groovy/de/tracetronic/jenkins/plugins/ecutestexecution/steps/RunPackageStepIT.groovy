@@ -89,7 +89,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertEqualDataBoundBeans(before, after)
     }
 
-    def 'Snippet generator'() {
+    def 'Snippet generator with Load Configuration'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
@@ -100,13 +100,13 @@ class RunPackageStepIT extends IntegrationTestBase {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
-            testConfig.setForceConfigurationReload(true)
+            testConfig.setForceConfigurationReload(false)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunPackage testCasePath: 'test.pkg', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
@@ -115,7 +115,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, "ttRunPackage packageConfig: [" +
                     "packageParameters: [[label: 'paramLabel', value: 'paramValue']]], testCasePath: 'test.pkg', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
@@ -124,7 +124,6 @@ class RunPackageStepIT extends IntegrationTestBase {
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
-            //recording.setMappingNames(['mapping1', 'mapping2'])
             analysisConfig.setRecordings(Arrays.asList(recording))
             step.setAnalysisConfig(analysisConfig)
         then:
@@ -134,7 +133,7 @@ class RunPackageStepIT extends IntegrationTestBase {
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "testCasePath: 'test.pkg', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
@@ -151,7 +150,67 @@ class RunPackageStepIT extends IntegrationTestBase {
                     "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "testCasePath: 'test.pkg', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+    }
+
+    def 'Snippet generator with Keep Configuration'() {
+        given:
+            SnippetizerTester st = new SnippetizerTester(jenkins)
+        when:
+            RunPackageStep step = new RunPackageStep('test.pkg')
+        then:
+            st.assertRoundTrip(step, "ttRunPackage 'test.pkg'")
+        when:
+            TestConfig testConfig = new TestConfig()
+            testConfig.setForceConfigurationReload(true)
+            testConfig.setTbcPath('test.tbc')
+            testConfig.setTcfPath('test.tcf')
+            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            step.setTestConfig(testConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [forceConfigurationReload: true]")
+        when:
+            PackageConfig packageConfig = new PackageConfig(Arrays.asList(
+                    new PackageParameter('paramLabel', 'paramValue')))
+            step.setPackageConfig(packageConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage packageConfig: [" +
+                    "packageParameters: [[label: 'paramLabel', value: 'paramValue']]], testCasePath: 'test.pkg', " +
+                    "testConfig: [forceConfigurationReload: true]")
+        when:
+            AnalysisConfig analysisConfig = new AnalysisConfig()
+            analysisConfig.setMapping('mappingName')
+            analysisConfig.setAnalysisName('analysisName')
+            RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
+            recording.setDeviceName('deviceName')
+            recording.setFormatDetails('formatDetails')
+            recording.setRecordingGroup('recordingGroup')
+            analysisConfig.setRecordings(Arrays.asList(recording))
+            step.setAnalysisConfig(analysisConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage analysisConfig: [" +
+                    "analysisName: 'analysisName', mapping: 'mappingName', " +
+                    "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
+                    "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
+                    "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
+                    "testCasePath: 'test.pkg', testConfig: [forceConfigurationReload: true]")
+        when:
+            ExecutionConfig executionConfig = new ExecutionConfig()
+            executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
+            executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
+            step.setExecutionConfig(executionConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage analysisConfig: [" +
+                    "analysisName: 'analysisName', mapping: 'mappingName', " +
+                    "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
+                    "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
+                    "executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                    "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
+                    "testCasePath: 'test.pkg', testConfig: [forceConfigurationReload: true]")
     }
 
     def 'Run pipeline'() {

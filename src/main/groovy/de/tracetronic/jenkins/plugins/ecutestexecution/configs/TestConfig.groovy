@@ -12,11 +12,7 @@ import hudson.Extension
 import hudson.model.AbstractDescribableImpl
 import hudson.model.Descriptor
 import hudson.util.FormValidation
-import net.sf.json.JSONObject
 import org.apache.commons.lang.StringUtils
-import org.jinterop.dcom.test.Test
-import org.kohsuke.stapler.Stapler
-import org.kohsuke.stapler.StaplerRequest
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
@@ -39,10 +35,17 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
     }
 
     TestConfig(TestConfig config) {
+        this.forceConfigurationReload = config.forceConfigurationReload
+        //setting paths and constants to empty in case forceConfigurationReload is set to true
+        if(this.forceConfigurationReload) {
+            this.tbcPath = ""
+            this.tcfPath = ""
+            this.constants = []
+        } else {
         this.tbcPath = config.getTbcPath()
         this.tcfPath = config.getTcfPath()
         this.constants = config.getConstants()
-        this.forceConfigurationReload = config.forceConfigurationReload
+        }
     }
 
     String getTbcPath() {

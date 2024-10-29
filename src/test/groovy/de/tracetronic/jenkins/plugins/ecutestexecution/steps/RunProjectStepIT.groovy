@@ -69,7 +69,40 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertEqualDataBoundBeans(before, after)
     }
 
-    def 'Snippet generator'() {
+    def 'Snippet generator with Load Configuration'() {
+        given:
+            SnippetizerTester st = new SnippetizerTester(jenkins)
+        when:
+            RunProjectStep step = new RunProjectStep('test.prj')
+        then:
+            st.assertRoundTrip(step, "ttRunProject 'test.prj'")
+        when:
+            TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('test.tbc')
+            testConfig.setTcfPath('test.tcf')
+            testConfig.setForceConfigurationReload(false)
+            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            step.setTestConfig(testConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +
+                    "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+        when:
+            ExecutionConfig executionConfig = new ExecutionConfig()
+            executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
+            executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
+            step.setExecutionConfig(executionConfig)
+        then:
+            st.assertRoundTrip(step,
+                    "ttRunProject executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                    "testCasePath: 'test.prj', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+    }
+
+    def 'Snippet generator with Keep Configuration'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
@@ -85,8 +118,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +
-                    "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "testConfig: [forceConfigurationReload: true]")
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
@@ -97,9 +129,8 @@ class RunProjectStepIT extends IntegrationTestBase {
         then:
             st.assertRoundTrip(step,
                     "ttRunProject executionConfig: [" +
-                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
-                    "testCasePath: 'test.prj', testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                            "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                            "testCasePath: 'test.prj', testConfig: [forceConfigurationReload: true]")
     }
 
     def 'Run pipeline'() {
