@@ -33,10 +33,10 @@ class EnvVarUtilTest extends Specification {
 
         where:
             envVar              | vars                              | expectedResult
-            "TEST_VAR"          | [TEST_VAR: "value"]               | "TEST_VAR"
-            "MISSING_VAR"       | [TEST_VAR: "value"]               | "MISSING_VAR"
-            "${TEST_VAR}"       | [TEST_VAR: "value"]               | "value"
-            "${VAR1} ${VAR2}"   | [VAR1: "Hello", VAR2: "World"]    | "Hello World"
+            'TEST_VAR'          | [TEST_VAR: "value"]               | "TEST_VAR"
+            'MISSING_VAR'       | [TEST_VAR: "value"]               | "MISSING_VAR"
+            '${TEST_VAR}'       | [TEST_VAR: "value"]               | "value"
+            '${VAR1} ${VAR2}'   | [VAR1: "Hello", VAR2: "World"]    | "Hello World"
     }
 
     def "expandVar should return default value"() {
