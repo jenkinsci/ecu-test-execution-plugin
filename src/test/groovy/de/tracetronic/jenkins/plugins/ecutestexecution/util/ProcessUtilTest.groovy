@@ -34,15 +34,43 @@ class ProcessUtilTest extends Specification {
     }
 
     @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
-    def 'test killProcesses'(int timeout, expected) {
+    def 'test killProcess for different os'() {
+        given:
+            GroovyMock(Functions, global: true)
+            Functions.isWindows() >> isWindows
+        and:
+            def mockProcess = GroovyMock(Process)
+            def mockBuilder = GroovyMock(ProcessBuilder)
+            GroovyMock(ProcessBuilder, global: true)
+            new ProcessBuilder() >> mockBuilder
+            def withArgs
+            mockBuilder.command(_) >> { args ->
+                withArgs = args[0]
+                mockBuilder
+            }
+            mockBuilder.start() >> mockProcess
+            mockProcess.waitFor() >> 0
+        when:
+            def result = ProcessUtil.killProcess("doesReallyNotExistFoo", 0)
+        then:
+            result
+            withArgs.contains(processName)
+        where:
+            isWindows << [false, true]
+            processName << ['pkill', 'taskkill.exe']
+    }
+
+    @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
+    def 'test killProcesses'() {
         expect:
-            ProcessUtil.killProcesses(["doesReallyNotExistFoo", "doesReallyNotExistBar"], timeout) == expected
+            ProcessUtil.killProcesses(processes, timeout) == expected
 
         where:
-            timeout | expected
-            -1      |   false
-            0       |   false
-            1       |   true
+            processes                                           | timeout   | expected
+            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | -1        |   false
+            ["doesReallyNotExistFoo"]                           | 0         |   false
+            []                                                  | 1         |   true
+            null                                                | 1         |   true
     }
 
     def 'test killTTProcesses'(int timeout, expected) {
