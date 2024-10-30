@@ -33,7 +33,6 @@ class ProcessUtilTest extends Specification {
                 1   |   true
     }
 
-    @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
     def 'test killProcess for different os'() {
         given:
             GroovyMock(Functions, global: true)
@@ -60,17 +59,29 @@ class ProcessUtilTest extends Specification {
             processName << ['pkill', 'taskkill.exe']
     }
 
-    @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
     def 'test killProcesses'() {
+        given:
+            GroovyMock(Functions, global: true)
+            Functions.isWindows() >> true
+        and:
+            def mockProcess = GroovyMock(Process)
+            def mockBuilder = GroovyMock(ProcessBuilder)
+            GroovyMock(ProcessBuilder, global: true)
+            new ProcessBuilder() >> mockBuilder
+            mockBuilder.command(_) >> mockBuilder
+            mockBuilder.start() >> mockProcess
+            mockProcess.waitFor() >> waitFor
         expect:
-            ProcessUtil.killProcesses(processes, timeout) == expected
+            ProcessUtil.killProcesses(processes, 0) == expected
 
         where:
-            processes                                           | timeout   | expected
-            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | -1        |   false
-            ["doesReallyNotExistFoo"]                           | 0         |   false
-            []                                                  | 1         |   true
-            null                                                | 1         |   true
+            processes                                           | waitFor   | expected
+            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | 1         |   false
+            ["doesReallyNotExistFoo"]                           | 1         |   false
+            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | 0         |   true
+            ["doesReallyNotExistFoo"]                           | 0         |   true
+            []                                                  | 0         |   true
+            null                                                | 0         |   true
     }
 
     def 'test killTTProcesses'(int timeout, expected) {
