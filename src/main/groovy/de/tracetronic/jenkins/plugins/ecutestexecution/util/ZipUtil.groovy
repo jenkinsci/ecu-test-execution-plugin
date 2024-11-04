@@ -6,13 +6,30 @@
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
-import org.apache.tools.ant.types.selectors.SelectorUtils
-
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 class ZipUtil {
+
+    static boolean containsFileOfType(File reportFolderZip, String fileEnding) {
+        boolean result = false
+        new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
+            ZipEntry entry
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (!entry.isDirectory() && entry.name.endsWith(fileEnding)) {
+                    result = true
+                    break
+                }
+            }
+        }
+        return result
+    }
+
     static ArrayList<String> extractFilesByExtension(File reportFolderZip, List<String> fileEndings, String saveToDirPath) {
         ArrayList<String> extractedFilePaths = []
         Set<String> fileEndingsSet = fileEndings.toSet()
@@ -41,34 +58,41 @@ class ZipUtil {
         return extractedFilePaths
     }
 
-    static boolean containsFileOfType(File reportFolderZip, String fileEnding) {
-        boolean result = false
-        new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
+
+    static String recreateWithPath(File zip, String targetPath, File outputZip) {
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
+        Path target = Paths.get(targetPath)
+
+        try {
             ZipEntry entry
             while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (!entry.isDirectory() && entry.name.endsWith(fileEnding)) {
-                    result = true
-                    break
+                Path entryPath = Paths.get(entry.getName())
+                if (entryPath.getNameCount() >= target.getNameCount() && entryPath.subpath(0, target.getNameCount()).equals(target)) {
+                    zipOutputStream.putNextEntry(new ZipEntry(entry.name))
+                    zipOutputStream << zipInputStream
+                    zipOutputStream.closeEntry()
+
                 }
             }
+        } finally {
+            zipInputStream.close()
+            zipOutputStream.close()
         }
-        return result
+
+        return outputZip.path
     }
 
-    static String recreateZipWithFilteredFiles(File reportDirZip, List<String> includePaths, File outputZip) {
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(reportDirZip))
+
+    static String recreateWithEndings(File zip, List<String> includePaths, File outputZip) {
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
         ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
 
         try {
             ZipEntry entry
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory() && includePaths.any { path -> entry.name.endsWith(path) }) {
-                    def baseFolderName = includePaths[0].split('/')[0]
-                    def newEntryName = entry.name.startsWith("$baseFolderName/")
-                            ? entry.name.substring(baseFolderName.length() + 1)
-                            : entry.name
-
-                    zipOutputStream.putNextEntry(new ZipEntry(newEntryName))
+                    zipOutputStream.putNextEntry(new ZipEntry(entry.name))
                     zipOutputStream << zipInputStream
                     zipOutputStream.closeEntry()
                 }
@@ -81,16 +105,37 @@ class ZipUtil {
         return outputZip.path
     }
 
-    static List<String> getAllMatchingPaths(zip, pattern) {
-        ArrayList<String> matchingPaths = []
-        new ZipInputStream(new FileInputStream(zip)).withCloseable { zipInputStream ->
-            ZipEntry entry
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (SelectorUtils.match(pattern, entry.name)) {
-                    matchingPaths.add(entry.getName())
-                }
-            }
+    static String moveFromPathToBaseFolder(File zip, String pathToMove) {
+        Path tempZipPath = Files.createTempFile("temp_zip", ".zip")
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
+        ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(tempZipPath))
+        
+        String normalizedPathToMove = pathToMove.replace('\\', '/')
+        if (!normalizedPathToMove.endsWith('/')) {
+            normalizedPathToMove += '/'
         }
-        return matchingPaths
+
+        try {
+            ZipEntry entry
+            while ((entry = zipInputStream.nextEntry) != null) {
+                String normalizedEntryName = entry.name.replace('\\', '/')
+                String path
+
+                if (normalizedEntryName.contains(normalizedPathToMove)) {
+                    path = normalizedEntryName.replace(normalizedPathToMove, "")
+                } else {
+                    path = normalizedEntryName
+                }
+                zipOutputStream.putNextEntry(new ZipEntry(path))
+                zipInputStream.transferTo(zipOutputStream)
+                zipOutputStream.closeEntry()
+            }
+        } finally {
+            zipInputStream.close()
+            zipOutputStream.close()
+        }
+
+        Files.move(tempZipPath, zip.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        return zip.path
     }
 }

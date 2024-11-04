@@ -21,6 +21,8 @@ class ProvideGeneratedReportsStepTest extends Specification {
         zos.closeEntry()
         zos.putNextEntry(new ZipEntry("json/file1.json"))
         zos.closeEntry()
+        zos.putNextEntry(new ZipEntry("package/json/file1.json"))
+        zos.closeEntry()
         zos.close()
         return reportZip
     }
@@ -43,11 +45,11 @@ class ProvideGeneratedReportsStepTest extends Specification {
                 loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
 
             where:
-                scenario      | pattern           |extractedFiles                                                        | loggerCalled
-                "select one"  | "html"            |["/tmp/output/testreport/html.zip"]                                   | 0
-                "select all"  | "html, json"      |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
-                "select all"  | "html,json"       |["/tmp/output/testreport/html.zip", "/tmp/output/testreport/json.zip"]| 0
-                "exclude all" | "nothing matches" |[]                                                                    | 1
+                scenario              | pattern           |extractedFiles                                                                                                   | loggerCalled
+                "select one"          | "html"            |["/tmp/output/testreport/html.zip"]                                                                              | 0
+                "select all"          | "html, json"      |["/tmp/output/testreport/json.zip", "/tmp/output/testreport/html.zip", "/tmp/output/testreport/package/json.zip"]| 0
+                "select all no space" | "html,json"       |["/tmp/output/testreport/json.zip", "/tmp/output/testreport/html.zip", "/tmp/output/testreport/package/json.zip"]| 0
+                "exclude all"         | "nothing matches" |[]                                                                                                               | 1
         }
 
     def "Test DescriptorImpl returns correct values"() {

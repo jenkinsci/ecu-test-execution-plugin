@@ -11,10 +11,15 @@ import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
 import hudson.model.TaskListener
-import hudson.util.ListBoxModel
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
+
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.nio.file.PathMatcher
+import java.nio.file.Paths
+import java.util.zip.ZipFile
 
 class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     private static final String ICON_NAME = 'generateReport'
@@ -40,29 +45,43 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
         this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
     }
 
+    protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
+        ArrayList<String> generatedZipPaths = new ArrayList<>()
 
-    protected ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener) {
-        ArrayList<String> reportPaths = []
+        ZipFile reportZip = new ZipFile(reportFile)
 
-        selectedReportTypes.split(",\\s*").each { reportType ->
-            def folderEntryPaths = ZipUtil.getAllMatchingPaths(reportZip, "${reportType}/**")
-            def uniqueFolders = folderEntryPaths.collect { it.split("/")[0] }.toSet()
-
-            uniqueFolders.each { folderName ->
-                def paths = folderEntryPaths.findAll { it.startsWith("$folderName/") }
-                def outputFile = new File("${outDirPath}/${reportDirName}/${folderName}.zip")
-                outputFile.parentFile.mkdirs()
-                reportPaths.add(ZipUtil.recreateZipWithFilteredFiles(reportZip, paths, outputFile))
+        Set<String> targetFolderPaths = new HashSet<>()
+        reportZip.entries().each { entry ->
+            Path entryPath = Paths.get(entry.name)
+            String path = entryPath.getParent().toString()
+            for (String patternStr : selectedReportTypes.split(",\\s*")) {
+                patternStr = patternStr.replace("*", ".*")
+                String pattern = "regex:(.*?(/|\\\\))?${patternStr}"
+                PathMatcher matcher = FileSystems.getDefault().getPathMatcher(pattern)
+                if (entryPath.getParent() && matcher.matches(entryPath.getParent())) {
+                    targetFolderPaths.add(path)
+                }
             }
         }
 
-        if (reportPaths.isEmpty()) {
+        listener.logger.println("targetFolderPaths: " + targetFolderPaths.toString())
+
+        for (String path : targetFolderPaths) {
+            def outputFile = new File("${outDirPath}/${reportDirName}/${path}.zip")
+            outputFile.parentFile.mkdirs()
+            def zipPath = ZipUtil.recreateWithPath(reportFile, path, outputFile)
+            ZipUtil.moveFromPathToBaseFolder(outputFile, path)
+            generatedZipPaths.add(zipPath)
+        }
+
+
+        if (generatedZipPaths.isEmpty()) {
             listener.logger.println("[WARNING] Could not find any matching generated report files in ${reportDirName}!")
         }
 
-        return reportPaths
+        return generatedZipPaths
     }
-    
+
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 

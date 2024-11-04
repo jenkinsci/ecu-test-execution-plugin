@@ -22,7 +22,7 @@ class ProvideExecutionReportsStepTest extends Specification {
             GroovyMock(ZipUtil, global: true)
             GroovyMock(File, global: true)
             ZipUtil.containsFileOfType(_ , ".prf") >> containsPrf
-            ZipUtil.recreateZipWithFilteredFiles(_, [".trf", ".prf"], _) >> expectedResult[0]
+            ZipUtil.recreateWithEndings(_, [".trf", ".prf"], _) >> expectedResult[0]
             ZipUtil.extractFilesByExtension(_, [".trf"], _) >> expectedResult
             listener.logger >> logger
             new File(_) >> outputFile
