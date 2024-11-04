@@ -82,6 +82,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(false)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('loadConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +
@@ -115,6 +116,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('keepConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunProject testCasePath: 'test.prj', " +
@@ -155,6 +157,8 @@ class RunProjectStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('loadConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains("Executing project 'test.prj'...", run)
@@ -171,6 +175,8 @@ class RunProjectStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('keepConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains("Executing project 'test.prj'...", run)
@@ -235,6 +241,9 @@ class RunProjectStepIT extends IntegrationTestBase {
 
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunProject testCasePath: 'test.prj', testConfig: [tbcPath: 'test.tbc'] }", true))
+
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('loadConfig')
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:

@@ -112,6 +112,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(false)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('loadConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
@@ -188,6 +189,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('keepConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
@@ -272,6 +274,9 @@ class RunTestFolderStepIT extends IntegrationTestBase {
 
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('loadConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains('Found 3 package(s)', run)
@@ -294,6 +299,8 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('keepConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains('Found 3 package(s)', run)

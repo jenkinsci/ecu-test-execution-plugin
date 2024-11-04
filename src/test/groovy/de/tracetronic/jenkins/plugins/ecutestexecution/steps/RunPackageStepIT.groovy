@@ -102,6 +102,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(false)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('loadConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunPackage testCasePath: 'test.pkg', " +
@@ -166,6 +167,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
+            testConfig.setConfigOption('keepConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunPackage testCasePath: 'test.pkg', " +
@@ -235,6 +237,9 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
 
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('loadConfig')
+
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
@@ -250,6 +255,9 @@ class RunPackageStepIT extends IntegrationTestBase {
 
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('keepConfig')
 
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
@@ -316,6 +324,9 @@ class RunPackageStepIT extends IntegrationTestBase {
 
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc'] }", true))
+
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('loadConfig')
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:

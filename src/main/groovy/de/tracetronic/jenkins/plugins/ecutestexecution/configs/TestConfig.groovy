@@ -20,6 +20,7 @@ import org.kohsuke.stapler.QueryParameter
 class TestConfig extends AbstractDescribableImpl<TestConfig> implements ExpandableConfig, Serializable {
 
     private static final long serialVersionUID = 1L
+    private static transient String configOption
 
     private String tbcPath
     private String tcfPath
@@ -35,16 +36,14 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
     }
 
     TestConfig(TestConfig config) {
+        this()
         this.forceConfigurationReload = config.forceConfigurationReload
-        //setting paths and constants to empty in case forceConfigurationReload is set to true
-        if(this.forceConfigurationReload) {
-            this.tbcPath = ""
-            this.tcfPath = ""
-            this.constants = []
-        } else {
-        this.tbcPath = config.getTbcPath()
-        this.tcfPath = config.getTcfPath()
-        this.constants = config.getConstants()
+
+        if (configOption != 'keepConfig') {
+            this.tbcPath = config.getTbcPath()
+            this.tcfPath = config.getTcfPath()
+            this.constants = config.getConstants()
+            this.forceConfigurationReload = false
         }
     }
 
@@ -84,6 +83,15 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
         this.constants = constants ? removeEmptyConstants(constants) : []
     }
 
+    @DataBoundSetter
+    void setConfigOption(String value) {
+        configOption = value
+    }
+
+    String getConfigOption() {
+        return configOption ?: 'loadConfig'
+    }
+
     @Override
     String toString() {
         """
@@ -91,6 +99,7 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
         -> tcfPath: ${tcfPath}
         -> forceConfigurationReload: ${forceConfigurationReload}
         -> constants: ${constants.each { it }}
+        -> configOption: ${configOption}
         """.stripIndent().trim()
     }
 
