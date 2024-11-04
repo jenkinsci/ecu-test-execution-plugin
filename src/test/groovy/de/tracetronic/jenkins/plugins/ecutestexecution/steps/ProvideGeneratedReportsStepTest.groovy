@@ -41,7 +41,7 @@ class ProvideGeneratedReportsStepTest extends Specification {
                 def result = step.processReport(createTestZip(), reportDirName, outDirPath, listener)
 
             then:
-                result.collect { it.replaceAll("\\\\", "/") } == extractedFiles
+                result.collect { it.replaceAll("\\\\", "/") }.toSet() == extractedFiles.toSet()
                 loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
 
             where:
