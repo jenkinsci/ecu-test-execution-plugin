@@ -5,10 +5,11 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import hudson.Functions
-import hudson.Proc
-import spock.lang.IgnoreIf
 import spock.lang.Specification
+
+import java.util.concurrent.TimeUnit
 
 class ProcessUtilTest extends Specification {
 
@@ -21,19 +22,33 @@ class ProcessUtilTest extends Specification {
             e.message == "Utility class"
     }
 
-    @IgnoreIf({ sys["spock.skip.sandbox"] == 'true' })
-    def 'test killProcess'(int timeout, expected) {
-        expect:
-            ProcessUtil.killProcess("doesReallyNotExistFoo", timeout) == expected
-
+    def 'test killProcess with timeout'() {
+        given:
+            GroovyMock(Functions, global: true)
+            Functions.isWindows() >> false
+        and:
+            def mockProcess = GroovyMock(Process)
+            def mockBuilder = GroovyMock(ProcessBuilder)
+            GroovyMock(ProcessBuilder, global: true)
+            new ProcessBuilder() >> mockBuilder
+            mockBuilder.command(_) >> mockBuilder
+            mockBuilder.start() >> mockProcess
+        and:
+            def countWaitFor = 1 - countWaitForTimeout
+        when:
+            def result = ProcessUtil.killProcess("doesReallyNotExistFoo", timeout)
+        then:
+            result
+            countWaitForTimeout* mockProcess.waitFor() >> 0
+            countWaitFor* mockProcess.waitFor(_, TimeUnit.SECONDS) >> true
         where:
-            timeout | expected
-                -1  |   false
-                0   |   false
-                1   |   true
+            timeout | countWaitForTimeout
+                -1  |   1
+                0   |   1
+                1   |   0
     }
 
-    def 'test killProcess for different os'() {
+    def 'test killProcess for different os and task name'() {
         given:
             GroovyMock(Functions, global: true)
             Functions.isWindows() >> isWindows
@@ -59,45 +74,96 @@ class ProcessUtilTest extends Specification {
             processName << ['pkill', 'taskkill.exe']
     }
 
-    def 'test killProcesses'() {
+    def 'test killProcesses with default timeout'() {
         given:
-            GroovyMock(Functions, global: true)
-            Functions.isWindows() >> true
-        and:
-            def mockProcess = GroovyMock(Process)
-            def mockBuilder = GroovyMock(ProcessBuilder)
-            GroovyMock(ProcessBuilder, global: true)
-            new ProcessBuilder() >> mockBuilder
-            mockBuilder.command(_) >> mockBuilder
-            mockBuilder.start() >> mockProcess
-            mockProcess.waitFor() >> waitFor
-        expect:
-            ProcessUtil.killProcesses(processes, 0) == expected
-
+            def killProcessesCallCount = 0
+            def capturedExecutables = []
+            def capturedTimeout = 30 // default timeout if method not called
+            def responses = killProcessReturn.iterator()
+            ProcessUtil.metaClass.static.killProcess = { String executable, int timeout->
+                killProcessesCallCount++
+                capturedExecutables << executable
+                capturedTimeout = timeout
+                responses.next()
+            }
+        when:
+            def result = ProcessUtil.killProcesses(exeFiles)
+        then:
+            result == expected
+            killProcessesCallCount == methodCalls
+            capturedExecutables == exeFiles
+            capturedTimeout == 30
+        cleanup:
+            ProcessUtil.metaClass = null
         where:
-            processes                                           | waitFor   | expected
-            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | 1         |   false
-            ["doesReallyNotExistFoo"]                           | 1         |   false
-            ["doesReallyNotExistFoo", "doesReallyNotExistBar"]  | 0         |   true
-            ["doesReallyNotExistFoo"]                           | 0         |   true
-            []                                                  | 0         |   true
-            null                                                | 0         |   true
+            exeFiles                            | killProcessReturn   | methodCalls     | expected
+            ['ecu.test.exe', 'trace.check.exe'] | [true, true]        | 2               | true
+            ['ecu.test.exe', 'trace.check.exe'] | [false, true]       | 2               | false
+            ['ecu.test.exe', 'trace.check.exe'] | [true, false]       | 2               | false
+            ['ecu.test.exe']                    | [true]              | 1               | true
+            ['ecu.test.exe']                    | [false]             | 1               | false
+            []                                  | []                  | 0               | true
     }
 
-    def 'test killTTProcesses'(int timeout, expected) {
-        expect:
-            ProcessUtil.killTTProcesses(timeout) == expected
-
+    def "Test killTTProcesses with timeout"() {
+        given:
+            def killProcessesCallCount = 0
+            def capturedExecutables = []
+            def capturedTimeout = 0
+            ProcessUtil.metaClass.static.killProcess = { String executable, int timeoutArg->
+                killProcessesCallCount++
+                capturedExecutables << executable
+                capturedTimeout = timeoutArg
+                true
+            }
+        when:
+            def result = timeout ? ProcessUtil.killProcesses(exeFiles, timeout) : ProcessUtil.killProcesses(exeFiles)
+        then:
+            result
+            killProcessesCallCount == 2
+            capturedExecutables == exeFiles
+            capturedTimeout == timeout ?: 30 // check default value for timeout
+        cleanup:
+            ProcessUtil.metaClass = null
         where:
-            timeout | expected
-            -1      |   false
-            0       |   false
-            1       |   true
+            exeFiles                            | timeout
+            ['ecu.test.exe', 'trace.check.exe'] | null
+            ['ecu.test.exe', 'trace.check.exe'] | 60
+            ['ecu.test.exe', 'trace.check.exe'] | 30
+
     }
+
 
     def 'test killTTProcesses default'() {
         expect:
-            ProcessUtil.killTTProcesses() == true
+            ProcessUtil.killTTProcesses()
+    }
 
+    def 'test killTTProcesses arguments with default timeout'() {
+        given:
+            def exeFiles = ['ecu.test.exe', 'trace.check.exe']
+            ETInstallation.metaClass.static.getExeFileNames = { -> exeFiles }
+        and:
+            def killProcessesCallCount = 0
+            def capturedExecutables = []
+            def capturedTimeout = 0
+            ProcessUtil.metaClass.static.killProcesses = { List<String> executables, int timeout ->
+                killProcessesCallCount++
+                capturedExecutables = executables
+                capturedTimeout = timeout
+                expectedResult
+            }
+        when:
+            def result = ProcessUtil.killTTProcesses()
+        then:
+            result == expectedResult
+            capturedExecutables == exeFiles
+            capturedTimeout == 30
+            killProcessesCallCount == 1
+        cleanup:
+            ProcessUtil.metaClass = null
+            ETInstallation.metaClass = null
+        where:
+            expectedResult << [true, false]
     }
 }
