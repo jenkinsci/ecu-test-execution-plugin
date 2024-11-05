@@ -47,24 +47,22 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
     protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
         ArrayList<String> generatedZipPaths = new ArrayList<>()
-
         ZipFile reportZip = new ZipFile(reportFile)
-
         Set<String> targetFolderPaths = new HashSet<>()
+
+        String reportTypes = selectedReportTypes.replace("*", "[^/\\\\]*")
+        List<String> reportTypesList = reportTypes.split(",\\s*")
         reportZip.entries().each { entry ->
             Path entryPath = Paths.get(entry.name)
             String path = entryPath.getParent().toString()
-            for (String patternStr : selectedReportTypes.split(",\\s*")) {
-                patternStr = patternStr.replace("*", ".*")
-                String pattern = "regex:(.*?(/|\\\\))?${patternStr}"
+            for (String reportTypeStr : reportTypesList) {
+                String pattern = "regex:(.+(/|\\\\))?${reportTypeStr}"
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher(pattern)
                 if (entryPath.getParent() && matcher.matches(entryPath.getParent())) {
                     targetFolderPaths.add(path)
                 }
             }
         }
-
-        listener.logger.println("targetFolderPaths: " + targetFolderPaths.toString())
 
         for (String path : targetFolderPaths) {
             def outputFile = new File("${outDirPath}/${reportDirName}/${path}.zip")
