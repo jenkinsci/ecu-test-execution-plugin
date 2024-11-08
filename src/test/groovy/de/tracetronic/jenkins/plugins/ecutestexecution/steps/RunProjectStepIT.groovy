@@ -164,6 +164,7 @@ class RunProjectStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing project 'test.prj'...", run)
             jenkins.assertLogContains("-> With TBC=test.tbc", run)
             jenkins.assertLogContains("-> With TCF=test.tcf", run)
+            jenkins.assertLogContains("-> With TestConfig=loadConfig", run)
     }
 
     def 'Run pipeline by forcing configuration to reload in testConfig'() {
@@ -180,6 +181,7 @@ class RunProjectStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains("Executing project 'test.prj'...", run)
+            jenkins.assertLogContains("-> With TestConfig=keepConfig", run)
     }
 
     def 'Run pipeline with package check'() {

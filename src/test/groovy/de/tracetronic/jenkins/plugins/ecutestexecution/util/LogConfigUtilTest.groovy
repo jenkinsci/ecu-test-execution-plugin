@@ -17,6 +17,7 @@ import spock.lang.Specification
 class LogConfigUtilTest extends Specification {
     private TaskListener listener
     private PrintStream logger
+    private String expectedConfigPrint
     private String expectedTbcPrint
     private String expectedTcfPrint
     private String expectedConstPrint
@@ -30,6 +31,7 @@ class LogConfigUtilTest extends Specification {
         logger = Mock()
         listener = Mock(TaskListener)
         listener.getLogger() >> logger
+        expectedConfigPrint = '-> With TestConfig=loadConfig'
         expectedTbcPrint = '-> With TBC=test.tbc'
         expectedTcfPrint = '-> With TCF=test.tcf'
         expectedConstPrint = '-> With global constants=[[constLabel=constValue]]'
@@ -49,8 +51,8 @@ class LogConfigUtilTest extends Specification {
             logConfigUtil.log()
 
         then:
+            1* logger.println(expectedConfigPrint)
             0* logger.println(_)
-
     }
 
     def 'Log Test Config'() {
@@ -64,6 +66,7 @@ class LogConfigUtilTest extends Specification {
             logConfigUtil.log()
 
         then:
+            1* logger.println(expectedConfigPrint)
             1* logger.println(expectedTbcPrint)
             1* logger.println(expectedTcfPrint)
             1* logger.println(expectedConstPrint)
@@ -81,6 +84,7 @@ class LogConfigUtilTest extends Specification {
             logConfigUtil.log()
 
         then:
+            1* logger.println(expectedConfigPrint)
             1* logger.println(expectedParamPrint)
             0* logger.println(_)
     }
@@ -104,6 +108,7 @@ class LogConfigUtilTest extends Specification {
             logConfigUtil.log()
 
         then:
+            1* logger.println(expectedConfigPrint)
             1* logger.println(expectedAnalysisNamePrint)
             1* logger.println(expectedMappingPrint)
             1* logger.println(expectedRecordingPrint)

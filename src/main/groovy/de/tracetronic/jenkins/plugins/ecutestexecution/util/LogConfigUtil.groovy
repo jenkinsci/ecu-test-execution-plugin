@@ -49,6 +49,9 @@ class LogConfigUtil implements Serializable {
         if (testConfig.constants) {
             listener.logger.println("-> With global constants=[${testConfig.constants.each { it.toString() }}]")
         }
+        if (testConfig.configOption) {
+            listener.logger.println("-> With TestConfig=${testConfig.configOption}")
+        }
     }
 
     private void logPackageConfig() {

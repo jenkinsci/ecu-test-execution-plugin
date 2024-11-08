@@ -284,6 +284,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
             jenkins.assertLogContains("-> With TBC=test.tbc", run)
             jenkins.assertLogContains("-> With TCF=test.tcf", run)
+            jenkins.assertLogContains("-> With TestConfig=loadConfig", run)
     }
 
     def 'Run pipeline by forcing configuration to reload in testConfig'() {
@@ -306,6 +307,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Found 3 package(s)', run)
             jenkins.assertLogContains('Found 3 project(s)', run)
             jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
+            jenkins.assertLogContains("-> With TestConfig=keepConfig", run)
     }
 
     def 'Run recursive scan pipeline'() {

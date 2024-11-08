@@ -77,6 +77,7 @@ dependencies {
     testImplementation('org.jenkins-ci.plugins.workflow:workflow-basic-steps') {//:1042.ve7b_140c4a_e0c') {
         exclude group: 'org.jenkins-ci.modules', module: 'instance-identity'
     }
+    testImplementation 'org.jenkins-ci.plugins:http_request'
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-cps'
     testImplementation('org.jenkins-ci.plugins.workflow:workflow-cps') {artifact{ classifier = 'tests'}}
     testImplementation 'org.jenkins-ci.plugins.workflow:workflow-job'
