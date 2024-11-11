@@ -30,7 +30,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
     @DataBoundConstructor
     ProvideGeneratedReportsStep() {
         super()
-        this.selectedReportTypes = GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
+        this.selectedReportTypes = DescriptorImpl.getSelectedReportTypes()
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
@@ -42,7 +42,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
     @DataBoundSetter
     void setSelectedReportTypes(String selectedReportTypes) {
-        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : GenerateReportsStep.DescriptorImpl.REPORT_GENERATORS.collect { it + "*" }.join(", ")
+        this.selectedReportTypes = (selectedReportTypes != null) ? selectedReportTypes : DescriptorImpl.getSelectedReportTypes()
     }
 
     protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
@@ -67,8 +67,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
         for (String path : targetFolderPaths) {
             def outputFile = new File("${outDirPath}/${reportDirName}/${path}.zip")
             outputFile.parentFile.mkdirs()
-            def zipPath = ZipUtil.recreateWithPath(reportFile, path, outputFile)
-            ZipUtil.moveFromPathToBaseFolder(outputFile, path)
+            def zipPath = ZipUtil.recreateWithPath(reportFile, path, outputFile,true)
             generatedZipPaths.add(zipPath)
         }
 

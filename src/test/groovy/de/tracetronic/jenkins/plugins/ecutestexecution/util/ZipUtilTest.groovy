@@ -28,7 +28,8 @@ class ZipUtilTest extends Specification {
             zip.putNextEntry(new ZipEntry("test1.txt"))
             zip.putNextEntry(new ZipEntry("test2.xml"))
             zip.putNextEntry(new ZipEntry("folder/test3.txt"))
-            zip.putNextEntry(new ZipEntry("folder/test4.xml"))
+            zip.putNextEntry(new ZipEntry("folder\\test4.xml"))
+            zip.putNextEntry(new ZipEntry("folder2/test5.json"))
             zip.putNextEntry(new ZipEntry("report/result.html"))
         } finally {
             zip.close()
@@ -116,7 +117,7 @@ class ZipUtilTest extends Specification {
 
     def "should recreate zip with full file paths given as endings"() {
         given:
-            def includePaths = ["folder/test3.txt", "folder/test4.xml"]
+            def includePaths = ["folder/test3.txt", "folder\\test4.xml"]
 
         when:
             def newZipPath = ZipUtil.recreateWithEndings(testZip, includePaths, outputZip)
@@ -141,7 +142,7 @@ class ZipUtilTest extends Specification {
             def path = "folder"
 
         when:
-            def newZipPath = ZipUtil.recreateWithPath(testZip, path, outputZip)
+            def newZipPath = ZipUtil.recreateWithPath(testZip, path, outputZip, false)
             def entriesInNewZip = []
             new ZipInputStream(new FileInputStream(newZipPath)).withCloseable { zipInputStream ->
                 ZipEntry entry
@@ -156,12 +157,12 @@ class ZipUtilTest extends Specification {
             entriesInNewZip.contains("folder/test4.xml")
     }
 
-
-        def "should move all files at path to root"() {
+        def "should recreate zip with files at striped path"() {
             given:
                 def path = "folder"
+
             when:
-                def newZipPath = ZipUtil.moveFromPathToBaseFolder(testZip, path)
+                def newZipPath = ZipUtil.recreateWithPath(testZip, path, outputZip, true)
                 def entriesInNewZip = []
                 new ZipInputStream(new FileInputStream(newZipPath)).withCloseable { zipInputStream ->
                     ZipEntry entry
@@ -171,16 +172,8 @@ class ZipUtilTest extends Specification {
                 }
 
             then:
-                entriesInNewZip.size() == 5
-                entriesInNewZip.contains("test1.txt")
-                entriesInNewZip.contains("test2.xml")
+                entriesInNewZip.size() == 2
                 entriesInNewZip.contains("test3.txt")
                 entriesInNewZip.contains("test4.xml")
-                entriesInNewZip.contains("report/result.html")
-
-
         }
-
-
-
 }

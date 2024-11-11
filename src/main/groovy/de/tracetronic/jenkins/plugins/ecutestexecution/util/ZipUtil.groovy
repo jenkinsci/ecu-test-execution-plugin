@@ -59,83 +59,43 @@ class ZipUtil {
     }
 
 
-    static String recreateWithPath(File zip, String targetPath, File outputZip) {
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
-        Path target = Paths.get(targetPath)
-
-        try {
-            ZipEntry entry
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                Path entryPath = Paths.get(entry.getName())
-                if (entryPath.getNameCount() >= target.getNameCount() && entryPath.subpath(0, target.getNameCount()).equals(target)) {
-                    zipOutputStream.putNextEntry(new ZipEntry(entry.name))
-                    zipOutputStream << zipInputStream
-                    zipOutputStream.closeEntry()
-
+    static String recreateWithPath(File zip, String target, File outputZip, boolean stripBasePath=false) {
+        Path targetPath = Paths.get(target)
+        new ZipInputStream(new FileInputStream(zip)).withCloseable {inputStream ->
+            new ZipOutputStream(new FileOutputStream(outputZip)).withCloseable { outPutStream ->
+                ZipEntry entry
+                while ((entry = inputStream.getNextEntry()) != null) {
+                    Path entryPath = Paths.get(entry.name)
+                    if (entryPath.startsWith(targetPath)) {
+                        def outputEntryName = entry.name.replace("\\","/")
+                        if(stripBasePath){
+                            outputEntryName = outputEntryName.replace(target.replace("\\","/")+"/", "")
+                        }
+                        outPutStream.putNextEntry(new ZipEntry(outputEntryName))
+                        outPutStream << inputStream
+                        outPutStream.closeEntry()
+                    }
                 }
             }
-        } finally {
-            zipInputStream.close()
-            zipOutputStream.close()
         }
-
         return outputZip.path
     }
 
 
     static String recreateWithEndings(File zip, List<String> includePaths, File outputZip) {
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZip))
-
-        try {
-            ZipEntry entry
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (!entry.isDirectory() && includePaths.any { path -> entry.name.endsWith(path) }) {
-                    zipOutputStream.putNextEntry(new ZipEntry(entry.name))
-                    zipOutputStream << zipInputStream
-                    zipOutputStream.closeEntry()
+        new ZipInputStream(new FileInputStream(zip)).withCloseable {inputStream ->
+            new ZipOutputStream(new FileOutputStream(outputZip)).withCloseable { outPutStream ->
+                ZipEntry entry
+                while ((entry = inputStream.getNextEntry()) != null) {
+                    if (!entry.isDirectory() && includePaths.any { path -> entry.name.endsWith(path) }) {
+                        outPutStream.putNextEntry(new ZipEntry(entry.name.replace("\\","/")))
+                        outPutStream << inputStream
+                        outPutStream.closeEntry()
+                    }
                 }
             }
-        } finally {
-            zipInputStream.close()
-            zipOutputStream.close()
         }
-
         return outputZip.path
     }
 
-    static String moveFromPathToBaseFolder(File zip, String pathToMove) {
-        Path tempZipPath = Files.createTempFile("temp_zip", ".zip")
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zip))
-        ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(tempZipPath))
-        
-        String normalizedPathToMove = pathToMove.replace('\\', '/')
-        if (!normalizedPathToMove.endsWith('/')) {
-            normalizedPathToMove += '/'
-        }
-
-        try {
-            ZipEntry entry
-            while ((entry = zipInputStream.nextEntry) != null) {
-                String normalizedEntryName = entry.name.replace('\\', '/')
-                String path
-
-                if (normalizedEntryName.contains(normalizedPathToMove)) {
-                    path = normalizedEntryName.replace(normalizedPathToMove, "")
-                } else {
-                    path = normalizedEntryName
-                }
-                zipOutputStream.putNextEntry(new ZipEntry(path))
-                zipInputStream.transferTo(zipOutputStream)
-                zipOutputStream.closeEntry()
-            }
-        } finally {
-            zipInputStream.close()
-            zipOutputStream.close()
-        }
-
-        Files.move(tempZipPath, zip.toPath(), StandardCopyOption.REPLACE_EXISTING)
-        return zip.path
-    }
 }
