@@ -177,4 +177,67 @@ class TGContainerTest extends ContainerTest {
             jenkins.assertLogContains(
                     "Report upload(s) unstable. Please see the logging of the uploads.", run)
     }
+
+    def "ttUploadReports: Test upload report synchronous "() {
+        given:
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}','TG_HOSTNAME=${tgContainer.host}', 'TG_API_PORT=${tgContainer.getMappedPort(TG_PORT)}']) {
+                        def run_res = ttRunPackage 'test.pkg'
+    
+                        def upload_res = ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
+                            credentialsId: 'authKey', 
+                            useSettingsFromServer: false,
+                            reportIds: [run_res.getReportId()],
+                            additionalSettings: [
+                                [name: "uploadAsync", value: "False"],
+                                [name: "setConstants", value: "BuildNumber=42;CustomConstant=Custom"],
+                                [name: "setAttributes", value: "CustomAttribute=Custom"]
+                            ]     
+                            
+                        sleep(2)
+                                                    
+                        def response = httpRequest (
+                                            ignoreSslErrors: true,
+                                            acceptType: 'APPLICATION_JSON',
+                                            contentType: 'APPLICATION_JSON',
+                                            httpMode: 'POST',
+                                            url: "http://\${TG_HOSTNAME}:\${TG_API_PORT}/api/report/testCaseExecutions/filter?projectId=1&offset=0&limit=10",
+                                            customHeaders: [
+                                                [name: 'TestGuide-AuthKey', value: "${TG_AUTH_KEY}"]
+                                            ],
+                                            requestBody: '''
+                                            {
+                                                "testCaseName": ["test"],
+                                                "atxIds": ["1"],
+                                                "attributes": [
+                                                    {"key": "CustomAttribute", "values": ["Custom"]}
+                                                ],
+                                                "constants": [
+                                                    {"key": "CustomConstant", "values": ["Custom"]}
+                                                ]
+                                            }
+                                            '''
+                                       )
+                        if (response.status == 200) {
+                            println "Successfully retrieved the report from test.guide"
+                        } else {
+                            println "Retrieving the report from test.guide failed"
+                        }
+                        
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when:
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then:
+            jenkins.assertLogContains("Uploaded successfully", run)
+            jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
+    }
+
+
 }
