@@ -12,6 +12,7 @@ import hudson.Extension
 import hudson.model.AbstractDescribableImpl
 import hudson.model.Descriptor
 import hudson.util.FormValidation
+import jline.internal.Nullable
 import org.apache.commons.lang.StringUtils
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
@@ -29,40 +30,43 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
 
     @DataBoundConstructor
     TestConfig() {
-        this.tbcPath = ''
-        this.tcfPath = ''
-        this.forceConfigurationReload = false
+        this.tcfPath = null
+        this.tbcPath = null
         this.constants = []
+        this.forceConfigurationReload = false
     }
 
     TestConfig(TestConfig config) {
         this()
-        this.forceConfigurationReload = config.forceConfigurationReload
 
-        if (configOption != 'keepConfig') {
+        configOption = getConfigOption()
+
+        if(configOption == 'loadConfig') {
             this.tbcPath = config.getTbcPath()
             this.tcfPath = config.getTcfPath()
             this.constants = config.getConstants()
-            this.forceConfigurationReload = false
+            this.forceConfigurationReload = config.isForceConfigurationReload()
         }
     }
 
+    @Nullable
     String getTbcPath() {
         return tbcPath
     }
 
     @DataBoundSetter
     void setTbcPath(String tbcPath) {
-        this.tbcPath = StringUtils.trimToEmpty(tbcPath)
+        this.tbcPath = tbcPath || configOption == 'loadConfig' ? StringUtils.trimToEmpty(tbcPath) : null
     }
 
+    @Nullable
     String getTcfPath() {
         return tcfPath
     }
 
     @DataBoundSetter
     void setTcfPath(String tcfPath) {
-        this.tcfPath = StringUtils.trimToEmpty(tcfPath)
+        this.tcfPath = tcfPath || configOption == 'loadConfig' ? StringUtils.trimToEmpty(tcfPath) : null
     }
 
     boolean isForceConfigurationReload() {
@@ -89,7 +93,7 @@ class TestConfig extends AbstractDescribableImpl<TestConfig> implements Expandab
     }
 
     String getConfigOption() {
-        return configOption ?: 'loadConfig'
+        return configOption ?: 'keepConfig'
     }
 
     @Override

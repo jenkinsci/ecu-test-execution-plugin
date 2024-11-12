@@ -6,6 +6,7 @@
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import jline.internal.Nullable
 
@@ -17,22 +18,35 @@ class ExecutionOrder implements Serializable {
 
     public String testCasePath
     public AdditionalSettings additionalSetting
+    public String configOption
+    public boolean loadConfig
     @Nullable public String tbcPath
     @Nullable public String tcfPath
     @Nullable public List<Constant> constants
 
     ExecutionOrder(String testCasePath, AdditionalSettings additionalSetting,
-                   String tbcPath, String tcfPath, List<Constant> constants) {
+                   String tbcPath, String tcfPath, List<Constant> constants, String configOption) {
         this.testCasePath = testCasePath
         this.additionalSetting = additionalSetting
         this.tbcPath = tbcPath
         this.tcfPath = tcfPath
         this.constants = constants
+        this.configOption = configOption
     }
 
     ExecutionOrder(String testCasePath, AdditionalSettings additionalSetting) {
         this.testCasePath = testCasePath
         this.additionalSetting = additionalSetting
+    }
+
+    ExecutionOrder(String testCasePath, TestConfig testConfig, AdditionalSettings additionalSettings) {
+        this.testCasePath = testCasePath
+        this.additionalSetting = additionalSettings
+        this.tbcPath = testConfig.tbcPath
+        this.tcfPath = testConfig.tcfPath
+        this.constants = testConfig.constants
+        this.configOption = testConfig.configOption
+        this.loadConfig = testConfig.forceConfigurationReload
     }
 
     /**

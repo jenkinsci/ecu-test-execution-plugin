@@ -72,8 +72,7 @@ class ExecutionOrderBuilder implements Serializable {
             settings = new AdditionalSettings(testConfig.forceConfigurationReload)
         }
 
-        ExecutionOrder executionOrder = new ExecutionOrder(testCasePath, settings, testConfig.tbcPath,
-                testConfig.tcfPath, testConfig.constants)
+        ExecutionOrder executionOrder = new ExecutionOrder(testCasePath, testConfig, settings)
 
         return executionOrder
     }

@@ -46,6 +46,9 @@ class RunTestFolderStepIT extends IntegrationTestBase {
     def 'Default config round trip'() {
         given:
             RunTestFolderStep before = new RunTestFolderStep(folder.newFolder().getAbsolutePath())
+            TestConfig testConfig = new TestConfig()
+            testConfig.setConfigOption('keepConfig')
+            before.setTestConfig(testConfig)
         when:
             RunTestFolderStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -110,7 +113,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
-            testConfig.setForceConfigurationReload(false)
+            testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             testConfig.setConfigOption('loadConfig')
             step.setTestConfig(testConfig)
@@ -118,7 +121,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
                     "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
@@ -128,7 +131,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
@@ -147,7 +150,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
@@ -166,7 +169,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
                     "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
-                    "tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
     }
 
     def 'Snippet generator with Keep Configuration'() {
@@ -180,21 +183,12 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             step.setRecursiveScan(true)
             step.setFailFast(false)
             step.setScanMode(RunTestFolderStep.ScanMode.PROJECTS_ONLY)
-        then:
-            st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
-                    "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
-        when:
             TestConfig testConfig = new TestConfig()
-            testConfig.setTbcPath('test.tbc')
-            testConfig.setTcfPath('test.tcf')
-            testConfig.setForceConfigurationReload(true)
-            testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             testConfig.setConfigOption('keepConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
-                    "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
-                    "testConfig: [forceConfigurationReload: true]")
+                    "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
         when:
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
@@ -202,8 +196,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
-                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
-                    "testConfig: [forceConfigurationReload: true]")
+                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
         when:
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
@@ -220,8 +213,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
                     "path: 'recording.csv', recordingGroup: 'recordingGroup']]], failFast: false, " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
-                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
-                    "testConfig: [forceConfigurationReload: true]")
+                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
         when:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
@@ -238,8 +230,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], "+
                     "failFast: false, " +
                     "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
-                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
-                    "testConfig: [forceConfigurationReload: true]")
+                    "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
     }
 
     def 'Run default pipeline'() {
@@ -262,14 +253,14 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Executing package '${testPackage.getAbsolutePath()}'", run)
     }
 
-    def 'Run pipeline by declaring .tbc and .tcf files in testConfig'() {
+    def 'Run pipeline with loadConfig as TestConfig'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttRunTestFolder  recursiveScan: true, " +
                             "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                            ", testConfig: [tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }",
+                            ", testConfig: [forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }",
                     true))
 
             GroovyMock(RestApiClientFactory, global: true)
@@ -287,14 +278,13 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("-> With TestConfig=loadConfig", run)
     }
 
-    def 'Run pipeline by forcing configuration to reload in testConfig'() {
+    def 'Run pipeline with keepConfig as TestConfig'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttRunTestFolder  recursiveScan: true, " +
-                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                            ", testConfig: [forceConfigurationReload: true] }",
+                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'}",
                     true))
 
             GroovyMock(RestApiClientFactory, global: true)

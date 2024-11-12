@@ -127,25 +127,34 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         ExecutionApi executionApi = new ExecutionApi(apiClient)
         de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder executionOrderV2
         executionOrderV2 = executionOrder.toExecutionOrderV2()
-
         List<LabeledValue> constants = []
         executionOrder.constants.each { constant ->
             constants.add(new LabeledValue().label(constant.label).value(constant.value))
         }
+
         ConfigurationOrder configOrder = new ConfigurationOrder()
                 .tbc(new TestbenchConfiguration().tbcPath(executionOrder.tbcPath))
                 .tcf(new TestConfiguration().tcfPath(executionOrder.tcfPath))
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
         try {
-            if (configOrder.tbc.tbcPath || configOrder.tcf.tcfPath || constants) {
+            if(executionOrder.configOption == 'loadConfig') {
                 ConfigurationApi configApi = new ConfigurationApi(apiClient)
-                configApi.manageConfiguration(configOrder)
 
                 Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
                     configuration?.status?.key in [null, ConfigurationStatus.KeyEnum.WAITING, ConfigurationStatus.KeyEnum.RUNNING]
                 }
 
+                if(executionOrder.loadConfig) {
+                    ConfigurationOrder loadConfigOrder = new ConfigurationOrder().action(ConfigurationOrder.ActionEnum.STOP)
+                    configApi.manageConfiguration(loadConfigOrder)
+
+                    while (checkConfigStatus(configApi.lastConfigurationOrder)) {
+                        sleep(1000)
+                    }
+                }
+
+                configApi.manageConfiguration(configOrder)
                 while (checkConfigStatus(configApi.lastConfigurationOrder)) {
                     sleep(1000)
                 }
