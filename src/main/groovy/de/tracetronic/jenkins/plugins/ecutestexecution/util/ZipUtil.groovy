@@ -42,9 +42,9 @@ class ZipUtil {
                     boolean shouldExtract = fileEndingsSet.any { ending ->
                         entry.name.endsWith(ending)
                     }
-
                     if (shouldExtract) {
-                        File outputFile = new File(saveToDirPath, entry.name)
+                        String entryPath = entry.name.replace("\\", "/")
+                        File outputFile = new File(saveToDirPath, entryPath)
                         outputFile.parentFile.mkdirs()
                         outputFile.withOutputStream { outputStream ->
                             outputStream << zipInputStream
@@ -54,22 +54,21 @@ class ZipUtil {
                 }
             }
         }
-
         return extractedFilePaths
     }
 
 
-    static String recreateWithPath(File zip, String target, File outputZip, boolean stripBasePath=false) {
-        Path targetPath = Paths.get(target)
-        new ZipInputStream(new FileInputStream(zip)).withCloseable {inputStream ->
+    static String recreateWithPath(File zip, String target, File outputZip, boolean stripBasePath = false) {
+        Path targetPath = Paths.get(target.replace("\\", "/")).normalize()
+        new ZipInputStream(new FileInputStream(zip)).withCloseable { inputStream ->
             new ZipOutputStream(new FileOutputStream(outputZip)).withCloseable { outPutStream ->
                 ZipEntry entry
                 while ((entry = inputStream.getNextEntry()) != null) {
-                    Path entryPath = Paths.get(entry.name)
+                    Path entryPath = Paths.get(entry.name.replace("\\", "/")).normalize()
                     if (entryPath.startsWith(targetPath)) {
-                        def outputEntryName = entry.name.replace("\\","/")
-                        if(stripBasePath){
-                            outputEntryName = outputEntryName.replace(target.replace("\\","/")+"/", "")
+                        String outputEntryName = entry.name.replace("\\", "/")
+                        if (stripBasePath) {
+                            outputEntryName = targetPath.relativize(entryPath).toString()
                         }
                         outPutStream.putNextEntry(new ZipEntry(outputEntryName))
                         outPutStream << inputStream
@@ -83,12 +82,14 @@ class ZipUtil {
 
 
     static String recreateWithEndings(File zip, List<String> includePaths, File outputZip) {
-        new ZipInputStream(new FileInputStream(zip)).withCloseable {inputStream ->
+        List<String> normalizedIncludePaths = includePaths.collect { it.replace("\\", "/") }
+        new ZipInputStream(new FileInputStream(zip)).withCloseable { inputStream ->
             new ZipOutputStream(new FileOutputStream(outputZip)).withCloseable { outPutStream ->
                 ZipEntry entry
                 while ((entry = inputStream.getNextEntry()) != null) {
-                    if (!entry.isDirectory() && includePaths.any { path -> entry.name.endsWith(path) }) {
-                        outPutStream.putNextEntry(new ZipEntry(entry.name.replace("\\","/")))
+                    String normalizedEntryName = entry.name.replace("\\", "/")
+                    if (!entry.isDirectory() && normalizedIncludePaths.any { path -> normalizedEntryName.endsWith(path) }) {
+                        outPutStream.putNextEntry(new ZipEntry(normalizedEntryName))
                         outPutStream << inputStream
                         outPutStream.closeEntry()
                     }
