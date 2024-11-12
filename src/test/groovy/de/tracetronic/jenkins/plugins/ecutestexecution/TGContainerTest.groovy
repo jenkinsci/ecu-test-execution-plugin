@@ -39,7 +39,7 @@ class TGContainerTest extends ContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(TGContainerTest.class)
 
     private static final int TG_PORT = 8085
-    private static final String TG_IMAGE_NAME = BASE_IMAGE_PATH + "test-guide:" + System.getenv('TG_VERSION')
+    private static final String TG_IMAGE_NAME =  BASE_IMAGE_PATH + "test-guide:1.180.0_ubi9" //TODO url and replace tag with + System.getenv('TG_VERSION') before merge
     private static final String TG_AUTH_KEY = System.getenv('TG_AUTH_KEY')
     private static final String TG_ALIAS = 'tgTestContainer'
 
@@ -51,7 +51,7 @@ class TGContainerTest extends ContainerTest {
             .withExposedPorts(TG_PORT)
             .withNetwork(network)
             .withNetworkAliases(TG_ALIAS)
-            .withClasspathResourceMapping("autoConfig.prop", "/app/TTS-TM/autoConfig.prop", BindMode.READ_ONLY)
+            .withClasspathResourceMapping("autoConfig.prop", "/var/testguide/TTS-TM/autoConfig.prop", BindMode.READ_ONLY)
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .waitingFor(Wait.forHttp("/api/health/ready").withStartupTimeout(Duration.ofMinutes(15)))
 
@@ -178,7 +178,7 @@ class TGContainerTest extends ContainerTest {
                     "Report upload(s) unstable. Please see the logging of the uploads.", run)
     }
 
-    def "ttUploadReports: Test upload report synchronous "() {
+    def "ttUploadReports: Test asynchronous upload using additionalSettings and verify with test.guide request"() {
         given:
             String script = """
                 node {
@@ -190,7 +190,7 @@ class TGContainerTest extends ContainerTest {
                             useSettingsFromServer: false,
                             reportIds: [run_res.getReportId()],
                             additionalSettings: [
-                                [name: "uploadAsync", value: "False"],
+                                [name: "uploadAsync", value: "True"],
                                 [name: "setConstants", value: "BuildNumber=42;CustomConstant=Custom"],
                                 [name: "setAttributes", value: "CustomAttribute=Custom"]
                             ]     
@@ -221,6 +221,7 @@ class TGContainerTest extends ContainerTest {
                                        )
                         if (response.status == 200) {
                             println "Successfully retrieved the report from test.guide"
+                            println response.content
                         } else {
                             println "Retrieving the report from test.guide failed"
                         }
@@ -237,7 +238,76 @@ class TGContainerTest extends ContainerTest {
         then:
             jenkins.assertLogContains("Uploaded successfully", run)
             jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
+            jenkins.assertLogContains('{"id":1,"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
+            jenkins.assertLogContains('{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}', run)
+            jenkins.assertLogContains('{"key":"CustomAttribute","values":["Custom"]}', run)
     }
+
+    def "ttUploadReports: Test synchronous upload using additionalSettings and verify with test.guide request"() {
+            given:
+                String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}','TG_HOSTNAME=${tgContainer.host}', 'TG_API_PORT=${tgContainer.getMappedPort(TG_PORT)}']) {
+                            def run_res = ttRunPackage 'test.pkg'
+        
+                            def upload_res = ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
+                                credentialsId: 'authKey', 
+                                useSettingsFromServer: false,
+                                reportIds: [run_res.getReportId()],
+                                additionalSettings: [
+                                    [name: "uploadAsync", value: "False"],
+                                    [name: "setConstants", value: "BuildNumber=42;CustomConstant=Custom"],
+                                    [name: "setAttributes", value: "CustomAttribute=Custom"]
+                                ]     
+                                
+                            sleep(2)
+                                                        
+                            def response = httpRequest (
+                                                ignoreSslErrors: true,
+                                                acceptType: 'APPLICATION_JSON',
+                                                contentType: 'APPLICATION_JSON',
+                                                httpMode: 'POST',
+                                                url: "http://\${TG_HOSTNAME}:\${TG_API_PORT}/api/report/testCaseExecutions/filter?projectId=1&offset=0&limit=10",
+                                                customHeaders: [
+                                                    [name: 'TestGuide-AuthKey', value: "${TG_AUTH_KEY}"]
+                                                ],
+                                                requestBody: '''
+                                                {
+                                                    "testCaseName": ["test"],
+                                                    "atxIds": ["1"],
+                                                    "attributes": [
+                                                        {"key": "CustomAttribute", "values": ["Custom"]}
+                                                    ],
+                                                    "constants": [
+                                                        {"key": "CustomConstant", "values": ["Custom"]}
+                                                    ]
+                                                }
+                                                '''
+                                           )
+                            if (response.status == 200) {
+                                println "Successfully retrieved the report from test.guide"
+                                println response.content
+
+                            } else {
+                                println "Retrieving the report from test.guide failed"
+                            }
+                            
+                        }
+                    }
+                """.stripIndent()
+                WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+                job.setDefinition(new CpsFlowDefinition(script, true))
+
+            when:
+                WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+            then:
+                //jenkins.assertLogContains("Uploaded successfully", run) TODO ecu.test does not return a report link for uploadAsync:True even tho the report is present in test.guide
+                jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
+                jenkins.assertLogContains('{"id":1,"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
+                jenkins.assertLogContains('{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}', run)
+                jenkins.assertLogContains('{"key":"CustomAttribute","values":["Custom"]}', run)
+        }
 
 
 }
