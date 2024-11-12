@@ -48,9 +48,9 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test-logs. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test Logs. Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def 'Run pipeline allow missing logs'() {
@@ -59,9 +59,9 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [allowMissing: true])}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
             jenkins.assertLogContains("[WARNING] No files found!", run)
-            jenkins.assertLogNotContains("Successfully added ecu.test-logs to jenkins.", run)
+            jenkins.assertLogNotContains("Successfully added ecu.test Logs to jenkins.", run)
     }
 
     def 'Run pipeline exceeds timeout'() {
@@ -71,8 +71,8 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [timeout: ${timeout}])}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-            jenkins.assertLogContains("Providing ecu.test-logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
             jenkins.assertLogContains("Execution has exceeded the configured timeout of ${timeout} seconds", run)
-            jenkins.assertLogContains("Providing ecu.test-logs failed!", run)
+            jenkins.assertLogContains("Providing ecu.test Logs failed!", run)
     }
 }

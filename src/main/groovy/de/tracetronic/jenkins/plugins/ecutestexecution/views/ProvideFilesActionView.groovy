@@ -26,7 +26,7 @@ class ProvideFilesActionView implements Action {
 
     @Override
     String getUrlName() {
-        return dirName
+        return dirName.replace(" ", "-")
     }
 
     Run getRun() {
@@ -62,7 +62,7 @@ class ProvideFilesActionView implements Action {
             parts = parts.drop(1)
 
             def currentLevel = map;
-            parts.eachWithIndex{ part,  i ->
+            parts.eachWithIndex { part, i ->
                 boolean isDirectory = (i < parts.length - 1);
 
                 if (isDirectory) {

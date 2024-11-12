@@ -136,7 +136,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
                 }
 
                 ArrayList<String> reportPaths = []
-                reports.each {report ->
+                reports.each { report ->
                     String reportDirName = report.reportDir.split('/').last()
                     File reportZip = apiClient.downloadReportFolder(report.testReportId)
                     ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
