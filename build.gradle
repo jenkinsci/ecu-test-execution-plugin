@@ -57,7 +57,7 @@ dependencies {
 
     // codenarc
     codenarc('org.codenarc:CodeNarc:3.5.0')
-    codenarc('org.codehaus.groovy:groovy-all:3.0.22')
+    codenarc('org.codehaus.groovy:groovy-all:3.0.23')
 
     // ecu.test-java-rest-client
     api 'io.swagger:swagger-annotations:1.6.14'
