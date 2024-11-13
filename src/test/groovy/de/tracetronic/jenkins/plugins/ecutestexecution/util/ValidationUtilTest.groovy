@@ -6,12 +6,20 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import hudson.util.FormValidation
-import org.apache.http.client.fluent.Form
 import spock.lang.Specification
 
 import java.nio.file.Paths
 
 class ValidationUtilTest extends Specification {
+
+    def "Unsupported class exception"() {
+        when:
+            new ValidationUtil()
+        then:
+            def e = thrown(UnsupportedOperationException)
+            e.cause == null
+            e.message == "Utility class"
+    }
 
     def 'Validate parametrized values'(String value, boolean required, FormValidation.Kind expectedKind) {
         given:
@@ -29,8 +37,6 @@ class ValidationUtilTest extends Specification {
     def 'Validate absolute path values'(String value, FormValidation.Kind expectedKind) {
         given:
             FormValidation validation = ValidationUtil.validateAbsolutePath(value)
-            ValidationUtil validationUtil = Mock()
-            validationUtil.validateParameterizedValue(value, true) >> FormValidation.ok()
         expect:
             validation.kind == expectedKind
         where:
@@ -40,16 +46,22 @@ class ValidationUtilTest extends Specification {
             expectedKind << [FormValidation.Kind.ERROR, FormValidation.Kind.OK]
     }
 
+    def 'Validate absolute path values with invalid param'() {
+        expect:
+            FormValidation.Kind.ERROR == ValidationUtil.validateAbsolutePath("").kind
+    }
+
     def 'Validate timeout values'(int value, FormValidation.Kind expectedKind) {
         given:
             FormValidation validation = ValidationUtil.validateTimeout(value)
         expect:
             validation.kind == expectedKind
         where:
-            value | expectedKind
-            1     | FormValidation.Kind.OK
-            0     | FormValidation.Kind.WARNING
-            -1    | FormValidation.Kind.ERROR
+            value       | expectedKind
+            '1'         | FormValidation.Kind.OK
+            1           | FormValidation.Kind.OK
+            0           | FormValidation.Kind.WARNING
+            -1          | FormValidation.Kind.ERROR
     }
 
     def 'Validate config files'(String configFilePath, String fileExtension, FormValidation.Kind expectedKind) {
@@ -64,6 +76,7 @@ class ValidationUtilTest extends Specification {
             'KEEP'         | ''            | FormValidation.Kind.OK
             'KEEP'         | '.tcf'        | FormValidation.Kind.OK
             '${CONFIG}'    | ''            | FormValidation.Kind.WARNING
+            ''             | ''            | FormValidation.Kind.OK
             null           | null          | FormValidation.Kind.OK
     }
 

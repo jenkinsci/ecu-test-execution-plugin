@@ -269,6 +269,10 @@ tasks.register('containerTest', Test) {
     useJUnitPlatform()
 }
 
+tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.optimizationOptions.indy = true
+}
+
 jacocoTestReport {
     dependsOn test
     reports {
