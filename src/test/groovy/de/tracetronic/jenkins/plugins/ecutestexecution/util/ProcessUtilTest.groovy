@@ -105,7 +105,7 @@ class ProcessUtilTest extends Specification {
             []                                  | []                  | 0               | true
     }
 
-    def "Test killTTProcesses with timeout"() {
+    def "Test killProcesses with timeout"() {
         given:
             def killProcessesCallCount = 0
             def capturedExecutables = []
@@ -131,12 +131,6 @@ class ProcessUtilTest extends Specification {
             ['ecu.test.exe', 'trace.check.exe'] | 60
             ['ecu.test.exe', 'trace.check.exe'] | 30
 
-    }
-
-
-    def 'test killTTProcesses default'() {
-        expect:
-            ProcessUtil.killTTProcesses()
     }
 
     def 'test killTTProcesses arguments with default timeout'() {
