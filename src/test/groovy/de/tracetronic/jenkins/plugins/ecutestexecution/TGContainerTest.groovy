@@ -178,72 +178,7 @@ class TGContainerTest extends ContainerTest {
                     "Report upload(s) unstable. Please see the logging of the uploads.", run)
     }
 
-    def "ttUploadReports: Test asynchronous upload using additionalSettings and verify with test.guide request"() {
-        given:
-            String script = """
-                node {
-                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}','TG_HOSTNAME=${tgContainer.host}', 'TG_API_PORT=${tgContainer.getMappedPort(TG_PORT)}']) {
-                        def run_res = ttRunPackage 'test.pkg'
-    
-                        def upload_res = ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
-                            credentialsId: 'authKey', 
-                            useSettingsFromServer: false,
-                            reportIds: [run_res.getReportId()],
-                            additionalSettings: [
-                                [name: "uploadAsync", value: "True"],
-                                [name: "setConstants", value: "BuildNumber=42;CustomConstant=Custom"],
-                                [name: "setAttributes", value: "CustomAttribute=Custom"]
-                            ]     
-                            
-                        sleep(2)
-                                                    
-                        def response = httpRequest (
-                                            ignoreSslErrors: true,
-                                            acceptType: 'APPLICATION_JSON',
-                                            contentType: 'APPLICATION_JSON',
-                                            httpMode: 'POST',
-                                            url: "http://\${TG_HOSTNAME}:\${TG_API_PORT}/api/report/testCaseExecutions/filter?projectId=1&offset=0&limit=10",
-                                            customHeaders: [
-                                                [name: 'TestGuide-AuthKey', value: "${TG_AUTH_KEY}"]
-                                            ],
-                                            requestBody: '''
-                                            {
-                                                "testCaseName": ["test"],
-                                                "atxIds": ["1"],
-                                                "attributes": [
-                                                    {"key": "CustomAttribute", "values": ["Custom"]}
-                                                ],
-                                                "constants": [
-                                                    {"key": "CustomConstant", "values": ["Custom"]}
-                                                ]
-                                            }
-                                            '''
-                                       )
-                        if (response.status == 200) {
-                            println "Successfully retrieved the report from test.guide"
-                            println response.content
-                        } else {
-                            println "Retrieving the report from test.guide failed"
-                        }
-                        
-                    }
-                }
-            """.stripIndent()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-
-        when:
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then:
-            jenkins.assertLogContains("Uploaded successfully", run)
-            jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
-            jenkins.assertLogContains('{"id":1,"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
-            jenkins.assertLogContains('{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}', run)
-            jenkins.assertLogContains('{"key":"CustomAttribute","values":["Custom"]}', run)
-    }
-
-    def "ttUploadReports: Test synchronous upload using additionalSettings and verify with test.guide request"() {
+    def "ttUploadReports: Test #scenario upload using additionalSettings and verify with test.guide request"() {
             given:
                 String script = """
                     node {
@@ -255,9 +190,9 @@ class TGContainerTest extends ContainerTest {
                                 useSettingsFromServer: false,
                                 reportIds: [run_res.getReportId()],
                                 additionalSettings: [
-                                    [name: "uploadAsync", value: "False"],
-                                    [name: "setConstants", value: "BuildNumber=42;CustomConstant=Custom"],
-                                    [name: "setAttributes", value: "CustomAttribute=Custom"]
+                                    [name: "uploadAsync", value: "${uploadAsync}"],
+                                    [name: "setConstants", value: "${customConstants}"],
+                                    [name: "setAttributes", value: "${customAttributes}"]
                                 ]     
                                 
                             sleep(2)
@@ -274,17 +209,16 @@ class TGContainerTest extends ContainerTest {
                                                 requestBody: '''
                                                 {
                                                     "testCaseName": ["test"],
-                                                    "atxIds": ["1"],
                                                     "attributes": [
-                                                        {"key": "CustomAttribute", "values": ["Custom"]}
+                                                        ${expectAttribues}
                                                     ],
                                                     "constants": [
-                                                        {"key": "CustomConstant", "values": ["Custom"]}
+                                                        ${expectConstants}
                                                     ]
                                                 }
                                                 '''
                                            )
-                            if (response.status == 200) {
+                            if (response.status == 200 && response.content != []) {
                                 println "Successfully retrieved the report from test.guide"
                                 println response.content
 
@@ -304,9 +238,13 @@ class TGContainerTest extends ContainerTest {
             then:
                 //jenkins.assertLogContains("Uploaded successfully", run) TODO ecu.test does not return a report link for uploadAsync:True even tho the report is present in test.guide
                 jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
-                jenkins.assertLogContains('{"id":1,"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
-                jenkins.assertLogContains('{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}', run)
-                jenkins.assertLogContains('{"key":"CustomAttribute","values":["Custom"]}', run)
+                jenkins.assertLogContains('"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
+                jenkins.assertLogContains(expectAttribues, run)
+                jenkins.assertLogContains(expectConstants, run)
+            where:
+                scenario                | uploadAsync   | customAttributes          | customConstants                        |expectAttribues                                | expectConstants
+                "synchronous"           | "False"       | "CustomAttribute=Custom"  | "BuildNumber=42;CustomConstant=Custom" |'{"key":"CustomAttribute","values":["Custom"]}'|'{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}'
+                "asynchronous"          | "True"        | "CustomAttribute=Custom"  | "BuildNumber=42;CustomConstant=Custom" |'{"key":"CustomAttribute","values":["Custom"]}'|'{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}'
         }
 
 
