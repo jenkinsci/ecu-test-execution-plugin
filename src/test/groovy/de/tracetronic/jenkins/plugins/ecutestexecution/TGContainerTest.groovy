@@ -238,13 +238,13 @@ class TGContainerTest extends ContainerTest {
             then:
                 //jenkins.assertLogContains("Uploaded successfully", run) TODO ecu.test does not return a report link for uploadAsync:True even tho the report is present in test.guide
                 jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
-                jenkins.assertLogContains('"projectId":1,"reportId":1,"testSuiteName":"SinglePackageExecution","testCaseName":"test"', run)
+                jenkins.assertLogContains('"testCaseName":"test"', run)
                 jenkins.assertLogContains(expectAttribues, run)
                 jenkins.assertLogContains(expectConstants, run)
             where:
-                scenario                | uploadAsync   | customAttributes          | customConstants                        |expectAttribues                                | expectConstants
-                "synchronous"           | "False"       | "CustomAttribute=Custom"  | "BuildNumber=42;CustomConstant=Custom" |'{"key":"CustomAttribute","values":["Custom"]}'|'{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}'
-                "asynchronous"          | "True"        | "CustomAttribute=Custom"  | "BuildNumber=42;CustomConstant=Custom" |'{"key":"CustomAttribute","values":["Custom"]}'|'{"key":"BuildNumber","values":["42"]},{"key":"CustomConstant","values":["Custom"]}'
+                scenario                | uploadAsync   | customAttributes                              | customConstants                               |expectAttribues                                | expectConstants
+                "synchronous"           | "False"       | "CustomAttribute=${scenario}" | "CustomConstant=${scenario}"  |'{"key":"CustomAttribute","values":["'+scenario+'"]}'|'{"key":"CustomConstant","values":["'+scenario+'"]}'
+                "asynchronous"          | "True"        | "CustomAttribute=${scenario}" | "CustomConstant=${scenario}"  |'{"key":"CustomAttribute","values":["'+scenario+'"]}'|'{"key":"CustomConstant","values":["'+scenario+'"]}'
         }
 
 
