@@ -40,17 +40,18 @@ class LogConfigUtil implements Serializable {
     }
 
     private void logTestConfig() {
-        if (testConfig.tbcPath) {
-            listener.logger.println("-> With TBC=${testConfig.tbcPath}")
+        if (!testConfig.loadConfig) {
+            return
         }
-        if (testConfig.tcfPath) {
-            listener.logger.println("-> With TCF=${testConfig.tcfPath}")
-        }
+
+        listener.logger.println("-> With TBC='${testConfig.tbcPath}'")
+        listener.logger.println("-> With TCF='${testConfig.tcfPath}'")
+
         if (testConfig.constants) {
             listener.logger.println("-> With global constants=[${testConfig.constants.each { it.toString() }}]")
         }
-        if (testConfig.configOption) {
-            listener.logger.println("-> With TestConfig=${testConfig.configOption}")
+        if (testConfig.forceConfigurationReload) {
+            listener.logger.println("-> With ForceConfigurationReload=${testConfig.forceConfigurationReload}")
         }
     }
 

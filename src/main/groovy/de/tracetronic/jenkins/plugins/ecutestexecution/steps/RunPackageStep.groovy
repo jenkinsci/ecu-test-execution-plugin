@@ -159,7 +159,11 @@ class RunPackageStep extends RunTestStep {
          * @return the form validation
          */
         FormValidation doCheckTestCasePath(@QueryParameter String value) {
-            return ValidationUtil.validateParameterizedValue(value, true)
+            FormValidation valid = ValidationUtil.validateParameterizedValue(value, true)
+            if (valid == FormValidation.ok()) {
+                return ValidationUtil.validateFileExtension(value, '.pkg')
+            }
+            return valid
         }
     }
 }

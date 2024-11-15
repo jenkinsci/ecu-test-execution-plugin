@@ -138,14 +138,14 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                 .constants(constants)
                 .action(ConfigurationOrder.ActionEnum.START)
         try {
-            if(executionOrder.configOption == 'loadConfig') {
+            if(executionOrder.loadConfig) {
                 ConfigurationApi configApi = new ConfigurationApi(apiClient)
 
                 Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
                     configuration?.status?.key in [null, ConfigurationStatus.KeyEnum.WAITING, ConfigurationStatus.KeyEnum.RUNNING]
                 }
 
-                if(executionOrder.loadConfig) {
+                if(executionOrder.forceReload) {
                     ConfigurationOrder loadConfigOrder = new ConfigurationOrder().action(ConfigurationOrder.ActionEnum.STOP)
                     configApi.manageConfiguration(loadConfigOrder)
 

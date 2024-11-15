@@ -46,8 +46,19 @@ class RunTestFolderStepIT extends IntegrationTestBase {
     def 'Default config round trip'() {
         given:
             RunTestFolderStep before = new RunTestFolderStep(folder.newFolder().getAbsolutePath())
+        when:
+            RunTestFolderStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+        then:
+            jenkins.assertEqualDataBoundBeans(before, after)
+    }
+
+    def 'Config round trip unload test config'() {
+        given:
+            RunTestFolderStep before = new RunTestFolderStep(folder.newFolder().getAbsolutePath())
+        and:
             TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption('keepConfig')
+            testConfig.setTbcPath('')
+            testConfig.setTcfPath('')
             before.setTestConfig(testConfig)
         when:
             RunTestFolderStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -61,18 +72,18 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             before.setScanMode(RunTestFolderStep.ScanMode.PACKAGES_ONLY)
             before.setRecursiveScan(true)
             before.setFailFast(false)
-
+        and:
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             before.setTestConfig(testConfig)
-
+        and:
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
             before.setPackageConfig(packageConfig)
-
+        and:
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
@@ -82,7 +93,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             recording.setRecordingGroup('recordingGroup')
             analysisConfig.setRecordings(Arrays.asList(recording))
             before.setAnalysisConfig(analysisConfig)
-
+        and:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
             executionConfig.setStopUndefinedTools(false)
@@ -100,9 +111,6 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
             RunTestFolderStep step = new RunTestFolderStep('/TestFolder')
-        then:
-            st.assertRoundTrip(step, "ttRunTestFolder '/TestFolder'")
-        when:
             step.setRecursiveScan(true)
             step.setFailFast(false)
             step.setScanMode(RunTestFolderStep.ScanMode.PROJECTS_ONLY)
@@ -111,11 +119,19 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                 "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
         when:
             TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('')
+            testConfig.setTcfPath('')
+            step.setTestConfig(testConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
+                    "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder', " +
+                    "testConfig: [tbcPath: '', tcfPath: '']")
+        when:
+            testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
-            testConfig.setConfigOption('loadConfig')
             step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
@@ -183,9 +199,6 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             step.setRecursiveScan(true)
             step.setFailFast(false)
             step.setScanMode(RunTestFolderStep.ScanMode.PROJECTS_ONLY)
-            TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption('keepConfig')
-            step.setTestConfig(testConfig)
         then:
             st.assertRoundTrip(step, "ttRunTestFolder failFast: false, recursiveScan: true, " +
                     "scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
@@ -233,15 +246,14 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "recursiveScan: true, scanMode: 'PROJECTS_ONLY', testCasePath: '/TestFolder'")
     }
 
-    def 'Run default pipeline'() {
+    def 'Run pipeline default'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            String folderPath = folder.getRoot().getAbsolutePath().replace('\\', '\\\\')
             job.setDefinition(
-                    new CpsFlowDefinition(
-                            "node { ttRunTestFolder '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}' }",
-                            true))
-
+                    new CpsFlowDefinition("node { ttRunTestFolder '${folderPath}' }", true))
+        and:
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
@@ -251,53 +263,50 @@ class RunTestFolderStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Found 1 project(s)', run)
             // packages will be execute first
             jenkins.assertLogContains("Executing package '${testPackage.getAbsolutePath()}'", run)
+            jenkins.assertLogNotContains("-> With", run)
     }
 
-    def 'Run pipeline with loadConfig as TestConfig'() {
+    def 'Run pipeline with default TestConfig'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttRunTestFolder  recursiveScan: true, " +
-                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'" +
-                            ", testConfig: [forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }",
-                    true))
-
+                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}', " +
+                            "testConfig: [forceConfigurationReload: true, tbcPath: '', tcfPath: ''] }", true))
+        and:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
-
-            TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption('loadConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains('Found 3 package(s)', run)
             jenkins.assertLogContains('Found 3 project(s)', run)
             jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
-            jenkins.assertLogContains("-> With TBC=test.tbc", run)
-            jenkins.assertLogContains("-> With TCF=test.tcf", run)
-            jenkins.assertLogContains("-> With TestConfig=loadConfig", run)
+            jenkins.assertLogContains("-> With TBC=''", run)
+            jenkins.assertLogContains("-> With TCF=''", run)
     }
 
-    def 'Run pipeline with keepConfig as TestConfig'() {
+    def 'Run pipeline with TestConfig setup'() {
         given:
             setupTestFolder()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttRunTestFolder  recursiveScan: true, " +
-                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}'}",
-                    true))
-
+                            "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}', " +
+                            "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                            "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
+        and:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
-
-            TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption('keepConfig')
         expect:
             WorkflowRun run = job.scheduleBuild2(0).get()
             jenkins.assertLogContains('Found 3 package(s)', run)
             jenkins.assertLogContains('Found 3 project(s)', run)
             jenkins.assertLogContains("Executing package '${subPackage.getAbsolutePath()}'", run)
-            jenkins.assertLogContains("-> With TestConfig=keepConfig", run)
+            jenkins.assertLogContains("-> With TBC='test.tbc'", run)
+            jenkins.assertLogContains("-> With TCF='test.tcf'", run)
+            jenkins.assertLogContains("-> With global constants=[[constLabel=constValue]]", run)
+            jenkins.assertLogContains("-> With ForceConfigurationReload=true", run)
     }
 
     def 'Run recursive scan pipeline'() {
@@ -308,7 +317,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                     "node { ttRunTestFolder  recursiveScan: true, " +
                             "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}' }",
                     true))
-
+        and:
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
@@ -328,7 +337,7 @@ class RunTestFolderStepIT extends IntegrationTestBase {
                 "node { ttRunTestFolder  scanMode: 'PROJECTS_ONLY', " +
                         "testCasePath: '${folder.getRoot().getAbsolutePath().replace('\\', '\\\\')}' }",
                 true))
-
+        and:
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()

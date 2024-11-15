@@ -1,16 +1,19 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="${%configSection.title}">
-        <f:radioBlock name="configOption" title="${%configOption.keepConfig}" value="keepConfig" checked="${instance.configOption == null || configOption == 'keepConfig'}" inline="true">
-            <f:description>${%keepConfig.description}</f:description>
-        </f:radioBlock>
-        <f:radioBlock name="configOption" title="${%configOption.loadConfig}" value="loadConfig" checked="${instance.configOption == 'loadConfig'}" inline="true">
+        <f:optionalBlock name="loadConfig" title="${%configOption.loadConfig}"
+                         help="/plugin/ecu-test-execution/help/TestConfig/loadConfig.html" inline="true"
+                         checked="${instance.loadConfig}"
+        >
+            <j:set var="tbcValue" value="${it.loadConfig ? instance.tbcPath : null}"/>
+            <j:set var="tcfValue" value="${it.loadConfig ? instance.tcfPath : null}"/>
+
             <f:description>${%loadConfig.description}</f:description>
             <f:entry title="${%tbcPath.title}" description="${%tbcPath.description}" field="tbcPath">
-                <f:textbox />
+                <f:textbox value="${tbcValue}"/>
             </f:entry>
             <f:entry title="${%tcfPath.title}" description="${%tcfPath.description}" field="tcfPath">
-                <f:textbox />
+                <f:textbox value="${tcfValue}"/>
             </f:entry>
             <f:advanced title="${%constants.title}">
                 <f:entry title="${%constants.title}" description="${%constants.description}" field="constants">
@@ -20,6 +23,6 @@
             <f:entry title="${%forceConfigurationReload.title}" description="${%forceConfigurationReload.description}" field="forceConfigurationReload">
                 <f:checkbox />
             </f:entry>
-        </f:radioBlock>
+        </f:optionalBlock>
     </f:section>
 </j:jelly>

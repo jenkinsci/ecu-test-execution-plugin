@@ -18,21 +18,11 @@ class ExecutionOrder implements Serializable {
 
     public String testCasePath
     public AdditionalSettings additionalSetting
-    public String configOption
     public boolean loadConfig
+    public boolean forceReload
     @Nullable public String tbcPath
     @Nullable public String tcfPath
     @Nullable public List<Constant> constants
-
-    ExecutionOrder(String testCasePath, AdditionalSettings additionalSetting,
-                   String tbcPath, String tcfPath, List<Constant> constants, String configOption) {
-        this.testCasePath = testCasePath
-        this.additionalSetting = additionalSetting
-        this.tbcPath = tbcPath
-        this.tcfPath = tcfPath
-        this.constants = constants
-        this.configOption = configOption
-    }
 
     ExecutionOrder(String testCasePath, AdditionalSettings additionalSetting) {
         this.testCasePath = testCasePath
@@ -45,8 +35,8 @@ class ExecutionOrder implements Serializable {
         this.tbcPath = testConfig.tbcPath
         this.tcfPath = testConfig.tcfPath
         this.constants = testConfig.constants
-        this.configOption = testConfig.configOption
-        this.loadConfig = testConfig.forceConfigurationReload
+        this.loadConfig = testConfig.loadConfig
+        this.forceReload = testConfig.forceConfigurationReload
     }
 
     /**

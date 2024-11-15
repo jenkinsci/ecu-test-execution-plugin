@@ -54,12 +54,12 @@ class ValidationUtil {
         return returnValue
     }
 
-    static validateConfigFile(String configFilePath, String fileExtension) {
+    static validateFileExtension(String configFilePath, String fileExtension) {
         FormValidation returnValue = validateParameterizedValue(configFilePath, false)
         if (returnValue == FormValidation.ok() && !StringUtils.isEmpty(configFilePath)) {
             if (!configFilePath.endsWith(fileExtension)) {
                 returnValue = FormValidation.error(
-                        "${configFilePath} has to be empty or of file type ${fileExtension}.")
+                        "${configFilePath} has to be of file type '${fileExtension}'")
             }
         }
         return returnValue
