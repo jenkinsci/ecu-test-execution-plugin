@@ -17,12 +17,13 @@ import spock.lang.Specification
 class LogConfigUtilTest extends Specification {
     private TaskListener listener
     private PrintStream logger
-    private String expectedKeepConfigPrint
-    private String expectedLoadConfigPrint
     private String expectedTbcPrint
     private String expectedTcfPrint
     private String expectedConstPrint
     private String expectedParamPrint
+    private String expectedEmptyTbcPrint
+    private String expectedEmptyTcfPrint
+    private String expectedForceReload
     private String expectedAnalysisNamePrint
     private String expectedMappingPrint
     private String expectedRecordingPrint
@@ -32,13 +33,15 @@ class LogConfigUtilTest extends Specification {
         logger = Mock()
         listener = Mock(TaskListener)
         listener.getLogger() >> logger
-        expectedKeepConfigPrint = '-> With TestConfig=keepConfig'
-        expectedLoadConfigPrint = '-> With TestConfig=loadConfig'
-        expectedTbcPrint = '-> With TBC=test.tbc'
-        expectedTcfPrint = '-> With TCF=test.tcf'
+        expectedTbcPrint = '-> With TBC=\'test.tbc\''
+        expectedTcfPrint = '-> With TCF=\'test.tcf\''
+        expectedEmptyTbcPrint = '-> With TBC=\'\''
+        expectedEmptyTcfPrint = '-> With TCF=\'\''
+        expectedForceReload = '-> With ForceConfigurationReload=true'
         expectedConstPrint = '-> With global constants=[[constLabel=constValue]]'
         expectedParamPrint = '-> With package parameters=[[paramLabel=paramValue]]'
         expectedAnalysisNamePrint = '-> With analysis=analysisName'
+
         expectedMappingPrint = '-> With mapping=mappingName'
         expectedRecordingPrint = '-> With analysis recordings=' +
                 '[[-> path: recording.csv\n-> recordingGroup: recordingGroup\n-> ' +
@@ -48,56 +51,71 @@ class LogConfigUtilTest extends Specification {
     def 'Log Empty Config'() {
         given:
             TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption("keepConfig")
             LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig)
         when:
             logConfigUtil.log()
-
         then:
-            1* logger.println(expectedKeepConfigPrint)
-            0* logger.println(_)
+            0* logger.println(expectedForceReload)
+            0* logger.println(expectedTbcPrint)
+            0* logger.println(expectedTcfPrint)
     }
 
     def 'Log Test Config'() {
         given:
             TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption("loadConfig")
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
+            testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
-            LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig)
+            TestConfig tcWithLoad = new TestConfig(testConfig)
+        and:
+            LogConfigUtil logConfigUtil = new LogConfigUtil(listener, tcWithLoad)
         when:
             logConfigUtil.log()
-
         then:
-            1* logger.println(expectedLoadConfigPrint)
             1* logger.println(expectedTbcPrint)
             1* logger.println(expectedTcfPrint)
             1* logger.println(expectedConstPrint)
-            0* logger.println(_)
+            1* logger.println(expectedForceReload)
+    }
+
+    def 'Log Test Config empty config path'() {
+        given:
+            TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('')
+            testConfig.setTcfPath('')
+            TestConfig tcWithLoad = new TestConfig(testConfig)
+        and:
+            LogConfigUtil logConfigUtil = new LogConfigUtil(listener, tcWithLoad)
+        when:
+            logConfigUtil.log()
+        then:
+            1* logger.println(expectedEmptyTcfPrint)
+            1* logger.println(expectedEmptyTbcPrint)
+            0* logger.println(expectedConstPrint)
+            0* logger.println(expectedForceReload)
     }
 
     def 'Log Package Config'() {
         given:
             TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption("keepConfig")
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
-
+        and:
             LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig, packageConfig, new AnalysisConfig())
         when:
             logConfigUtil.log()
-
         then:
-            1* logger.println(expectedKeepConfigPrint)
+            0* logger.println(expectedTbcPrint)
+            0* logger.println(expectedTcfPrint)
+            0* logger.println(expectedConstPrint)
+            0* logger.println(expectedForceReload)
             1* logger.println(expectedParamPrint)
-            0* logger.println(_)
     }
 
     def 'Log Analysis Config'() {
         given:
             TestConfig testConfig = new TestConfig()
-            testConfig.setConfigOption("keepConfig")
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
@@ -106,18 +124,15 @@ class LogConfigUtilTest extends Specification {
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
             analysisConfig.setRecordings(Arrays.asList(recording))
-
+        and:
             LogConfigUtil logConfigUtil = new LogConfigUtil(listener, testConfig,
                     new PackageConfig(new ArrayList<PackageParameter>()), analysisConfig)
-
         when:
             logConfigUtil.log()
 
         then:
-            1* logger.println(expectedKeepConfigPrint)
             1* logger.println(expectedAnalysisNamePrint)
             1* logger.println(expectedMappingPrint)
             1* logger.println(expectedRecordingPrint)
-            0* logger.println(_)
     }
 }
