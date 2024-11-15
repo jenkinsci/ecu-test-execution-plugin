@@ -91,12 +91,17 @@ node {
 
 ## TestConfig
 
-| Properties                                   | Default Value | Description                                                                                                                                                                                                                 |
-|----------------------------------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **tbcPath**: String                          | ''            | The relative path of the .tbc file in the Configurations directory to be started for this execution. Use "KEEP" to use the currently loaded test bench configuration. If empty, no test bench configuration will be loaded. |
-| **tcfPath**: String                          | ''            | The relative path of the .tcf file in the Configurations directory to be started for this execution. Use "KEEP" to use the currently loaded test configuration. If empty, no test configuration will be loaded.             |
-| **forceConfigurationReload**: boolean        | false         | If true, always reload the configuration even if the same one is still active. Hint: This flag is only required for ecu.test versions less than 2023.4!                                                                     |
-| **constants**:  List\<[Constant](#constant)> | []            | The configured global constants remain available throughout the entire test execution.                                                                                                                                      |
+| Properties                                   | Default Value | Description                                                                                                                                                |
+|----------------------------------------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **tbcPath**: String                          | null          | The relative path of the .tbc file in the Configurations directory to be started for this execution. If empty, no test bench configuration will be loaded. |
+| **tcfPath**: String                          | null          | The relative path of the .tcf file in the Configurations directory to be started for this execution. If empty, no test configuration will be loaded.       |
+| **forceConfigurationReload**: boolean        | false         | If true, always reload the configuration even if the same one is still active.                                                                             |
+| **constants**:  List\<[Constant](#constant)> | []            | The configured global constants remain available throughout the entire test execution.                                                                     |
+
+### Configuration Change Options
+
+- **Load Configuration**: The TestConfiguration and/or the TestBenchConfiguration files must be explicitly set whenever a new configuration is needed. If both are empty, Test Configuration will be unloaded. Setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
+- **Keep Configuration**: Enable this option by not specifying the testConfig property, for example `ttRunTestPackage '<myPackageName>.pkg'` this option retains the existing configuration for continued use throughout the execution.
 
 ## PublishConfig
 

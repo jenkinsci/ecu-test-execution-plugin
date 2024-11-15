@@ -27,7 +27,7 @@ class ExpandableConfigTest extends Specification {
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('${MAPPING_NAME}')
             analysisConfig.setAnalysisName('${ANALYSIS_NAME}')
-        RecordingAsSetting recording = new RecordingAsSetting('${RECORDING_PATH}')
+            RecordingAsSetting recording = new RecordingAsSetting('${RECORDING_PATH}')
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
@@ -66,11 +66,12 @@ class ExpandableConfigTest extends Specification {
             envVars.put('TCF_PATH', 'test.tcf')
             envVars.put('CONSTANT_LABEL', 'constLabel')
             envVars.put('CONSTANT_VALUE', 'constValue')
-
+        and:
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('${TBC_PATH}')
             testConfig.setTcfPath('${TCF_PATH}')
             testConfig.setConstants(Arrays.asList(new Constant('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
+            testConfig.setForceConfigurationReload(true)
         when:
             TestConfig expTestConfig = testConfig.expand(envVars)
         then:
@@ -78,5 +79,6 @@ class ExpandableConfigTest extends Specification {
             expTestConfig.getTcfPath() == 'test.tcf'
             expTestConfig.getConstants().get(0).getLabel() == 'constLabel'
             expTestConfig.getConstants().get(0).getValue() == 'constValue'
+            expTestConfig.isForceConfigurationReload()
     }
 }

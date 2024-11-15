@@ -51,21 +51,35 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertEqualDataBoundBeans(before, after)
     }
 
+    def 'Config round trip unload test config'() {
+        given:
+            RunPackageStep before = new RunPackageStep('test.prj')
+        and:
+            TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('')
+            testConfig.setTcfPath('')
+            before.setTestConfig(testConfig)
+        when:
+            RunPackageStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+        then:
+            jenkins.assertEqualDataBoundBeans(before, after)
+    }
+
     def 'Config round trip'() {
         given:
             RunPackageStep before = new RunPackageStep('test.pkg')
-
+        and:
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
             testConfig.setConstants(Arrays.asList(new Constant('constLabel', 'constValue')))
             before.setTestConfig(testConfig)
-
+        and:
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('paramLabel', 'paramValue')))
             before.setPackageConfig(packageConfig)
-
+        and:
             AnalysisConfig analysisConfig = new AnalysisConfig()
             analysisConfig.setMapping('mappingName')
             analysisConfig.setAnalysisName('analysisName')
@@ -76,7 +90,7 @@ class RunPackageStepIT extends IntegrationTestBase {
             // recording.setMappingNames(['mapping1', 'mapping2'])
             analysisConfig.setRecordings(Arrays.asList(recording))
             before.setAnalysisConfig(analysisConfig)
-
+        and:
             ExecutionConfig executionConfig = new ExecutionConfig()
             executionConfig.setStopOnError(false)
             executionConfig.setTimeout(60)
@@ -89,15 +103,20 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertEqualDataBoundBeans(before, after)
     }
 
-    def 'Snippet generator'() {
+    def 'Snippet generator with Load Configuration'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
             RunPackageStep step = new RunPackageStep('test.pkg')
-        then:
-            st.assertRoundTrip(step, "ttRunPackage 'test.pkg'")
-        when:
             TestConfig testConfig = new TestConfig()
+            testConfig.setTbcPath('')
+            testConfig.setTcfPath('')
+            step.setTestConfig(testConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [tbcPath: '', tcfPath: '']")
+        when:
+            testConfig = new TestConfig()
             testConfig.setTbcPath('test.tbc')
             testConfig.setTcfPath('test.tcf')
             testConfig.setForceConfigurationReload(true)
@@ -124,7 +143,6 @@ class RunPackageStepIT extends IntegrationTestBase {
             recording.setDeviceName('deviceName')
             recording.setFormatDetails('formatDetails')
             recording.setRecordingGroup('recordingGroup')
-            //recording.setMappingNames(['mapping1', 'mapping2'])
             analysisConfig.setRecordings(Arrays.asList(recording))
             step.setAnalysisConfig(analysisConfig)
         then:
@@ -154,17 +172,100 @@ class RunPackageStepIT extends IntegrationTestBase {
                     "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf']")
     }
 
-    def 'Run pipeline'() {
+    def 'Snippet generator with Keep Configuration'() {
+        given:
+            SnippetizerTester st = new SnippetizerTester(jenkins)
+        when:
+            RunPackageStep step = new RunPackageStep('test.pkg')
+        then:
+            st.assertRoundTrip(step, "ttRunPackage 'test.pkg'")
+        when:
+            PackageConfig packageConfig = new PackageConfig(Arrays.asList(
+                    new PackageParameter('paramLabel', 'paramValue')))
+            step.setPackageConfig(packageConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage packageConfig: [" +
+                    "packageParameters: [[label: 'paramLabel', value: 'paramValue']]], testCasePath: 'test.pkg'")
+        when:
+            AnalysisConfig analysisConfig = new AnalysisConfig()
+            analysisConfig.setMapping('mappingName')
+            analysisConfig.setAnalysisName('analysisName')
+            RecordingAsSetting recording = new RecordingAsSetting('recording.csv')
+            recording.setDeviceName('deviceName')
+            recording.setFormatDetails('formatDetails')
+            recording.setRecordingGroup('recordingGroup')
+            analysisConfig.setRecordings(Arrays.asList(recording))
+            step.setAnalysisConfig(analysisConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage analysisConfig: [" +
+                    "analysisName: 'analysisName', mapping: 'mappingName', " +
+                    "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
+                    "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
+                    "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
+                    "testCasePath: 'test.pkg'")
+        when:
+            ExecutionConfig executionConfig = new ExecutionConfig()
+            executionConfig.setStopOnError(false)
+            executionConfig.setStopUndefinedTools(false)
+            executionConfig.setTimeout(0)
+            executionConfig.setExecutePackageCheck(true)
+            step.setExecutionConfig(executionConfig)
+        then:
+            st.assertRoundTrip(step, "ttRunPackage analysisConfig: [" +
+                    "analysisName: 'analysisName', mapping: 'mappingName', " +
+                    "recordings: [[deviceName: 'deviceName', formatDetails: 'formatDetails', " +
+                    "path: 'recording.csv', recordingGroup: 'recordingGroup']]], " +
+                    "executionConfig: [" +
+                    "executePackageCheck: true, stopOnError: false, stopUndefinedTools: false, timeout: 0], " +
+                    "packageConfig: [packageParameters: [[label: 'paramLabel', value: 'paramValue']]], " +
+                    "testCasePath: 'test.pkg'")
+    }
+
+    def 'Run pipeline default'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage 'test.pkg' }", true))
-
+        and:
             // assume RestApiClient is available
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing package 'test.pkg'", run)
+            jenkins.assertLogNotContains("-> With", run)
+    }
+
+    def 'Run pipeline with default TestConfig'() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [tbcPath: '', tcfPath: ''] }", true))
+        and:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing package 'test.pkg'...", run)
+            jenkins.assertLogContains("-> With TBC=''", run)
+            jenkins.assertLogContains("-> With TCF=''", run)
+    }
+
+    def 'Run pipeline with TestConfig setup'() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [constants: [[label: 'constLabel', value: 'constValue']], " +
+                    "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
+        and:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Executing package 'test.pkg'...", run)
+            jenkins.assertLogContains("-> With TBC='test.tbc'", run)
+            jenkins.assertLogContains("-> With TCF='test.tcf'", run)
+            jenkins.assertLogContains("-> With global constants=[[constLabel=constValue]]", run)
+            jenkins.assertLogContains("-> With ForceConfigurationReload=true", run)
     }
 
     def 'Run pipeline with package check'(){
@@ -187,15 +288,15 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
-
+        and:
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
-
+        and:
             GroovySpy(ExecutionApi, global: true){
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
             }
-
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttRunPackage 'test.pkg' }", true))
         when:
@@ -212,11 +313,11 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
-
+        and:
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy() >> MockApiResponse.getResponseUnauthorized()
-
+        and:
             def manageConfigCalled = 0
             GroovySpy(ConfigurationApi, global: true) {
                 manageConfiguration(*_) >> {
@@ -224,9 +325,10 @@ class RunPackageStepIT extends IntegrationTestBase {
                     restApiClient.apiClient.execute(mockCall, new TypeToken<SimpleMessage>(){}.getType())
                 }
             }
-
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: 'test.tbc'] }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: 'test.pkg', " +
+                    "testConfig: [tbcPath: '', tcfPath: ''] }", true))
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
@@ -243,18 +345,19 @@ class RunPackageStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
-
+        and:
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy()
-
+        and:
             GroovySpy(ExecutionApi, global: true){
                 createExecution(*_) >> {restApiClient.apiClient.execute(mockCall, null)}
                 getCurrentExecution() >> new Execution()
             }
-
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage  testCasePath:'test.pkg', executionConfig:[timeout: 2]}", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath:'test.pkg', " +
+                    "executionConfig:[timeout: 2]}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Executing package 'test.pkg'", run)
@@ -268,7 +371,8 @@ class RunPackageStepIT extends IntegrationTestBase {
             tempDir.deleteOnExit()
             String tempDirString = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: '${tempDirString}/foo/test.pkg' }", true))
+            job.setDefinition(new CpsFlowDefinition("node { ttRunPackage testCasePath: '" +
+                    "${tempDirString}/foo/test.pkg' }", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("ecu.test package at ${tempDirString}/foo/test.pkg does not exist!" +

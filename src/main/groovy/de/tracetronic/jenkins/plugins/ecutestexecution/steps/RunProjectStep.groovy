@@ -121,7 +121,11 @@ class RunProjectStep extends RunTestStep {
          * @return the form validation
          */
         FormValidation doCheckTestCasePath(@QueryParameter String value) {
-            return ValidationUtil.validateParameterizedValue(value, true)
+            FormValidation valid = ValidationUtil.validateParameterizedValue(value, true)
+            if (valid == FormValidation.ok()) {
+                return ValidationUtil.validateFileExtension(value, '.prj')
+            }
+            return valid
         }
     }
 }

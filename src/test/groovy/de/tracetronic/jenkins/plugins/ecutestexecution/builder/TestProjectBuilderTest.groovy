@@ -60,8 +60,8 @@ class TestProjectBuilderTest extends Specification {
     void assertExecutionOrder(ExecutionOrder order) {
         assert order.additionalSetting != null
         assert order.testCasePath == 'testFile'
-        assert order.tbcPath == ''
-        assert order.tcfPath == ''
+        assert order.tbcPath == null
+        assert order.tcfPath == null
         assert order.constants != null
     }
 }

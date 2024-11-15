@@ -66,15 +66,13 @@ class ValidationUtilTest extends Specification {
 
     def 'Validate config files'(String configFilePath, String fileExtension, FormValidation.Kind expectedKind) {
         given:
-            FormValidation validation = ValidationUtil.validateConfigFile(configFilePath, fileExtension)
+            FormValidation validation = ValidationUtil.validateFileExtension(configFilePath, fileExtension)
         expect:
             validation.kind == expectedKind
         where:
             configFilePath | fileExtension | expectedKind
             'test.tcf'     | '.tcf'        | FormValidation.Kind.OK
             'test.tcf'     | '.tbc'        | FormValidation.Kind.ERROR
-            'KEEP'         | ''            | FormValidation.Kind.OK
-            'KEEP'         | '.tcf'        | FormValidation.Kind.OK
             '${CONFIG}'    | ''            | FormValidation.Kind.WARNING
             ''             | ''            | FormValidation.Kind.OK
             null           | null          | FormValidation.Kind.OK
