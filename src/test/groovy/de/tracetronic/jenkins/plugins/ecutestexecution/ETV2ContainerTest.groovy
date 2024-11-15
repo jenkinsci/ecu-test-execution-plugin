@@ -219,7 +219,7 @@ def "Run pipeline with forceReload test configuration"() {
                         httpRequest(
                             ignoreSslErrors: true,
                             responseHandle: 'NONE',
-                            url: "http://\\${ET_API_HOSTNAME}:\\${ET_API_PORT}/api/v2/configuration",
+                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration",
                             wrapAsMultipart: false,
                             customHeaders: [[name: 'Content-Type', value: 'application/json']],
                             httpMode: 'PUT',
