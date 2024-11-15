@@ -16,7 +16,6 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.spock.Testcontainers
-import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval
 
 @Testcontainers
 class ETV2ContainerTest extends ETContainerTest {
@@ -168,7 +167,7 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"\"}, \"tcf\": {\"tcfPath\": \"\"}", run)
     }
 
-    def "Run package execution with test config started."() {
+    def "Run package execution with test config force reload"() {
         given: "a pipeline with predefined testConfig paths"
             String script = """
                 node {
