@@ -101,7 +101,7 @@ node {
 ### Configuration Change Options
 
 - **Load Configuration**: The TestConfiguration and/or the TestBenchConfiguration files must be explicitly set whenever a new configuration is needed. If both are empty, Test Configuration will be unloaded. Setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
-- **Keep Configuration**: Enable this option by not specify the testConfig property for example `ttRunTestPackage '<myPackageName>.pkg'` this option retains the existing configuration for continued use throughout the execution.
+- **Keep Configuration**: Enable this option by not specifying the testConfig property, for example `ttRunTestPackage '<myPackageName>.pkg'` this option retains the existing configuration for continued use throughout the execution.
 
 ## PublishConfig
 
