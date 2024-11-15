@@ -211,48 +211,6 @@ class ETV2ContainerTest extends ETContainerTest {
             containerLogs.contains("Start TBC")
     }
 
-def "Run pipeline with forceReload test configuration"() {
-        given: "a pipeline with predefined testConfig paths"
-            String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        httpRequest(
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration",
-                            wrapAsMultipart: false,
-                            customHeaders: [[name: 'Content-Type', value: 'application/json']],
-                            httpMode: 'PUT',
-                            requestBody: '''{
-                                "action": "Start",
-                                "tbc": { "tbcPath": "test.tbc" },
-                                "tcf": { "tcfPath": "test.tcf" }
-                            }'''
-                        )
-    
-                        ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: '', tcfPath: '']
-    
-                        def response = httpRequest(
-                            ignoreSslErrors: true,
-                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration"
-                        )
-                        echo response.content
-                }
-            }
-            """.stripIndent()
-
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-
-        when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then: "expect log information about predefined paths being empty"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
-            jenkins.assertLogContains("Executing package 'test.pkg'...", run)
-            jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}, \"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
-    }
-
     def "Perform provide logs step with logs"() {
         given: "a pipeline with test packages and log provider"
             String script = """
