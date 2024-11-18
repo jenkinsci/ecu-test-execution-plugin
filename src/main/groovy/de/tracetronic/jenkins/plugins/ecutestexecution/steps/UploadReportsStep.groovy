@@ -66,7 +66,7 @@ class UploadReportsStep extends Step {
 
     String getTestGuideUrl() {
         if (testGuideUrl.endsWith('/')) {
-            testGuideUrl.substring(0, testGuideUrl.length() - 1)
+            return testGuideUrl.substring(0, testGuideUrl.length() - 1)
         }
         return testGuideUrl
     }
