@@ -84,6 +84,7 @@ dependencies {
     testImplementation('org.jenkins-ci.plugins.workflow:workflow-step-api') {artifact{ classifier = 'tests'}}
     testImplementation('org.jenkins-ci.plugins.workflow:workflow-support') {artifact{ classifier = 'tests'}}
     testImplementation 'org.jenkins-ci.plugins:credentials-binding'
+    testImplementation 'org.jenkins-ci.plugins:http_request'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
     testImplementation('org.testcontainers:spock:1.20.3') {
         exclude group: 'org.spockframework', module: 'spock-core'
