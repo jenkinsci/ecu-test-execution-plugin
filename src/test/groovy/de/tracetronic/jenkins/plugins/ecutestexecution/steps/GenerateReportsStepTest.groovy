@@ -20,25 +20,25 @@ class GenerateReportsStepTest extends Specification {
     def launcher
     def channel
     def envVars
-    def listener
     def run
     def apiClient
+    def listener
 
     void setup() {
         stepContext = Mock(StepContext)
         launcher = Mock(Launcher)
         channel = Mock(VirtualChannel)
         envVars = Mock(EnvVars)
-        listener = Mock(TaskListener)
         run = Mock(Run)
         apiClient = Mock(RestApiClient)
+        listener = Mock(TaskListener)
 
         launcher.getChannel() >> channel
         stepContext.get(Launcher.class) >> launcher
         stepContext.get(EnvVars.class) >> envVars
-        stepContext.get(TaskListener.class) >> listener
         stepContext.get(Run.class) >> run
-        listener.getLogger() >> new PrintStream(new ByteArrayOutputStream())
+        stepContext.get(TaskListener.class) >> listener
+
     }
 
     def "Constructor should initialize with default values"() {
@@ -92,17 +92,20 @@ class GenerateReportsStepTest extends Specification {
     @Unroll
     def "Should handle report generation for generator '#generator'"() {
         given:
+            def logger = Mock(PrintStream)
             def step = new GenerateReportsStep(generator)
             step.setReportIds(["1", "2"])
             def execution = new GenerateReportsStep.Execution(step, stepContext)
-            def printStream = Mock(PrintStream)
             GroovyMock(RestApiClientFactory, global: true)
 
         and:
-            listener.getLogger() >> printStream
+            envVars.expand(generator) >> generator
+            envVars.expand("1") >> "1"
+            envVars.expand("2") >> "2"
+            listener.logger >> logger
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
 
-            apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
+            apiClient.generateReport(_, _) >> new GenerationResult("Success", message, "folder")
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
@@ -114,12 +117,42 @@ class GenerateReportsStepTest extends Specification {
             results.size() == 2
             results.every {
                         it.generationResult == "Success" &&
-                        it.generationMessage == "message" &&
+                        it.generationMessage == message &&
                         it.reportOutputDir == "folder"
             }
+            1 * logger.println("Generating ${generator} reports...")
+            1 * logger.println("- Generating ${generator} report format for report id 1...")
+            1 * logger.println("- Generating ${generator} report format for report id 2...")
+            2 * logger.println("  -> Success${messagePrint}")
+            1 * logger.println("${generator} reports generated successfully.")
+
 
         where:
-            generator << ['HTML', 'ATX', 'EXCEL', 'JSON']
+            generator   | message       | messagePrint
+            'HTML'      | "message"     | " (message)"
+            'ATX'       | "message"     | " (message)"
+            'EXCEL'     | "message"     | " (message)"
+            'JSON'      | "message"     | " (message)"
+            'JSON'      | ""            | ""
+    }
+
+    def "Should call api if no report ids are given"() {
+        given:
+            def step = new GenerateReportsStep("HTML")
+            def execution = new GenerateReportsStep.Execution(step, stepContext)
+            GroovyMock(RestApiClientFactory, global: true)
+
+        and:
+            RestApiClientFactory.getRestApiClient(*_) >> apiClient
+            apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
+            channel.call(_) >> { MasterToSlaveCallable callable ->
+                return callable.call()
+            }
+
+        when:
+            execution.run()
+        then:
+            1 * apiClient.getAllReportIds()
     }
 
     def "Descriptor should provide correct function name and display name"() {
