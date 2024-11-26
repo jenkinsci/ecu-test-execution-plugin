@@ -6,6 +6,7 @@ import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Item
 import hudson.security.ACL
@@ -41,7 +42,11 @@ class UploadReportsStepTest extends Specification {
     def job
     def apiClient
     def credentials
-    def printStream
+    static List<AdditionalSetting> additionalSettings = [
+        new AdditionalSetting("setting1", "value1"),
+        new AdditionalSetting("", "empty"),
+        new AdditionalSetting("setting2", "value2")
+    ]
 
     void setup() {
         stepContext = Mock(StepContext)
@@ -75,7 +80,7 @@ class UploadReportsStepTest extends Specification {
             step.reportIds == []
     }
 
-    def "Should trim trailing slash from testGuideUrl"() {
+    def "getTestGuideUrl should trim trailing slash from testGuideUrl"() {
         when:
             def step = new UploadReportsStep("http://localhost:8085/", "auth")
 
@@ -83,34 +88,50 @@ class UploadReportsStepTest extends Specification {
             step.getTestGuideUrl() == "http://localhost:8085"
     }
 
-    def "Should remove empty additional settings"() {
+    def "setAdditionalSettings should '#scenario'"() {
         given:
         def step = new UploadReportsStep("http://localhost:8085", "auth")
-        def settings = [
-            new AdditionalSetting("setting1", "value1"),
-            new AdditionalSetting("", "empty"),
-            new AdditionalSetting("setting2", "value2")
-        ]
-
         when:
-            step.setAdditionalSettings(settings)
+            step.setAdditionalSettings(given)
 
         then:
-            step.additionalSettings.size() == 2
-            step.additionalSettings*.name == ["setting1", "setting2"]
-            step.additionalSettings*.value == ["value1", "value2"]
+            step.additionalSettings.size() == resultNames.size()
+            step.additionalSettings*.name == resultNames
+            step.additionalSettings*.value == resultValues
+        where:
+            scenario                            |given                  | resultNames               | resultValues
+            "remove empty additional settings"  | additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
+            "handle empty list"                 | []                    | []                        | []
+            "handle null"                       | null                  | []                        | []
+
     }
 
-    def "Should remove empty report IDs"() {
+    def "setReportIds should '#scenario'"() {
         given:
             def step = new UploadReportsStep("http://localhost:8085", "credId123")
-            def reportIds = ["1", "", "2", "  ", "3"]
 
         when:
-            step.setReportIds(reportIds)
+            step.setReportIds(given)
 
         then:
-            step.reportIds == ["1", "2", "3"]
+            step.reportIds == result
+        where:
+            scenario            |given                          | result
+            "remove empty ids"  | ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
+            "handle empty list" | []                            | []
+            "handle null"       | null                          | []
+    }
+
+    def "expandSettings should expand settings with environment variables and add them to settingsMap"() {
+        given:
+            def step = new UploadReportsStep("http://localhost:8085", "credId123")
+            def additionalSettingList = [new AdditionalSetting("var","value")]
+            step.setAdditionalSettings(additionalSettingList)
+        when:
+            step.start(stepContext)
+        then:
+            1 * step.expandSettings(additionalSettingList, envVars)
+            1 * step.toSettingsMap(_)
     }
 
     @Unroll
@@ -163,6 +184,33 @@ class UploadReportsStepTest extends Specification {
             "stable"    | "link"  | "Report upload(s) successful"
             "unstable"  | ""      | "Report upload(s) unstable. Please see the logging of the uploads."
     }
+
+        def "Should call getAllReportIds if '#scenario'"() {
+            given:
+                def step = new UploadReportsStep("http://localhost:8085", "credId123")
+                if(given != "skip"){
+                    step.setReportIds(given)
+                }
+                def execution = new UploadReportsStep.Execution(step, stepContext)
+                GroovyMock(RestApiClientFactory, global: true)
+
+            and:
+                RestApiClientFactory.getRestApiClient(*_) >> apiClient
+                apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
+                channel.call(_) >> { MasterToSlaveCallable callable ->
+                    return callable.call()
+                }
+
+            when:
+                execution.run()
+            then:
+                1 * apiClient.getAllReportIds()
+            where:
+                scenario             | given
+                "report ids not set" | "skip"
+                "report ids null"    | null
+                "report empty"       | []
+        }
 
 
 
@@ -263,6 +311,5 @@ class UploadReportsStepTest extends Specification {
             'someId'        | false         | FormValidation.Kind.OK
             'someId'        | true          | FormValidation.Kind.OK
             ''              | true          | FormValidation.Kind.OK
-
     }
 }

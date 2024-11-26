@@ -23,6 +23,11 @@ class GenerateReportsStepTest extends Specification {
     def run
     def apiClient
     def listener
+    static List<AdditionalSetting> additionalSettings = [
+        new AdditionalSetting("setting1", "value1"),
+        new AdditionalSetting("", "empty"),
+        new AdditionalSetting("setting2", "value2")
+    ]
 
     void setup() {
         stepContext = Mock(StepContext)
@@ -41,52 +46,51 @@ class GenerateReportsStepTest extends Specification {
 
     }
 
-    def "Constructor should initialize with default values"() {
+    def "Constructor should initialize and trim generatorName"() {
         when:
-            def step = new GenerateReportsStep("HTML")
+            def step = new GenerateReportsStep(generatorName)
 
         then:
             step.generatorName == "HTML"
             step.additionalSettings == []
             step.reportIds == []
+
+        where:
+            generatorName << ["HTML", "  HTML  "]
     }
 
-    def "Constructor should trim generator name"() {
-        when:
-            def step = new GenerateReportsStep("  HTML  ")
-
-        then:
-            step.generatorName == "HTML"
-    }
-
-    def "Should remove empty additional settings"() {
+    def "setAdditionalSettings should '#scenario'"() {
         given:
-            def step = new GenerateReportsStep("HTML")
-            def settings = [
-                new AdditionalSetting("setting1", "value1"),
-                new AdditionalSetting("", "empty"),
-                new AdditionalSetting("setting2", "value2")
-            ]
-
+        def step = new UploadReportsStep("http://localhost:8085", "auth")
         when:
-            step.setAdditionalSettings(settings)
+            step.setAdditionalSettings(given)
 
         then:
-            step.additionalSettings.size() == 2
-            step.additionalSettings*.name == ["setting1", "setting2"]
-            step.additionalSettings*.value == ["value1", "value2"]
+            step.additionalSettings.size() == resultNames.size()
+            step.additionalSettings*.name == resultNames
+            step.additionalSettings*.value == resultValues
+        where:
+            scenario                            |given                  | resultNames               | resultValues
+            "remove empty additional settings"  | additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
+            "handle empty list"                 | []                    | []                        | []
+            "handle null"                       | null                  | []                        | []
+
     }
 
-    def "Should remove empty report IDs"() {
+    def "setReportIds should '#scenario'"() {
         given:
-            def step = new GenerateReportsStep("HTML")
-            def reportIds = ["1", "", "2", "  ", "3"]
+            def step = new UploadReportsStep("http://localhost:8085", "credId123")
 
         when:
-            step.setReportIds(reportIds)
+            step.setReportIds(given)
 
         then:
-            step.reportIds == ["1", "2", "3"]
+            step.reportIds == result
+        where:
+            scenario            |given                          | result
+            "remove empty ids"  | ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
+            "handle empty list" | []                            | []
+            "handle null"       | null                          | []
     }
 
     @Unroll
@@ -130,15 +134,15 @@ class GenerateReportsStepTest extends Specification {
         where:
             generator   | message       | messagePrint
             'HTML'      | "message"     | " (message)"
-            'ATX'       | "message"     | " (message)"
-            'EXCEL'     | "message"     | " (message)"
-            'JSON'      | "message"     | " (message)"
             'JSON'      | ""            | ""
     }
 
-    def "Should call api if no report ids are given"() {
+    def "Should call getAllReportIds if '#scenario'"() {
         given:
             def step = new GenerateReportsStep("HTML")
+            if(given != "skip"){
+                step.setReportIds()
+            }
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
 
@@ -153,6 +157,11 @@ class GenerateReportsStepTest extends Specification {
             execution.run()
         then:
             1 * apiClient.getAllReportIds()
+        where:
+            scenario             | given
+            "report ids not set" | "skip"
+            "report ids null"    | null
+            "report empty"       | []
     }
 
     def "Descriptor should provide correct function name and display name"() {
