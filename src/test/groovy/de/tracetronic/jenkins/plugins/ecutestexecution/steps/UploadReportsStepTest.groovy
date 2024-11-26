@@ -1,13 +1,17 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Item
 import hudson.security.ACL
 import hudson.util.FormValidation
 import jenkins.model.Jenkins
+import jenkins.security.MasterToSlaveCallable
 import org.junit.Rule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
@@ -49,7 +53,6 @@ class UploadReportsStepTest extends Specification {
         job = Mock(Job)
         apiClient = Mock(RestApiClient)
         credentials = Mock(StandardUsernamePasswordCredentials)
-        printStream = Mock(PrintStream)
 
         launcher.getChannel() >> channel
         stepContext.get(Launcher.class) >> launcher
@@ -57,8 +60,6 @@ class UploadReportsStepTest extends Specification {
         stepContext.get(TaskListener.class) >> listener
         stepContext.get(Run.class) >> run
         run.getParent() >> job
-        listener.getLogger() >> printStream
-
    }
 
     def "Constructor should initialize with default values"() {
@@ -111,6 +112,59 @@ class UploadReportsStepTest extends Specification {
         then:
             step.reportIds == ["1", "2", "3"]
     }
+
+    @Unroll
+    def "Should handle '#scenario' report upload"() {
+        given:
+            def logger = Mock(PrintStream)
+            def step = new UploadReportsStep("http://localhost:8085", "credId123")
+            step.setReportIds(["1"])
+            def execution = new UploadReportsStep.Execution(step, stepContext)
+            GroovyMock(RestApiClientFactory, global: true)
+
+            def mockCredential = Mock(StandardUsernamePasswordCredentials) {
+                getId() >> "credId123"
+            }
+
+            GroovyMock(CredentialsMatchers, global: true)
+            CredentialsMatchers.firstOrNull(_, CredentialsMatchers.withId("credId123")) >> mockCredential
+
+        and:
+            listener.logger >> logger
+
+            envVars.expand("1") >> "1"
+            envVars.expand("http://localhost:8085") >> "http://localhost:8085"
+            listener.logger >> logger
+            RestApiClientFactory.getRestApiClient(*_) >> apiClient
+
+            apiClient.uploadReport(_, _) >> new UploadResult("Success", "message", link)
+            channel.call(_) >> { MasterToSlaveCallable callable ->
+                return callable.call()
+            }
+
+        when:
+            def results = execution.run()
+
+        then:
+            results.size() == 1
+            results.every {
+                        it.uploadResult == "Success" &&
+                        it.uploadMessage == "message" &&
+                        it.reportLink == link
+            }
+            1 * logger.println("Uploading reports to test.guide http://localhost:8085...")
+            1 * logger.println("- Uploading ATX report for report id 1...")
+            1 * logger.println("  -> message")
+            1 * logger.println(resultPrint)
+
+
+        where:
+            scenario    | link    | resultPrint
+            "stable"    | "link"  | "Report upload(s) successful"
+            "unstable"  | ""      | "Report upload(s) unstable. Please see the logging of the uploads."
+    }
+
+
 
     def "Descriptor should provide correct function name and display name"() {
         given:
