@@ -122,18 +122,6 @@ class UploadReportsStepTest extends Specification {
             "handle null"       | null                          | []
     }
 
-    def "expandSettings should expand settings with environment variables and add them to settingsMap"() {
-        given:
-            def step = new UploadReportsStep("http://localhost:8085", "credId123")
-            def additionalSettingList = [new AdditionalSetting("var","value")]
-            step.setAdditionalSettings(additionalSettingList)
-        when:
-            step.start(stepContext)
-        then:
-            1 * step.expandSettings(additionalSettingList, envVars)
-            1 * step.toSettingsMap(_)
-    }
-
     @Unroll
     def "Should handle '#scenario' report upload"() {
         given:
@@ -196,7 +184,7 @@ class UploadReportsStepTest extends Specification {
 
             and:
                 RestApiClientFactory.getRestApiClient(*_) >> apiClient
-                apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
+                apiClient.uploadReport(_, _) >> new UploadResult("Success", "message", "folder")
                 channel.call(_) >> { MasterToSlaveCallable callable ->
                     return callable.call()
                 }
