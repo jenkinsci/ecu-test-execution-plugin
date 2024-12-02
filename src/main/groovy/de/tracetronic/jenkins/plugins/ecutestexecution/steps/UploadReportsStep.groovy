@@ -263,15 +263,11 @@ class UploadReportsStep extends Step {
 
         ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             StandardListBoxModel result = new StandardListBoxModel()
-            if (item == null) {
-                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                    return result.includeCurrentValue(credentialsId)
-                }
-            } else {
-                if (!item.hasPermission(Item.EXTENDED_READ)
-                        && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                    return result.includeCurrentValue(credentialsId)
-                }
+            if (isItemNullAndUserLacksAdminPermission(item)){
+                return result.includeCurrentValue(credentialsId)
+            }
+            if (isItemNotNullAndUserLacksRequiredPermissions(item)) {
+                return result.includeCurrentValue(credentialsId)
             }
             return result
                     .includeEmptyValue()
@@ -280,27 +276,50 @@ class UploadReportsStep extends Step {
         }
 
         FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
-            if (item == null) {
-                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                    return FormValidation.ok()
-                }
-            } else {
-                if (!item.hasPermission(Item.EXTENDED_READ)
-                        && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                    return FormValidation.ok()
-                }
+            if (isItemNullAndUserLacksAdminPermission(item)) {
+                return FormValidation.ok();
             }
+
+            if (isItemNotNullAndUserLacksRequiredPermissions(item)) {
+                return FormValidation.ok();
+            }
+
             if (StringUtils.isBlank(value)) {
-                return FormValidation.ok()
+                return FormValidation.ok();
             }
-            if (value.startsWith('${') && value.endsWith('}')) {
-                return FormValidation.warning('Cannot validate expression based credentials')
+
+            if (isExpressionBasedCredentials(value)) {
+                return FormValidation.warning("Cannot validate expression-based credentials");
             }
-            if (CredentialsProvider.listCredentials(StandardCredentials.class, (Item) item, ACL.SYSTEM,
-                    Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
-                return FormValidation.error('Cannot find currently selected credentials')
+
+            if (areCredentialsNotFound(item, value)) {
+                return FormValidation.error("Cannot find currently selected credentials");
             }
-            return FormValidation.ok()
+
+            return FormValidation.ok();
+        }
+
+        private boolean isItemNullAndUserLacksAdminPermission(Item item) {
+            return item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER);
+        }
+
+        private boolean isItemNotNullAndUserLacksRequiredPermissions(Item item) {
+            return item != null && !item.hasPermission(Item.EXTENDED_READ) &&
+                    !item.hasPermission(CredentialsProvider.USE_ITEM);
+        }
+
+        private boolean isExpressionBasedCredentials(String value) {
+            return value.startsWith('${') && value.endsWith('}');
+        }
+
+        private boolean areCredentialsNotFound(Item item, String value) {
+            return CredentialsProvider.listCredentials(
+                    StandardCredentials.class,
+                    item,
+                    ACL.SYSTEM,
+                    Collections.emptyList(),
+                    CredentialsMatchers.withId(value)
+            ).isEmpty();
         }
     }
 }
