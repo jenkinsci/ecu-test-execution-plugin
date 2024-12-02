@@ -141,7 +141,7 @@ class GenerateReportsStepTest extends Specification {
         given:
             def step = new GenerateReportsStep("HTML")
             if(given != "skip"){
-                step.setReportIds()
+                step.setReportIds(given)
             }
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)

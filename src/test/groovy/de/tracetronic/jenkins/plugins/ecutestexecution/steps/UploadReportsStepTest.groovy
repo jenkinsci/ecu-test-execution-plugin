@@ -181,6 +181,12 @@ class UploadReportsStepTest extends Specification {
                 }
                 def execution = new UploadReportsStep.Execution(step, stepContext)
                 GroovyMock(RestApiClientFactory, global: true)
+                def mockCredential = Mock(StandardUsernamePasswordCredentials) {
+                    getId() >> "credId123"
+                }
+
+                GroovyMock(CredentialsMatchers, global: true)
+                CredentialsMatchers.firstOrNull(_, CredentialsMatchers.withId("credId123")) >> mockCredential
 
             and:
                 RestApiClientFactory.getRestApiClient(*_) >> apiClient
