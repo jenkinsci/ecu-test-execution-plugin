@@ -170,8 +170,8 @@ class UploadReportsStep extends Step {
 
         @CheckForNull
         private StandardUsernamePasswordCredentials getCredentials(Job job) {
-            List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
-                    StandardUsernamePasswordCredentials.class, job, ACL.SYSTEM, Collections.emptyList())
+            List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(
+                    StandardUsernamePasswordCredentials.class, job, ACL.SYSTEM2, Collections.emptyList())
             return CredentialsMatchers.firstOrNull(credentials, CredentialsMatchers.withId(step.credentialsId))
         }
     }
@@ -263,63 +263,55 @@ class UploadReportsStep extends Step {
 
         ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             StandardListBoxModel result = new StandardListBoxModel()
-            if (isItemNullAndUserLacksAdminPermission(item)){
+            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)){
                 return result.includeCurrentValue(credentialsId)
             }
-            if (isItemNotNullAndUserLacksRequiredPermissions(item)) {
+            if (item &&  !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
                 return result.includeCurrentValue(credentialsId)
             }
             return result
                     .includeEmptyValue()
-                    .includeMatchingAs(ACL.SYSTEM, (Item) item, StandardCredentials.class, Collections.emptyList(),
+                    .includeMatchingAs(ACL.SYSTEM2, (Item) item, StandardCredentials.class, Collections.emptyList(),
                             CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class))
         }
 
         FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
-            if (isItemNullAndUserLacksAdminPermission(item)) {
-                return FormValidation.ok();
+            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok()
             }
 
-            if (isItemNotNullAndUserLacksRequiredPermissions(item)) {
-                return FormValidation.ok();
+            if (item && !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return FormValidation.ok()
             }
 
             if (StringUtils.isBlank(value)) {
-                return FormValidation.ok();
+                return FormValidation.ok()
             }
 
             if (isExpressionBasedCredentials(value)) {
-                return FormValidation.warning("Cannot validate expression-based credentials");
+                return FormValidation.warning("Cannot validate expression-based credentials")
             }
 
-            if (areCredentialsNotFound(item, value)) {
-                return FormValidation.error("Cannot find currently selected credentials");
+            if (!credentialsFound(item, value)) {
+                return FormValidation.error("Cannot find currently selected credentials")
             }
 
-            return FormValidation.ok();
+            return FormValidation.ok()
         }
 
-        private boolean isItemNullAndUserLacksAdminPermission(Item item) {
-            return item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER);
+        static boolean isExpressionBasedCredentials(String value) {
+            return value.startsWith('${') && value.endsWith('}')
         }
 
-        private boolean isItemNotNullAndUserLacksRequiredPermissions(Item item) {
-            return item != null && !item.hasPermission(Item.EXTENDED_READ) &&
-                    !item.hasPermission(CredentialsProvider.USE_ITEM);
-        }
-
-        private boolean isExpressionBasedCredentials(String value) {
-            return value.startsWith('${') && value.endsWith('}');
-        }
-
-        private boolean areCredentialsNotFound(Item item, String value) {
-            return CredentialsProvider.listCredentials(
+        static boolean credentialsFound(Item item, String value) {
+            def creds = CredentialsProvider.listCredentialsInItem(
                     StandardCredentials.class,
                     item,
-                    ACL.SYSTEM,
+                    ACL.SYSTEM2,
                     Collections.emptyList(),
                     CredentialsMatchers.withId(value)
-            ).isEmpty();
+            )
+            return !creds.isEmpty()
         }
     }
 }

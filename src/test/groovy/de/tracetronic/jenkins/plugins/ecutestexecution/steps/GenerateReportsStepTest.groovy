@@ -2,7 +2,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import hudson.remoting.VirtualChannel
 import spock.lang.Specification
-import spock.lang.Unroll
 import hudson.EnvVars
 import hudson.Launcher
 import hudson.model.Run
@@ -46,54 +45,48 @@ class GenerateReportsStepTest extends Specification {
 
     }
 
-    def "Constructor should initialize and trim generatorName"() {
+    def "Default constructor"() {
         when:
             def step = new GenerateReportsStep(generatorName)
-
         then:
             step.generatorName == "HTML"
             step.additionalSettings == []
             step.reportIds == []
-
         where:
             generatorName << ["HTML", "  HTML  "]
     }
 
-    def "setAdditionalSettings should '#scenario'"() {
+    def "setAdditionalSettings should handle '#given'"() {
         given:
-        def step = new UploadReportsStep("http://localhost:8085", "auth")
+            def step = new GenerateReportsStep("HTML")
         when:
             step.setAdditionalSettings(given)
-
         then:
             step.additionalSettings.size() == resultNames.size()
             step.additionalSettings*.name == resultNames
             step.additionalSettings*.value == resultValues
         where:
-            scenario                            |given                  | resultNames               | resultValues
-            "remove empty additional settings"  | additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
-            "handle empty list"                 | []                    | []                        | []
-            "handle null"                       | null                  | []                        | []
+            given                 | resultNames               | resultValues
+            additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
+            []                    | []                        | []
+            null                  | []                        | []
 
     }
 
-    def "setReportIds should '#scenario'"() {
+    def "setReportIds should handle '#given'"() {
         given:
-            def step = new UploadReportsStep("http://localhost:8085", "credId123")
-
+            def step = new GenerateReportsStep("HTML")
         when:
             step.setReportIds(given)
-
         then:
             step.reportIds == result
         where:
-            scenario            |given                          | result
-            "remove empty ids"  | ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
-            "handle empty list" | []                            | []
-            "handle null"       | null                          | []
+            given                          | result
+            ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
+            []                            | []
+            null                          | []
     }
 
-    @Unroll
     def "Should handle report generation for generator '#generator'"() {
         given:
             def logger = Mock(PrintStream)
@@ -101,22 +94,18 @@ class GenerateReportsStepTest extends Specification {
             step.setReportIds(["1", "2"])
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
-
         and:
             envVars.expand(generator) >> generator
             envVars.expand("1") >> "1"
             envVars.expand("2") >> "2"
             listener.logger >> logger
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
-
             apiClient.generateReport(_, _) >> new GenerationResult("Success", message, "folder")
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-
         when:
             def results = execution.run()
-
         then:
             results.size() == 2
             results.every {
@@ -129,15 +118,13 @@ class GenerateReportsStepTest extends Specification {
             1 * logger.println("- Generating ${generator} report format for report id 2...")
             2 * logger.println("  -> Success${messagePrint}")
             1 * logger.println("${generator} reports generated successfully.")
-
-
         where:
             generator   | message       | messagePrint
             'HTML'      | "message"     | " (message)"
             'JSON'      | ""            | ""
     }
 
-    def "Should call getAllReportIds if '#scenario'"() {
+    def "Call getAllReportIds if setReportIds with: '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
             if(given != "skip"){
@@ -145,29 +132,27 @@ class GenerateReportsStepTest extends Specification {
             }
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
-
         and:
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
             apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-
         when:
             execution.run()
         then:
-            1 * apiClient.getAllReportIds()
+            calledCount * apiClient.getAllReportIds()
         where:
-            scenario             | given
-            "report ids not set" | "skip"
-            "report ids null"    | null
-            "report empty"       | []
+            given    | calledCount
+            "skip"   | 1
+            null     | 1
+            []       | 1
+            ["1"]    | 0
     }
 
     def "Descriptor should provide correct function name and display name"() {
         given:
             def descriptor = new GenerateReportsStep.DescriptorImpl()
-
         expect:
             descriptor.getFunctionName() == 'ttGenerateReports'
             descriptor.getDisplayName() == '[TT] Generate ecu.test reports'
@@ -176,10 +161,8 @@ class GenerateReportsStepTest extends Specification {
     def "Descriptor should provide valid generator names"() {
         given:
             def descriptor = new GenerateReportsStep.DescriptorImpl()
-
         when:
             def items = descriptor.doFillGeneratorNameItems()
-
         then:
             items.size() == 7
             items*.name as Set == ['ATX', 'EXCEL', 'HTML', 'JSON', 'TRF-SPLIT', 'TXT', 'UNIT'] as Set
