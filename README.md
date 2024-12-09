@@ -145,6 +145,7 @@ create an [issue](#contribution).
 
 | Version |    latest - 3.5    |     3.4 - 3.1      |        3.0         |
 |---------|:------------------:|:------------------:|:------------------:|
+| 2024.4  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.3  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.2  | :heavy_check_mark: |        :x:         |        :x:         |
 | 2024.1  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
@@ -162,6 +163,7 @@ create an [issue](#contribution).
 
 | Version | latest - 3.6       |     3.5 - 3.0      |
 |---------|--------------------|:------------------:|
+| 1.180.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.147.0 | :x:                | :heavy_check_mark: |
 | 1.142.0 | :x:                | :heavy_check_mark: |
