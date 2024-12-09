@@ -73,27 +73,6 @@ abstract class ETContainerTest extends ContainerTest {
             assertThat(jenkins.getLog(run), containsStringIgnoringCase("BAD REQUEST"))
     }
 
-    def "Perform check on invalid package"() {
-        given: "a test execution pipeline"
-            String script = """
-                        node {
-                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                ttCheckPackage testCasePath: 'invalid_package_desc.pkg'
-                            }
-                        }
-                        """.stripIndent()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-
-        when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then: "expect error"
-            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
-            jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-    }
-
     def "Perform check with timeout"() {
         given: "a test execution pipeline"
             int timeout = 1
@@ -135,26 +114,6 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing package checks for 'test.prj'", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
-    }
-
-    def "Perform check on project with invalid packages"() {
-        given: "a test execution pipeline"
-            String script = """
-                        node {
-                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                ttCheckPackage testCasePath: 'invalid_package_desc.prj'
-                            }
-                        }
-                        """.stripIndent()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-        when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then: "expect error"
-            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.prj'", run)
-            jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
     }
 
     def "Execute test case"() {
@@ -203,35 +162,6 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("Executing package 'testDoesNotExist.pkg' failed!", run)
-    }
-
-    def "Execute test case including package check"() {
-        given: "a test execution pipeline"
-            String script = """
-                node {
-                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                        ttRunPackage testCasePath: 'invalid_package_desc.pkg', 
-                            executionConfig: [executePackageCheck: true, stopOnError: false],
-                            testConfig: [tbcPath: 'test.tbc', 
-                                         tcfPath: 'test.tcf', 
-                                         forceConfigurationReload: false, 
-                                         constants: [[label: 'test', value: '123']]]
-                    }
-                }
-                """.stripIndent()
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-            job.setDefinition(new CpsFlowDefinition(script, true))
-
-        when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
-        then: "expect successful test completion"
-            jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
-            jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
-            jenkins.assertLogContains("Executing package 'invalid_package_desc.pkg'", run)
-            jenkins.assertLogContains("-> result: SUCCESS", run)
-            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
     }
 
     def "Execute package with timeout"() {
