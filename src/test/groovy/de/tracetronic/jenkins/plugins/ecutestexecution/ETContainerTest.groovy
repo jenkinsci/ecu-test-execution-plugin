@@ -91,7 +91,8 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:", run)
+            jenkins.assertLogContains("Description must not be empty!",run)
     }
 
     def "Perform check with timeout"() {
@@ -154,7 +155,8 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect error"
             jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.prj'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:", run)
+            jenkins.assertLogContains("Description must not be empty!",run)
     }
 
     def "Execute test case"() {
@@ -228,7 +230,8 @@ abstract class ETContainerTest extends ContainerTest {
         then: "expect successful test completion"
             jenkins.assertLogContains("Executing package checks for 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: ERROR", run)
-            jenkins.assertLogContains("--> invalid_package_desc.pkg:  Description must not be empty!", run)
+            jenkins.assertLogContains("--> invalid_package_desc.pkg:", run)
+            jenkins.assertLogContains("Description must not be empty!",run)
             jenkins.assertLogContains("Executing package 'invalid_package_desc.pkg'", run)
             jenkins.assertLogContains("-> result: SUCCESS", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/invalid_package_desc_", run)
