@@ -38,6 +38,23 @@ class TestConfigTest extends Specification {
             createdTestConfig.constants[0].value == "value"
     }
 
+    def "TestConfig loadConfig branches"() {
+        given:
+        def originalConfig = new TestConfig()
+        originalConfig.tcfPath = tcfPath
+        originalConfig.tbcPath = tbcPath
+        when:
+        def createdTestConfig = new TestConfig(originalConfig)
+        then:
+        createdTestConfig.loadConfig == expectedLoadConfig
+        where:
+        tcfPath     | tbcPath     || expectedLoadConfig
+        "test.tcf"  | null        || true
+        null        | "test.tbc"  || true
+        "test.tcf"  | "test.tbc"  || true
+        null        | null        || false
+    }
+
     def "TestConfig set loadConfig true"() {
         given:
             def originalConfig = new TestConfig()
