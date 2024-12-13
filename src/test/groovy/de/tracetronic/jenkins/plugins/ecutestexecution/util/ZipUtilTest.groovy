@@ -176,4 +176,61 @@ class ZipUtilTest extends Specification {
                 entriesInNewZip.contains("test3.txt")
                 entriesInNewZip.contains("test4.xml")
         }
+
+    def "should skip directories when checking for file types"() {
+        given:
+        def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
+        new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
+            zip.putNextEntry(new ZipEntry("directory/")) // Add a directory
+            zip.putNextEntry(new ZipEntry("directory/test.txt")) // Add a file
+        }
+
+        expect:
+        !ZipUtil.containsFileOfType(zipWithDir, ".xml") // No .xml file
+    }
+
+    def "should not match files with different extensions"() {
+        given:
+        def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
+        new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
+            zip.putNextEntry(new ZipEntry("test.json")) // Add a non-matching file
+        }
+
+        expect:
+        !ZipUtil.containsFileOfType(zipWithNonMatchingFile, ".txt") // Looking for .txt
+    }
+
+    def "should skip directories during extraction"() {
+        given:
+        def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
+        new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
+            zip.putNextEntry(new ZipEntry("directory/")) // Add a directory
+        }
+
+        when:
+        def extractedFiles = ZipUtil.extractFilesByExtension(zipWithDir, [".txt"], outputDir.absolutePath)
+
+        then:
+        extractedFiles.isEmpty()
+        !new File(outputDir, "directory").exists() // Directory is not extracted
+    }
+
+    def "should not extract files with unmatched extensions"() {
+        given:
+        def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
+        new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
+            zip.putNextEntry(new ZipEntry("test.json")) // Add a non-matching file
+        }
+
+        when:
+        def extractedFiles = ZipUtil.extractFilesByExtension(zipWithNonMatchingFile, [".txt"], outputDir.absolutePath)
+
+        then:
+        extractedFiles.isEmpty()
+        !new File(outputDir, "test.json").exists() // File is not extracted
+    }
+
+
+
+
 }
