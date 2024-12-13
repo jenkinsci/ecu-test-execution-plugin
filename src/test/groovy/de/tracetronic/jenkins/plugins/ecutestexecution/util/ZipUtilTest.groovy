@@ -181,30 +181,30 @@ class ZipUtilTest extends Specification {
         given:
         def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
         new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
-            zip.putNextEntry(new ZipEntry("directory/")) // Add a directory
-            zip.putNextEntry(new ZipEntry("directory/test.txt")) // Add a file
+            zip.putNextEntry(new ZipEntry("directory/"))
+            zip.putNextEntry(new ZipEntry("directory/test.txt"))
         }
 
         expect:
-        !ZipUtil.containsFileOfType(zipWithDir, ".xml") // No .xml file
+        !ZipUtil.containsFileOfType(zipWithDir, ".xml")
     }
 
     def "should not match files with different extensions"() {
         given:
         def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
         new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
-            zip.putNextEntry(new ZipEntry("test.json")) // Add a non-matching file
+            zip.putNextEntry(new ZipEntry("test.json"))
         }
 
         expect:
-        !ZipUtil.containsFileOfType(zipWithNonMatchingFile, ".txt") // Looking for .txt
+        !ZipUtil.containsFileOfType(zipWithNonMatchingFile, ".txt")
     }
 
     def "should skip directories during extraction"() {
         given:
         def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
         new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
-            zip.putNextEntry(new ZipEntry("directory/")) // Add a directory
+            zip.putNextEntry(new ZipEntry("directory/"))
         }
 
         when:
@@ -212,14 +212,14 @@ class ZipUtilTest extends Specification {
 
         then:
         extractedFiles.isEmpty()
-        !new File(outputDir, "directory").exists() // Directory is not extracted
+        !new File(outputDir, "directory").exists()
     }
 
     def "should not extract files with unmatched extensions"() {
         given:
         def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
         new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
-            zip.putNextEntry(new ZipEntry("test.json")) // Add a non-matching file
+            zip.putNextEntry(new ZipEntry("test.json"))
         }
 
         when:
@@ -227,7 +227,7 @@ class ZipUtilTest extends Specification {
 
         then:
         extractedFiles.isEmpty()
-        !new File(outputDir, "test.json").exists() // File is not extracted
+        !new File(outputDir, "test.json").exists()
     }
 
 
