@@ -235,8 +235,7 @@ class StartToolStep extends Step {
         private void checkLicense(String toolName) {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.exeFileOnNode.absolutePath)
-            args.add("--startupAutomated=True")
-            args.add("-q")
+            args.add("--license")
             Process process = new ProcessBuilder().command(args.toCommandArray()).start()
 
             Callable<Integer> call = new Callable<Integer>() {
