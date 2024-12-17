@@ -267,4 +267,22 @@ class UploadReportsStepTest extends Specification {
             'someId'        | true          | FormValidation.Kind.OK
             ''              | true          | FormValidation.Kind.OK
     }
+
+    def "should correctly handle different credential strings based on the format"() {
+        given:
+            def value = inputValue
+
+        when:
+            def result = UploadReportsStep.DescriptorImpl.isExpressionBasedCredentials(value)
+
+        then:
+            result == expectedResult
+
+        where:
+            inputValue            | expectedResult
+            "\${expression}"      | true
+            "invalidExpression"   | false
+            "\${expression"       | false
+            "expression}"         | false
+    }
 }
