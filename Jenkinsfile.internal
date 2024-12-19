@@ -47,7 +47,7 @@ pipeline {
         string(name: 'CONTAINER_TEST_DATA_BRANCH', defaultValue: 'main', description: 'The specified branch name to use for testing.')
         string(name: 'ET_VERSION', defaultValue: '2023.4.0', description: 'The specified ecu.test version to use for testing.')
         string(name: 'ET_V1_VERSION', defaultValue: '2023.3.0', description: 'The specified ecu.test v1 version to use for testing.')
-        string(name: 'ET_V2_VERSION', defaultValue: '2024.3.0_RC', description: 'The specified ecu.test v2 version to use for testing.')
+        string(name: 'ET_V2_VERSION', defaultValue: '2024.4.0', description: 'The specified ecu.test v2 version to use for testing.')
         string(name: 'TG_VERSION', defaultValue: '1.180.0', description: 'The specified test.guide version to use for testing.')
     }
 
