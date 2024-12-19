@@ -34,8 +34,8 @@ import java.util.concurrent.TimeoutException
 
 class RestApiClientV1 implements RestApiClient {
 
-    private ApiClient apiClient
-    private boolean timeoutExceeded = false
+    public ApiClient apiClient
+    public boolean timeoutExceeded = false
 
     RestApiClientV1(String hostName, String port) {
         apiClient = Configuration.getDefaultApiClient()
