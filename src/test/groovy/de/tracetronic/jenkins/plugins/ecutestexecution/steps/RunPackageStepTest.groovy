@@ -15,6 +15,28 @@ import org.jenkinsci.plugins.workflow.steps.StepContext
 import spock.lang.Specification
 
 class RunPackageStepTest extends Specification {
+    def envVars
+    def launcher
+    def channel
+    def taskListener
+    def logger
+    def context
+
+    void setup() {
+        envVars = Mock(EnvVars)
+        launcher = Mock(Launcher)
+        channel = Mock(Channel)
+        taskListener = Mock(TaskListener)
+        logger = Mock(PrintStream)
+        context = Mock(StepContext) {
+            get(EnvVars) >> envVars
+            get(Launcher) >> launcher
+            get(TaskListener) >> taskListener
+        }
+
+        launcher.getChannel() >> channel
+        taskListener.getLogger() >> logger
+    }
 
     def "removeEmptyParameters filters out invalid package parameters"() {
         given:
@@ -85,24 +107,8 @@ class RunPackageStepTest extends Specification {
 
     def "test checkProjectPath with valid and invalid project paths"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
-            taskListener.getLogger() >> logger
-
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> isAbsolute
-
             GroovyMock(FilePath, global: true)
             def projectPath = GroovyMock(FilePath)
             new FilePath(channel, projectFile) >> projectPath
@@ -125,24 +131,8 @@ class RunPackageStepTest extends Specification {
 
     def "test checkProjectPath throws AbortException for non-existent project path"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
-            taskListener.getLogger() >> logger
-
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> true
-
             GroovyMock(FilePath, global: true)
             def projectPath = GroovyMock(FilePath)
             new FilePath(channel, projectFile) >> projectPath

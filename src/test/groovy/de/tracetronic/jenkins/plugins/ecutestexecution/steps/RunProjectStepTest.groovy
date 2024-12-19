@@ -13,6 +13,28 @@ import spock.lang.Specification
 
 class RunProjectStepTest extends Specification {
 
+    def envVars
+    def launcher
+    def channel
+    def taskListener
+    def logger
+    def context
+
+    void setup() {
+        envVars = Mock(EnvVars)
+        launcher = Mock(Launcher)
+        channel = Mock(Channel)
+        taskListener = Mock(TaskListener)
+        logger = Mock(PrintStream)
+        context = Mock(StepContext) {
+            get(EnvVars) >> envVars
+            get(Launcher) >> launcher
+            get(TaskListener) >> taskListener
+        }
+
+        launcher.getChannel() >> channel
+        taskListener.getLogger() >> logger
+    }
     def "doCheckTestCasePath should validate paths correctly with specified error message"() {
         given:
             def descriptor = new RunProjectStep.DescriptorImpl()
@@ -34,21 +56,6 @@ class RunProjectStepTest extends Specification {
 
     def "test checkProjectPath with valid and invalid project paths"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
-            taskListener.getLogger() >> logger
-
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> isAbsolute
 
@@ -68,27 +75,13 @@ class RunProjectStepTest extends Specification {
             noExceptionThrown()
 
         where:
-        projectFile                      | isAbsolute | pathExists
-        "/foo/bar/test.prj"            | true       | true
+        projectFile         | isAbsolute | pathExists
+        "/foo/bar/test.prj" | true       | true
     }
 
     def "test checkProjectPath throws AbortException for non-existent project path"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
-            taskListener.getLogger() >> logger
-
+            def projectFile = "/foo/bar/test.prj"
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> true
 
@@ -107,10 +100,6 @@ class RunProjectStepTest extends Specification {
         then:
             def e = thrown(AbortException)
             e.message == "ecu.test project at ${projectFile} does not exist! Please ensure that the path is correctly set and it refers to the desired directory."
-
-        where:
-        projectFile                      | _
-        "/foo/bar/test.prj"         | _
     }
 
 

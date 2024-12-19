@@ -47,23 +47,17 @@ class CheckPackageResultTest extends Specification {
 
     def "toString method returns correct string representation when issues are empty"() {
         given:
-            def checkResult = new CheckPackageResult("path/to/test", [])
+            def checkResult = new CheckPackageResult("path/to/test", given)
 
         when:
             def str = checkResult.toString()
 
         then:
-            str == "-> result: SUCCESS"
-    }
+            str == expected
 
-    def "toString method returns correct string representation when issues are null"() {
-        given:
-            def checkResult = new CheckPackageResult("path/to/test", null)
-
-        when:
-            def str = checkResult.toString()
-
-        then:
-            str == "-> result: ERROR"
+        where:
+            given   | expected
+            []      | "-> result: SUCCESS"
+            null    | "-> result: ERROR"
     }
 }
