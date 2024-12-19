@@ -17,6 +17,28 @@ import hudson.Launcher
 import hudson.EnvVars
 import org.jenkinsci.plugins.workflow.steps.StepContext
 class RunTestFolderStepTest extends Specification {
+    def envVars
+    def launcher
+    def channel
+    def taskListener
+    def logger
+    def context
+
+    void setup() {
+        envVars = Mock(EnvVars)
+        launcher = Mock(Launcher)
+        channel = Mock(Channel)
+        taskListener = Mock(TaskListener)
+        logger = Mock(PrintStream)
+        context = Mock(StepContext) {
+            get(EnvVars) >> envVars
+            get(Launcher) >> launcher
+            get(TaskListener) >> taskListener
+        }
+
+        launcher.getChannel() >> channel
+        taskListener.getLogger() >> logger
+    }
 
     def "removeEmptyParameters filters out invalid package parameters"() {
         given:
@@ -66,22 +88,7 @@ class RunTestFolderStepTest extends Specification {
 
     def "test run method with different failFast and result for pkg"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
             envVars.expand(_) >> "C:\\Users\\Documents\\test\\folder"
-            taskListener.getLogger() >> logger
-
             def step = new RunTestFolderStep("C:\\Users\\Documents\\test\\folder")
             step.failFast = failFast
 
@@ -132,22 +139,7 @@ class RunTestFolderStepTest extends Specification {
 
     def "test run method with different failFast and result for prj"() {
         given:
-            def envVars = Mock(EnvVars)
-            def launcher = Mock(Launcher)
-            def channel = Mock(Channel)
-            def taskListener = Mock(TaskListener)
-            def logger = Mock(PrintStream)
-
-            def context = Mock(StepContext) {
-                get(EnvVars) >> envVars
-                get(Launcher) >> launcher
-                get(TaskListener) >> taskListener
-            }
-
-            launcher.getChannel() >> channel
             envVars.expand(_) >> "C:\\Users\\Documents\\test\\folder"
-            taskListener.getLogger() >> logger
-
             def step = new RunTestFolderStep("C:\\Users\\Documents\\test\\folder")
             step.failFast = failFast
 
