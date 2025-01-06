@@ -5,6 +5,15 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckReport
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGeneration
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationResult
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
@@ -87,5 +96,37 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Generating HTML reports...', run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
+    }
+
+    def 'Run pipeline: v2 without given ids'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
+            def reportInfo = new ReportInfo()
+            reportInfo.setTestReportId("1")
+            def currentReportGeneration = new ReportGeneration()
+            def status = new ReportGenerationStatus()
+            def result = new ReportGenerationResult()
+            status.setKey(ReportGenerationStatus.KeyEnum.FINISHED)
+            status.setMessage("Message")
+            result.setOutputDir("/")
+            currentReportGeneration.setStatus(status)
+            currentReportGeneration.setResult(result)
+
+            GroovySpy(ReportApi, global: true){
+                createReportGeneration(*_) >> new SimpleMessage()
+                getAllReports(*_) >> [reportInfo]
+                getCurrentReportGeneration(_) >>> [null , currentReportGeneration]
+            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Generating HTML reports...', run)
+            jenkins.assertLogContains('- Generating HTML report format for report id 1...', run)
+            jenkins.assertLogContains('-> FINISHED (Message)', run)
+            jenkins.assertLogContains('HTML reports generated successfully', run)
     }
 }

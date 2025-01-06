@@ -8,6 +8,10 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.gson.reflect.TypeToken
 import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
 import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
@@ -113,6 +117,40 @@ class CheckPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains("Execution has exceeded the configured timeout of 2 seconds", run)
     }
+
+
+        def 'Run pipeline: v2 with finding'() {
+            given:
+                GroovyMock(RestApiClientFactory, global: true)
+                def restApiClient = new RestApiClientV2('', '')
+                RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+                def acceptedCheckExecutionOrder = Mock(AcceptedCheckExecutionOrder)
+                def finishedStatus = new CheckExecutionStatus()
+                finishedStatus.setStatus("FINISHED")
+                def checkReport = new CheckReport()
+                def checkFinding = new CheckFinding()
+                checkFinding.setFileName("test.pkg")
+                checkFinding.setMessage("Description must not be empty!")
+
+            and:
+                checkReport.setIssues([checkFinding])
+                acceptedCheckExecutionOrder.getCheckExecutionId() >> 1
+                GroovySpy(ChecksApi, global: true) {
+                    createCheckExecutionOrder(*_) >> acceptedCheckExecutionOrder
+                    getCheckExecutionStatus(_) >>>  [null, finishedStatus ]
+                    getCheckResult(_) >> checkReport
+                }
+
+                WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+                job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
+            when:
+                WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS , job.scheduleBuild2(0).get())
+            then:
+                jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
+                jenkins.assertLogContains("-> result: ERROR", run)
+                jenkins.assertLogContains("--> test.pkg: Description must not be empty!", run)
+        }
+
 
 
 }
