@@ -406,7 +406,7 @@ class RunPackageStepIT extends IntegrationTestBase {
 
                 GroovySpy(ExecutionApi, global: true) {
                     createExecution(_) >> new SimpleMessage()
-                    getCurrentExecution() >> [null, currentExecution]
+                    getCurrentExecution() >>> [null, currentExecution]
                 }
             and:
                 def modelConfiguration = new ModelConfiguration()
