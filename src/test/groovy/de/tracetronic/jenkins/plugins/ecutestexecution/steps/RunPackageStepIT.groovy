@@ -406,7 +406,7 @@ class RunPackageStepIT extends IntegrationTestBase {
 
                 GroovySpy(ExecutionApi, global: true) {
                     createExecution(_) >> new SimpleMessage()
-                    getCurrentExecution() >> currentExecution
+                    getCurrentExecution() >> [null, currentExecution]
                 }
             and:
                 def modelConfiguration = new ModelConfiguration()
@@ -415,7 +415,7 @@ class RunPackageStepIT extends IntegrationTestBase {
                 modelConfiguration.setStatus(configStatus)
                 GroovySpy(ConfigurationApi, global: true) {
                     manageConfiguration(_) >> new SimpleMessage()
-                    getLastConfigurationOrder() >> modelConfiguration
+                    getLastConfigurationOrder() >>>  [null, modelConfiguration]
                 }
             and:
                 WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
