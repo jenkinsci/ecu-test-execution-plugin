@@ -124,6 +124,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
                 GroovyMock(RestApiClientFactory, global: true)
                 def restApiClient = new RestApiClientV2('', '')
                 RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            and:
                 def acceptedCheckExecutionOrder = Mock(AcceptedCheckExecutionOrder)
                 def finishedStatus = new CheckExecutionStatus()
                 finishedStatus.setStatus("FINISHED")
@@ -131,8 +132,6 @@ class CheckPackageStepIT extends IntegrationTestBase {
                 def checkFinding = new CheckFinding()
                 checkFinding.setFileName("test.pkg")
                 checkFinding.setMessage("Description must not be empty!")
-
-            and:
                 checkReport.setIssues([checkFinding])
                 acceptedCheckExecutionOrder.getCheckExecutionId() >> 1
                 GroovySpy(ChecksApi, global: true) {
@@ -140,6 +139,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
                     getCheckExecutionStatus(_) >>>  [null, finishedStatus ]
                     getCheckResult(_) >> checkReport
                 }
+            and:
 
                 WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
                 job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
