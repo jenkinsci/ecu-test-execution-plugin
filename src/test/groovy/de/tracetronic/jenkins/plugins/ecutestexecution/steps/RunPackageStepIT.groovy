@@ -5,7 +5,12 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.model.v2.ConfigurationStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.Execution
+import de.tracetronic.cxs.generated.et.client.model.v2.ExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.ExecutionStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.ModelConfiguration
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.google.gson.reflect.TypeToken
@@ -378,4 +383,53 @@ class RunPackageStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("ecu.test package at ${tempDirString}/foo/test.pkg does not exist!" +
                     " Please ensure that the path is correctly set and it refers to the desired directory.", run)
     }
+
+
+    def 'Run pipeline: v2 full config run'() {
+            given:
+                GroovyMock(RestApiClientFactory, global: true)
+                def restApiClient =  new RestApiClientV2('','')
+                RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            and:
+                def currentExecution = new Execution()
+                def status = new ExecutionStatus()
+                status.setKey(ExecutionStatus.KeyEnum.FINISHED)
+                def result = new ReportInfo()
+                result.setResult("result")
+                result.setTestReportId("1")
+                result.setReportDir("/")
+                currentExecution.setStatus(status)
+                currentExecution.setResult(result)
+
+                def order = new ExecutionOrder()
+                currentExecution.setOrder(order)
+
+                GroovySpy(ExecutionApi, global: true) {
+                    createExecution(_) >> new SimpleMessage()
+                    getCurrentExecution() >> currentExecution
+                }
+            and:
+                def modelConfiguration = new ModelConfiguration()
+                def configStatus = new ConfigurationStatus()
+                configStatus.setKey(ConfigurationStatus.KeyEnum.FINISHED)
+                modelConfiguration.setStatus(configStatus)
+                GroovySpy(ConfigurationApi, global: true) {
+                    manageConfiguration(_) >> new SimpleMessage()
+                    getLastConfigurationOrder() >> modelConfiguration
+                }
+            and:
+                WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+                job.setDefinition(new CpsFlowDefinition("node { ttRunPackage packageConfig: ["+
+                                                            "packageParameters: [[label: 'paramLabel', value: 'paramValue']]], testCasePath: 'test.pkg',"+
+                                                            "testConfig: [constants: [[label: 'constLabel', value: 'constValue']],"+
+                                                            "forceConfigurationReload: true, tbcPath: 'test.tbc', tcfPath: 'test.tcf'] }", true))
+            when:
+                WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            then:
+                jenkins.assertLogContains("Executing package 'test.pkg'", run)
+                jenkins.assertLogContains("Package executed successfully.", run)
+                jenkins.assertLogContains("-> reportId: 1",run)
+                jenkins.assertLogContains("-> result: result",run)
+                jenkins.assertLogContains("-> reportDir: /",run)
+        }
 }
