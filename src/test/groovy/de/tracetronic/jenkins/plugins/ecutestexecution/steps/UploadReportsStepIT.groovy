@@ -126,6 +126,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+        and:
             def reportInfo = new ReportInfo()
             reportInfo.setTestReportId("1")
             def currentUpload = new TGUpload()
@@ -142,6 +143,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
                 createUpload(*_) >> new SimpleMessage()
                 getCurrentUpload(_) >>> [null, currentUpload]
             }
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttUploadReports credentialsId: 'authKey', " +

@@ -103,7 +103,7 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
-
+        and:
             def reportInfo = new ReportInfo()
             reportInfo.setTestReportId("1")
             def currentReportGeneration = new ReportGeneration()
@@ -114,12 +114,12 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             result.setOutputDir("/")
             currentReportGeneration.setStatus(status)
             currentReportGeneration.setResult(result)
-
             GroovySpy(ReportApi, global: true){
                 createReportGeneration(*_) >> new SimpleMessage()
                 getAllReports(*_) >> [reportInfo]
                 getCurrentReportGeneration(_) >>> [null , currentReportGeneration]
             }
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
         expect:
