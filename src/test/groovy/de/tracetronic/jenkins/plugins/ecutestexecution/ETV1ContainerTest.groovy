@@ -81,7 +81,7 @@ class ETV1ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Downloading ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
     }
 
-        def "Perform provide generated reports step unsupported"() {
+        def "ttProvideGeneratedReports: Test unsupported step"() {
             given: "a pipeline with test package and report provider"
                 String script = """
                     node {
