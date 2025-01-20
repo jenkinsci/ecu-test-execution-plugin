@@ -168,6 +168,7 @@ class RunTestFolderStep extends RunTestStep {
                     TestResult result = testProject.runTest()
                     testResultList.add(result)
                     if (result.getTestResult() == 'FAILED' && this.step.failFast) {
+                        failFastTriggered = true
                         return
                     }
                 }
