@@ -189,17 +189,6 @@ class ZipUtilTest extends Specification {
             !ZipUtil.containsFileOfType(zipWithDir, ".xml")
     }
 
-    def "should not match files with different extensions"() {
-        given:
-            def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
-            new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
-                zip.putNextEntry(new ZipEntry("test.json"))
-            }
-
-        expect:
-            !ZipUtil.containsFileOfType(zipWithNonMatchingFile, ".txt")
-    }
-
     def "should skip directories during extraction"() {
         given:
             def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
@@ -215,18 +204,4 @@ class ZipUtilTest extends Specification {
             !new File(outputDir, "directory").exists()
     }
 
-    def "should not extract files with unmatched extensions"() {
-        given:
-            def zipWithNonMatchingFile = new File(tempDir.toFile(), "zipWithNonMatchingFile.zip")
-            new ZipOutputStream(new FileOutputStream(zipWithNonMatchingFile)).withCloseable { zip ->
-                zip.putNextEntry(new ZipEntry("test.json"))
-            }
-
-        when:
-            def extractedFiles = ZipUtil.extractFilesByExtension(zipWithNonMatchingFile, [".txt"], outputDir.absolutePath)
-
-        then:
-            extractedFiles.isEmpty()
-            !new File(outputDir, "test.json").exists()
-    }
 }

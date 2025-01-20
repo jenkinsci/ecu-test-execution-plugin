@@ -427,6 +427,11 @@ class RunPackageStepIT extends IntegrationTestBase {
                 WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             then:
                 jenkins.assertLogContains("Executing package 'test.pkg'", run)
+                jenkins.assertLogContains("-> With TBC='test.tbc'", run)
+                jenkins.assertLogContains("-> With TCF='test.tcf'", run)
+                jenkins.assertLogContains("-> With global constants=[[constLabel=constValue]]", run)
+                jenkins.assertLogContains("-> With ForceConfigurationReload=true", run)
+                jenkins.assertLogContains("-> With package parameters=[[paramLabel=paramValue]]", run)
                 jenkins.assertLogContains("Package executed successfully.", run)
                 jenkins.assertLogContains("-> reportId: 1",run)
                 jenkins.assertLogContains("-> result: result",run)

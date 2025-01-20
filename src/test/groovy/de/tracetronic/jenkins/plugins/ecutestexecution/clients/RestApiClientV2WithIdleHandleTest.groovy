@@ -14,20 +14,11 @@ class RestApiClientV2WithIdleHandleTest extends Specification {
     def "test execution timeout after busy state"() {
         given:
             def client = new RestApiClientV2WithIdleHandle("localhost", "8080")
-            def mockCall = Mock(Call)
-
         and:
             client.metaClass.sleep = { long ms -> }
-
-        and:
-            GroovySpy(ApiClient, global: true) {
-                execute(_, _) >> { throw new ApiException(409, "Busy") }
-            }
-
         when:
             client.timeoutExceeded = true
-            client.apiClient.execute(mockCall, String)
-
+            client.apiClient.execute(Mock(Call), String)
         then:
             thrown(TimeoutException)
     }
@@ -35,25 +26,21 @@ class RestApiClientV2WithIdleHandleTest extends Specification {
     def "test ApiException with error code other than 409"() {
         given:
             def client = new RestApiClientV2WithIdleHandle("localhost", "8080")
-            def mockCall = Mock(Call)
-
-            def mockApiClient = Mock(ApiClient)
-            client.apiClient = mockApiClient
-
-            mockApiClient.execute(_, _) >> { throw new ApiException(500, "Internal Server Error") }
-
+            def call = Mock(Call)
+            call.clone() >> call
+            call.execute() >> { throw new ApiException(500, "Internal Server Error")}
         when:
             client.timeoutExceeded = false
-            client.apiClient.execute(mockCall, String)
-
+            client.apiClient.execute(call, String)
         then:
-            thrown(ApiException)
+            def e = thrown(ApiException)
+            e.code == 500
+            e.message == "Internal Server Error"
     }
 
     def "test constructor sets correct base path"() {
         when:
             def client = new RestApiClientV2WithIdleHandle("test-host", "1234")
-
         then:
             client.apiClient.basePath == "http://test-host:1234/api/v2"
     }
@@ -73,14 +60,14 @@ class RestApiClientV2WithIdleHandleTest extends Specification {
 
         and:
             def attemptCount = 1
-            def mockApiClient = Mock(ApiClient)
-            mockApiClient.execute(_, _) >> { Call call, Type type ->
-                if (attemptCount == 1) {
-                    attemptCount++
+            GroovySpy(ApiClient, global: true) {
+                execute(_, _) >> {
+                    if (attemptCount == 1) {
+                        attemptCount++
+                    }
+                    return expectedResponse
                 }
-                return expectedResponse
             }
-            client.apiClient = mockApiClient
 
         when:
             client.timeoutExceeded = false
@@ -102,9 +89,9 @@ class RestApiClientV2WithIdleHandleTest extends Specification {
             mockCall.clone() >> mockCall
 
         and:
-            def mockApiClient = Mock(ApiClient)
-            client.apiClient = mockApiClient
-            mockApiClient.execute(_, _) >> expectedResponse
+            GroovySpy(ApiClient, global: true) {
+                execute(_, _) >> { expectedResponse }
+            }
 
         when:
             def response = client.apiClient.execute(mockCall, String)

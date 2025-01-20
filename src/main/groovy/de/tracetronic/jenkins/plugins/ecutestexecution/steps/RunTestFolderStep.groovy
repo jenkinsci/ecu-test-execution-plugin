@@ -131,6 +131,7 @@ class RunTestFolderStep extends RunTestStep {
         @Override
         protected List<TestResult> run() throws Exception {
             try {
+                def failFastTriggered = false
                 List<TestResult> testResultList = new ArrayList<>()
                 EnvVars envVars = context.get(EnvVars.class)
                 String expTestCasePath = envVars.expand(step.testCasePath)
@@ -146,22 +147,28 @@ class RunTestFolderStep extends RunTestStep {
 
 
                 pkgFiles.each { pkgFile ->
+                    if (failFastTriggered) return
                     TestPackageBuilder testPackage = new TestPackageBuilder(pkgFile, expTestConfig,
                             expExecutionConfig, context, expPackageConfig, expAnalysisConfig)
                     TestResult result = testPackage.runTest()
                     testResultList.add(result)
-                    if (result.getTestResult() == 'FAILED' && isFailFast()) {
-                        return testResultList
+                    if (result.getTestResult() == 'FAILED' && this.step.failFast) {
+                        failFastTriggered = true
+                        return
                     }
+                }
+                if (failFastTriggered){
+                    return testResultList
                 }
 
                 prjFiles.each { prjFile ->
+                    if (failFastTriggered) return
                     TestProjectBuilder testProject = new TestProjectBuilder(prjFile, expTestConfig,
                             expExecutionConfig, context)
                     TestResult result = testProject.runTest()
                     testResultList.add(result)
-                    if (result.getTestResult() == 'FAILED' && isFailFast()) {
-                        return testResultList
+                    if (result.getTestResult() == 'FAILED' && this.step.failFast) {
+                        return
                     }
                 }
 
@@ -172,7 +179,7 @@ class RunTestFolderStep extends RunTestStep {
             }
         }
 
-        private String checkFolder(String folder)
+        String checkFolder(String folder)
                 throws IOException, InterruptedException, IllegalArgumentException {
             if (IOUtils.isAbsolute(folder)) {
                 FilePath folderPath = new FilePath(context.get(Launcher.class).getChannel(), folder)
@@ -189,7 +196,7 @@ class RunTestFolderStep extends RunTestStep {
         }
     }
 
-     private static List<String> scanPackages(final String testFolder, final StepContext context,
+     static List<String> scanPackages(final String testFolder, final StepContext context,
                                               ScanMode scanMode, boolean isRecursive)
              throws IOException, InterruptedException {
         List<String> pkgFiles = new ArrayList<>()
@@ -208,7 +215,7 @@ class RunTestFolderStep extends RunTestStep {
         return pkgFiles
     }
 
-    private static List<String> scanProjects(final String testFolder, final StepContext context,
+    static List<String> scanProjects(final String testFolder, final StepContext context,
                                              ScanMode scanMode, boolean isRecursive)
             throws IOException, InterruptedException {
         List<String> prjFiles = new ArrayList<>()

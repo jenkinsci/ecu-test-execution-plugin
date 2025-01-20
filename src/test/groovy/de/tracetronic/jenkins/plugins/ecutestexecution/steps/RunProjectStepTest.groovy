@@ -47,10 +47,10 @@ class RunProjectStepTest extends Specification {
             result.message == expectedValidation.message
 
         where:
-        testCasePath                    || expectedValidation
-        "valid/path/to/test.prj"        || FormValidation.ok()
-        "invalid/path/to/test.txt"      || FormValidation.error("invalid/path/to/test.txt has to be of file type '.prj'")
-        '${WORKSPACE}/path/to/test.prj' || FormValidation.warning('Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
+        testCasePath                    | expectedValidation
+        "valid/path/to/test.prj"        | FormValidation.ok()
+        "invalid/path/to/test.txt"      | FormValidation.error("invalid/path/to/test.txt has to be of file type '.prj'")
+        '${WORKSPACE}/path/to/test.prj' | FormValidation.warning('Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
     }
 
 
@@ -62,7 +62,7 @@ class RunProjectStepTest extends Specification {
             GroovyMock(FilePath, global: true)
             def projectPath = GroovyMock(FilePath)
             new FilePath(channel, projectFile) >> projectPath
-            projectPath.exists() >> pathExists
+            projectPath.exists() >> absPathExists
             projectPath.getRemote() >> projectFile
 
             def step = new RunProjectStep(projectFile)
@@ -75,8 +75,10 @@ class RunProjectStepTest extends Specification {
             noExceptionThrown()
 
         where:
-        projectFile         | isAbsolute | pathExists
-        "/foo/bar/test.prj" | true       | true
+            projectFile                    | isAbsolute | absPathExists
+            "/foo/bar/test.pkg"            | true       | true
+            "/foo/bar/test.pkg"            | false      | false
+            "/foo/bar/test.pkg"            | false      | true
     }
 
     def "test checkProjectPath throws AbortException for non-existent project path"() {

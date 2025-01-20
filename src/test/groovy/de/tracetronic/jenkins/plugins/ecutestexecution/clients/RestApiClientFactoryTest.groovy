@@ -7,32 +7,23 @@ class RestApiClientFactoryTest extends Specification {
     def "should return RestApiClientV2 when it responds within timeout"() {
         given:
             def mockClientV2 = Mock(RestApiClientV2)
+            RestApiClientV2.metaClass.constructor = { String host, String port ->
+                mockClientV2
+            }
             mockClientV2.waitForAlive(_) >> true
-
-        and:
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(_, _, _) >> mockClientV2
-
-        when:
-            def client = RestApiClientFactory.getRestApiClient(_,_,_)
-
-        then:
-            client instanceof RestApiClientV2
+            def apiClient = RestApiClientFactory.getRestApiClient()
+        expect:
+            apiClient instanceof RestApiClientV2
     }
-
-    def "should return RestApiClientV1 when it responds within timeout"() {
+    def "should return RestApiClientV1 when it responds within timeout and RestApiClientV2 not alive"() {
         given:
             def mockClientV1 = Mock(RestApiClientV1)
+            RestApiClientV1.metaClass.constructor = { String host, String port ->
+                mockClientV1
+            }
             mockClientV1.waitForAlive(_) >> true
-
-        and:
-            GroovyMock(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(_, _, _) >> mockClientV1
-
-        when:
-            def client = RestApiClientFactory.getRestApiClient(_,_,_)
-
-        then:
-            client instanceof RestApiClientV1
+            def apiClient = RestApiClientFactory.getRestApiClient()
+        expect:
+            apiClient instanceof RestApiClientV1
     }
 }

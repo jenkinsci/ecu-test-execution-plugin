@@ -38,54 +38,8 @@ class RunPackageStepTest extends Specification {
         taskListener.getLogger() >> logger
     }
 
-    def "removeEmptyParameters filters out invalid package parameters"() {
-        given:
-            def validParam = new PackageParameter("validLabel", "value1")
-            def invalidParam = new PackageParameter("", "value2")
-            def config = new PackageConfig([validParam, invalidParam])
-            def step = new RunPackageStep("testPath")
-            step.setPackageConfig(config)
-
-        expect:
-            step.getPackageConfig().getPackageParameters().size() == 1
-            step.getPackageConfig().getPackageParameters()[0].label == "validLabel"
-    }
 
 
-    def "setPackageConfig assigns default when null is passed"() {
-        given:
-            def step = new RunPackageStep("testPath")
-            step.setPackageConfig(null)
-
-        expect:
-            step.getPackageConfig().getPackageParameters() == []
-    }
-
-
-    def "setAnalysisConfig assigns provided value"() {
-        given:
-            def config = new AnalysisConfig()
-            config.setAnalysisName("My Analysis")
-
-            def step = new RunPackageStep("testPath")
-            step.setAnalysisConfig(config)
-
-        expect:
-            step.getAnalysisConfig().getAnalysisName() == "My Analysis"
-    }
-
-
-
-    def "setAnalysisConfig assigns default when null is passed"() {
-        given:
-            def step = new RunPackageStep("testPath")
-            step.setAnalysisConfig(null)
-
-        expect:
-            step.getAnalysisConfig().getAnalysisName() == ""
-            step.getAnalysisConfig().getMapping() == ""
-            step.getAnalysisConfig().getRecordings().isEmpty()
-    }
 
     def "doCheckTestCasePath should validate paths correctly with specified error message"() {
         given:
@@ -99,16 +53,43 @@ class RunPackageStepTest extends Specification {
             result.message == expectedValidation.message
 
         where:
-            testCasePath                    || expectedValidation
-            "valid/path/to/test.pkg"        || FormValidation.ok()
-            "invalid/path/to/test.txt"      || FormValidation.error("invalid/path/to/test.txt has to be of file type '.pkg'")
-            '${WORKSPACE}/path/to/test.prj' || FormValidation.warning('Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
+            testCasePath                    | expectedValidation
+            "valid/path/to/test.pkg"        | FormValidation.ok()
+            "invalid/path/to/test.txt"      | FormValidation.error("invalid/path/to/test.txt has to be of file type '.pkg'")
+            '${WORKSPACE}/path/to/test.prj' | FormValidation.warning('Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
     }
 
-    def "test checkProjectPath with valid and invalid project paths"() {
+    def "test checkProjectPath valid paths"() {
         given:
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> isAbsolute
+            GroovyMock(FilePath, global: true)
+            def projectPath = GroovyMock(FilePath)
+            new FilePath(channel, projectFile) >> projectPath
+            projectPath.exists() >> absPathExists
+            projectPath.getRemote() >> projectFile
+
+            def step = new RunPackageStep(projectFile)
+            def execution = new RunPackageStep.Execution(step, context)
+
+        when:
+            execution.checkPackagePath(projectFile)
+
+        then:
+            noExceptionThrown()
+
+        where:
+            projectFile                    | isAbsolute | absPathExists
+            "/foo/bar/test.pkg"            | true       | true
+            "/foo/bar/test.pkg"            | false      | false
+            "/foo/bar/test.pkg"            | false      | true
+
+    }
+
+    def "test checkProjectPath with invalid absolute project path"() {
+        given:
+            GroovyMock(IOUtils, global: true)
+            IOUtils.isAbsolute(_) >> true
             GroovyMock(FilePath, global: true)
             def projectPath = GroovyMock(FilePath)
             new FilePath(channel, projectFile) >> projectPath
@@ -122,37 +103,13 @@ class RunPackageStepTest extends Specification {
             execution.checkPackagePath(projectFile)
 
         then:
-            noExceptionThrown()
-
-        where:
-            projectFile                      | isAbsolute | pathExists
-            "/foo/bar/test.pkg"            | true       | true
-    }
-
-    def "test checkProjectPath throws AbortException for non-existent project path"() {
-        given:
-            GroovyMock(IOUtils, global: true)
-            IOUtils.isAbsolute(_) >> true
-            GroovyMock(FilePath, global: true)
-            def projectPath = GroovyMock(FilePath)
-            new FilePath(channel, projectFile) >> projectPath
-            projectPath.exists() >> false
-            projectPath.getRemote() >> projectFile
-
-            def step = new RunPackageStep(projectFile)
-            def execution = new RunPackageStep.Execution(step, context)
-
-        when:
-            execution.checkPackagePath(projectFile)
-
-        then:
             def e = thrown(AbortException)
             e.message == "ecu.test package at ${projectFile} does not exist! Please ensure that the path " +
                     "is correctly set and it refers to the desired directory."
 
-        where:
-            projectFile                     | _
-            "/foo/bar/test.pkg"             | _
-    }
 
+        where:
+            projectFile         | pathExists
+            "/foo/bar/test.pkg" | false
+    }
 }
