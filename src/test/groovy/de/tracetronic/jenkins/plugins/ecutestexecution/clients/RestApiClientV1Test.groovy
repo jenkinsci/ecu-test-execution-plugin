@@ -30,8 +30,8 @@ class RestApiClientV1Test extends Specification {
             result == expected
 
         where:
-            given  | expected
-            "Alive"| true
-            ""     | false
+            given       | expected
+            ""          | false
+            "Alive"     | true
     }
 }

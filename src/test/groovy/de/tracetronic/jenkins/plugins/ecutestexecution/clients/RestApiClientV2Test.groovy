@@ -19,6 +19,7 @@ class RestApiClientV2Test extends Specification {
         then:
             thrown(TimeoutException)
     }
+
     def "waitForAlive"() {
         given:
             def client = new RestApiClientV2("localhost","80")
