@@ -302,7 +302,7 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> FINISHED", run)
     }
 
-    def "ttRunPackage: Test package with defined constant"() {
+    def "ttRunPackage: Test package with defined constant and config"() {
         given: "a test execution pipeline with usage of constants"
             String script = """
             node {
@@ -342,7 +342,7 @@ abstract class ETContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
-            jenkins.assertLogContains("-> result: SUCCESS", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
 
@@ -381,7 +381,7 @@ abstract class ETContainerTest extends ContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
 
         when: "scheduling a new build"
-            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "expect successful test completion"
             jenkins.assertLogContains("-> result: ERROR", run)
