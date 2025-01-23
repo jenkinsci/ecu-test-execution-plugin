@@ -387,4 +387,27 @@ abstract class ETContainerTest extends ContainerTest {
             jenkins.assertLogContains("-> result: ERROR", run)
             jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
     }
+
+    def "ttRunPackage: Test stopOnError"() {
+        given: "a test execution pipeline"
+            String script = """
+            node {
+                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                    ttRunPackage testCasePath: 'test_tcf_constant.pkg', executionConfig: [stopOnError: true]
+                    ttRunPackage testCasePath: 'test.pkg'
+                }
+            }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling the build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "expect successful stop of tools on error"
+            jenkins.assertLogContains("Executing Package 'test_tcf_constant.pkg'...", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("-> reportDir: ${ET_WS_PATH}/TestReports/test_", run)
+            jenkins.assertLogNotContains("Executing Package 'test.pkg'...", run)
+    }
 }

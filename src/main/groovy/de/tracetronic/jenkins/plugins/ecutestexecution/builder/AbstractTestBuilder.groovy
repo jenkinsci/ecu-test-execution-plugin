@@ -144,14 +144,16 @@ abstract class AbstractTestBuilder implements Serializable {
             } else {
                 result = new TestResult(null, 'ERROR', null)
                 listener.logger.println("Executing ${testArtifactName} '${testCasePath}' failed!")
-                if (executionConfig.stopOnError) {
-                    toolInstallations.stopToolInstances(executionConfig.timeout)
-                    if (executionConfig.stopUndefinedTools) {
-                        toolInstallations.stopTTInstances(executionConfig.timeout)
-                    }
-                }
+
             }
             listener.logger.println(result.toString())
+
+            if (result.testResult == "ERROR" && executionConfig.stopOnError) {
+                toolInstallations.stopToolInstances(executionConfig.timeout)
+                if (executionConfig.stopUndefinedTools) {
+                    toolInstallations.stopTTInstances(executionConfig.timeout)
+                }
+            }
             listener.logger.flush()
             return result
         }
