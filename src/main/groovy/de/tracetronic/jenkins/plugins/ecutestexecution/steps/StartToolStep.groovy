@@ -224,7 +224,7 @@ class StartToolStep extends Step {
                         }
                     }
                     listener.logger.println("Starting ${toolName}...")
-                    checkLicense(toolName)
+                    //checkLicense(toolName) // TODO: find solution for windows
                     startTool(toolName)
                     connectTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
