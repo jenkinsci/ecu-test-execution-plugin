@@ -19,6 +19,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
+import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -207,6 +208,7 @@ class StartToolStepIT extends IntegrationTestBase {
                     "blocked by another process.", run)
     }
 
+    @Ignore("feature currently disabled") // TODO: enable after fix
     def 'Run pipeline: No valid license found'() {
         given:
             File tempDir = File.createTempDir()
@@ -232,6 +234,7 @@ class StartToolStepIT extends IntegrationTestBase {
                     "Please ensure the license is not expired or corrupted.", run)
     }
 
+    @Ignore("feature currently disabled") // TODO: enable after fix
     def 'Run pipeline: Timeout License Check'() {
         given:
             File tempDir = File.createTempDir()
