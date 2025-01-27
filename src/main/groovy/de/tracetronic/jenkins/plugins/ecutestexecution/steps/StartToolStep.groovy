@@ -28,7 +28,6 @@ import hudson.util.FormValidation
 import hudson.util.ListBoxModel
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
-import org.apache.tools.ant.Task
 import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
