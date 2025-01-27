@@ -229,7 +229,7 @@ class StartToolStep extends Step {
                     connectTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
                 }
-                return new StartToolResult(installation.getName(), installation.exeFileOnNode.toString(), workspaceDir, settingsDir)
+                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), workspaceDir, settingsDir)
 
             } catch (Exception e) {
                 throw new AbortException(e.getMessage())
