@@ -16,7 +16,7 @@ class StartToolResult implements Serializable {
     }
 
     String getResult(){
-        return this.installationName == null ? "SUCCESS":"FAILED"
+        return this.installationName != null ? "SUCCESS":"FAILED"
     }
 
     @Whitelisted

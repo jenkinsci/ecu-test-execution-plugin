@@ -137,21 +137,24 @@ class StartToolStep extends Step {
                 EnvVars envVars = context.get(EnvVars.class)
                 FilePath workspace = context.get(FilePath.class)
                 TaskListener listener = context.get(TaskListener.class)
+
                 String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
                 String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
+
+                listener.logger.println(step.workspaceDir)
 
                 expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
                 expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
 
                 checkWorkspace(expWorkspaceDir, expSettingsDir)
 
-                StartToolResult restult = context.get(Launcher.class).getChannel().call(
+                StartToolResult result = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
                                 expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
                                 step.stopUndefinedTools, envVars, listener))
-                listener.logger.println(restult.toString())
+                listener.logger.println(result.toString())
                 listener.logger.flush()
-                return restult
+                return result
 
             } catch (Exception e) {
                 context.get(Run.class).setResult(Result.FAILURE)
