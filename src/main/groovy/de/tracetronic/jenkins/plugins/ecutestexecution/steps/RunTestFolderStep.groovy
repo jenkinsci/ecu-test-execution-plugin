@@ -157,9 +157,6 @@ class RunTestFolderStep extends RunTestStep {
                         return
                     }
                 }
-                if (failFastTriggered){
-                    return testResultList
-                }
 
                 prjFiles.each { prjFile ->
                     if (failFastTriggered) return

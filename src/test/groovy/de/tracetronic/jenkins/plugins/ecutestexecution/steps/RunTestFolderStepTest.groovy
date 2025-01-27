@@ -52,23 +52,19 @@ class RunTestFolderStepTest extends Specification {
             def execution = new RunTestFolderStep.Execution(step, context)
 
             GroovyMock(IOUtils, global: true)
-            IOUtils.isAbsolute(_) >> isAbsolute
+            IOUtils.isAbsolute(_) >> true
 
             GroovyMock(FilePath, global: true)
             def filePath = GroovyMock(FilePath)
             new FilePath(_, _) >> filePath
-            filePath.exists() >> exists
+            filePath.exists() >> true
             filePath.getRemote() >> "Folder"
 
         when:
             def result = execution.checkFolder(baseFolder)
 
         then:
-            result == expectedResult
-
-        where:
-            isAbsolute  | exists | expectedResult
-            true        | true   | "Folder"
+            result == "Folder"
 
     }
     def "checkFolder validates folder existence and path"() {
@@ -112,18 +108,14 @@ class RunTestFolderStepTest extends Specification {
 
         then:
             result == expectedPackages
-            if (expectedPackages.isEmpty() && scanMode != RunTestFolderStep.ScanMode.PROJECTS_ONLY ){
-                1 * context.get(TaskListener.class).logger.println('No packages found!')
-            }
-            else if (scanMode != RunTestFolderStep.ScanMode.PROJECTS_ONLY){
-                1 * context.get(TaskListener.class).logger.println("Found ${expectedPackages.size()} package(s)")
-            }
+            expectLog * context.get(TaskListener.class).logger.println(expectedLog)
 
         where:
-            scanMode                                    | expectedPackages
-            RunTestFolderStep.ScanMode.PROJECTS_ONLY    | []
-            RunTestFolderStep.ScanMode.PACKAGES_ONLY    | []
-            RunTestFolderStep.ScanMode.PACKAGES_ONLY    | ["package.pkg","package2.pkg"]
+            scanMode                                        | expectedPackages              | expectLog | expectedLog
+            RunTestFolderStep.ScanMode.PROJECTS_ONLY        | []                            | 0         | ""
+            RunTestFolderStep.ScanMode.PACKAGES_ONLY        | []                            | 1         | "No packages found!"
+            RunTestFolderStep.ScanMode.PACKAGES_ONLY        | ["package.pkg","package2.pkg"]| 1         | "Found ${expectedPackages.size()} package(s)"
+            RunTestFolderStep.ScanMode.PACKAGES_AND_PROJECTS| ["package.pkg"]               | 1         | "Found ${expectedPackages.size()} package(s)"
     }
 
     def "scanProjects returns list of project files"() {
@@ -139,25 +131,21 @@ class RunTestFolderStepTest extends Specification {
 
         then:
             result == expectedProjects
-            if (expectedProjects.isEmpty() && scanMode != RunTestFolderStep.ScanMode.PACKAGES_ONLY ){
-                1 * context.get(TaskListener.class).logger.println('No projects found!')
-            }
-            else if (scanMode != RunTestFolderStep.ScanMode.PACKAGES_ONLY){
-                1 * context.get(TaskListener.class).logger.println("Found ${expectedProjects.size()} project(s)")
-            }
+            expectLog * context.get(TaskListener.class).logger.println(expectedLog)
 
         where:
-            scanMode                                    | expectedProjects
-            RunTestFolderStep.ScanMode.PACKAGES_ONLY    | []
-            RunTestFolderStep.ScanMode.PROJECTS_ONLY    | []
-            RunTestFolderStep.ScanMode.PROJECTS_ONLY    | ["project1.prj","project2.prj"]
+            scanMode                                        | expectedProjects              | expectLog | expectedLog
+            RunTestFolderStep.ScanMode.PACKAGES_ONLY        | []                            | 0         | ""
+            RunTestFolderStep.ScanMode.PROJECTS_ONLY        | []                            | 1         | "No projects found!"
+            RunTestFolderStep.ScanMode.PROJECTS_ONLY        | ["package.pkg","package2.pkg"]| 1         | "Found ${expectedProjects.size()} project(s)"
+            RunTestFolderStep.ScanMode.PACKAGES_AND_PROJECTS| ["package.pkg"]               | 1         | "Found ${expectedProjects.size()} project(s)"
     }
 
     def "run method executes tests based on failFast setting"() {
         given:
             GroovySpy(RunTestFolderStep, global: true)
             RunTestFolderStep.scanPackages(*_) >> ["package1.pkg", "package2.pkg"]
-            RunTestFolderStep.scanProjects(*_) >> []
+            RunTestFolderStep.scanProjects(*_) >> ["project1.prj", "project2.prj"]
 
             def step = Spy(RunTestFolderStep, constructorArgs: [baseFolder])
             step.isFailFast() >> failFast
@@ -165,12 +153,17 @@ class RunTestFolderStepTest extends Specification {
             execution.checkFolder(_) >> "folder"
 
             def testResult = Mock(TestResult)
-            testResult.getTestResult() >> result
+            testResult.getTestResult() >>> givenResults
 
             def testPackageBuilder = Mock(TestPackageBuilder)
             GroovyMock(TestPackageBuilder, global: true)
-            new TestPackageBuilder(_, _, _, _, _, _) >> testPackageBuilder
+            new TestPackageBuilder(*_) >> testPackageBuilder
             testPackageBuilder.runTest() >> testResult
+
+            def testProjectBuilder = Mock(TestProjectBuilder)
+            GroovyMock(TestProjectBuilder, global: true)
+            new TestProjectBuilder(*_) >> testProjectBuilder
+            testProjectBuilder.runTest() >> testResult
 
         when:
             def results = execution.run()
@@ -180,10 +173,12 @@ class RunTestFolderStepTest extends Specification {
             results.contains(testResult)
 
         where:
-            failFast | result    | expectedResultsSize
-            true     | 'FAILED'  | 1
-            false    | 'FAILED'  | 2
-            true     | 'SUCCESS' | 2
-            false    | 'SUCCESS' | 2
+            failFast | givenResults | expectedResultsSize
+            true     | ['FAILED']   | 1
+            false    | ['FAILED']   | 4
+            true     | ['SUCCESS']  | 4
+            false    | ['SUCCESS']  | 4
+            true     | ['SUCCESS', 'SUCCESS', 'FAILED', 'SUCCESS']        | 3
+            false    | ['SUCCESS', 'SUCCESS', 'FAILED', 'SUCCESS']        | 4
     }
 }
