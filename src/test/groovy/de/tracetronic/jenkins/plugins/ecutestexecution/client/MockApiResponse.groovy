@@ -29,4 +29,13 @@ class MockApiResponse {
                 .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
                 )).build()
     }
+
+    static Response getResponseOk(){
+        return new Response.Builder()
+                .request(new Request.Builder().url('http://example.com').build())
+                .protocol(Protocol.HTTP_1_1)
+                .code(200).message('Ok')
+                .body(ResponseBody.create("{}", MediaType.parse('application/json; charset=utf-8')
+                )).build()
+    }
 }

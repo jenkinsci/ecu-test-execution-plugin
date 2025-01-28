@@ -1,8 +1,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 
 import spock.lang.Specification
-import de.tracetronic.cxs.generated.et.client.v2.ApiClient
-import de.tracetronic.cxs.generated.et.client.v2.ApiResponse
 import okhttp3.Call
 
 import java.util.concurrent.TimeoutException
