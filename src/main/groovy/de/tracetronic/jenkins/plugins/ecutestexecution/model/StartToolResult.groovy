@@ -15,10 +15,6 @@ class StartToolResult implements Serializable {
         this.settingsDirPath = settingsDirPath
     }
 
-    String getResult(){
-        return this.installationName != null ? "SUCCESS":"FAILED"
-    }
-
     @Whitelisted
     getInstallationName(){
         return installationName
@@ -42,7 +38,6 @@ class StartToolResult implements Serializable {
     @Override
     String toString() {
         """
-        -> result: ${getResult()}
         -> installationName: ${installationName}
         -> toolExePath: ${toolExePath}
         -> workSpaceDirPath: ${workSpaceDirPath}

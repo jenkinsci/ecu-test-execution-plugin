@@ -140,8 +140,6 @@ class StartToolStep extends Step {
                 String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
                 String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
 
-                listener.logger.println(step.workspaceDir)
-
                 expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
                 expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
 
