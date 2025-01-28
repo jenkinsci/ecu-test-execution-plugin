@@ -25,8 +25,10 @@ class RestApiClientV2Test extends Specification {
             def client = new RestApiClientV2("localhost","80")
             def statusApi = GroovySpy(StatusApi, global:true)
             statusApi.isAlive() >> new SimpleMessage().message(given)
+
         when:
             def result = client.waitForAlive(1)
+
         then:
             result == expected
 

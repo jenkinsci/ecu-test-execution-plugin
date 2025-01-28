@@ -6,6 +6,7 @@ class CheckPackageResultTest extends Specification {
     def "CheckPackageResult constructor sets result correctly"() {
         expect:
             new CheckPackageResult("path/to/test", issues).result == result
+
         where:
             issues                                                                              | result
             null                                                                                | "ERROR"

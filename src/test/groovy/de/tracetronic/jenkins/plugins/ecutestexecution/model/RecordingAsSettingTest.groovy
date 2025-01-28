@@ -29,8 +29,10 @@ class RecordingAsSettingTest extends Specification {
     def "setRecordingGroup trims input values"() {
         given:
             def setting = new RecordingAsSetting( "")
+
         when:
             setting.recordingGroup = "   group   "
+
         then:
             setting.recordingGroup == "group"
     }
@@ -38,10 +40,13 @@ class RecordingAsSettingTest extends Specification {
     def "setMappingNames removes empty values and handles empty list"() {
         given:
             def setting = new RecordingAsSetting("")
+
         when:
             setting.mappingNames = given
+
         then:
             setting.mappingNames == expected
+
         where:
             given                           | expected
              ["name1", "", "   ", "name2"]  | ["name1", "name2"]

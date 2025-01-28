@@ -16,8 +16,6 @@ class AnalysisConfigTest extends Specification {
             step.getAnalysisConfig().getAnalysisName() == "My Analysis"
     }
 
-
-
     def "setAnalysisConfig assigns default when null is passed"() {
         given:
             def step = new RunPackageStep("testPath")

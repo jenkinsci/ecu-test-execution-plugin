@@ -19,13 +19,16 @@ class RestApiClientV1Test extends Specification {
         then:
             thrown(TimeoutException)
     }
+
     def "waitForAlive"() {
         given:
             def client = new RestApiClientV1("localhost","80")
             def statusApi = GroovySpy(ApiStatusApi, global:true)
             statusApi.isAlive() >> new SimpleMessage().message(given)
+
         when:
             def result = client.waitForAlive(1)
+
         then:
             result == expected
 
