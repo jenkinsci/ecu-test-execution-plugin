@@ -78,7 +78,7 @@ class TGContainerTest extends ContainerTest {
                         CredentialsScope.GLOBAL, 'authKey', 'test.guide auth key', '', TG_AUTH_KEY))
     }
 
-    def "Upload test reports"() {
+    def "ttUploadReports: happy path"() {
         given: "a test execution and upload pipeline"
             String script = """
             node {
@@ -102,7 +102,7 @@ class TGContainerTest extends ContainerTest {
             StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
     }
 
-    def "Upload a specific test report"() {
+    def "ttUploadReports: specific test report"() {
         given: "a test execution and upload pipeline"
             String script = """
             node {
@@ -126,7 +126,7 @@ class TGContainerTest extends ContainerTest {
             jenkins.assertLogContains("Report upload(s) successful", run)
     }
 
-    def "Upload an invalid test report"() {
+    def "ttUploadReports: invalid test report"() {
         given: "a test execution and upload pipeline"
             String reportID = '0815-241543903-0815'
             String script = """
@@ -153,7 +153,7 @@ class TGContainerTest extends ContainerTest {
             assertThat(jenkins.getLog(run), containsStringIgnoringCase("NOT FOUND"))
     }
 
-    def "Upload test report invalid config"() {
+    def "ttUploadReports: test report with invalid config"() {
         given: "a test execution and upload pipeline"
             String script = """
                 node {
