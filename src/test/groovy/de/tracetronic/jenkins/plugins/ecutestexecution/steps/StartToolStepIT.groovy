@@ -7,7 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
