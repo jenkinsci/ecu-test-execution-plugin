@@ -19,14 +19,9 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
-import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.Executors
 
 class StartToolStepIT extends IntegrationTestBase {
     ETInstallation.DescriptorImpl etDescriptor
@@ -314,5 +309,38 @@ class StartToolStepIT extends IntegrationTestBase {
             1* processMock.destroy()
             jenkins.assertLogContains("Timeout of 2 seconds exceeded for connecting to ecu.test! " +
                     "Please ensure the tool is correctly configured and consider restarting it.", run)
+    }
+
+
+    def 'Run pipeline: return and print result'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+        and:
+            Process processMock = GroovyMock(Process)
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            new ProcessBuilder(_) >> processBuilderMock
+            processBuilderMock.command(_) >> processBuilderMock
+            processBuilderMock.start() >> processMock
+            processMock.isAlive() >> true
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killTTProcesses(_) >> true
+        and:
+            RestApiClient restApiClientMock = GroovyMock(RestApiClient)
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> restApiClientMock
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogContains("ecu.test started successfully.", run)
+            jenkins.assertLogContains("-> installationName: ecu.test", run)
+            jenkins.assertLogContains("-> toolExePath", run)
+            jenkins.assertLogContains("-> workSpaceDirPath: ${workspaceDir}", run)
+            jenkins.assertLogContains("-> settingsDirPath: ${workspaceDir}", run)
     }
 }
