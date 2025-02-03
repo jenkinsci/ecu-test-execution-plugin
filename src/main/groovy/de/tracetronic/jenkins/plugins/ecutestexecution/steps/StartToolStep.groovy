@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.StartToolResult
@@ -271,8 +272,8 @@ class StartToolStep extends Step {
             }
 
             throw new AbortException(
-                    "${toolName} did not start correctly with exit code ${exitCode} and was terminated within " +
-                            "the timeout of ${timeout} seconds.")
+                    "${toolName} did not start correctly and stopped with exit code ${exitCode} and " +
+                            "was terminated within the timeout of ${timeout} seconds.")
         }
 
         /**
@@ -281,9 +282,8 @@ class StartToolStep extends Step {
          */
         private boolean checkToolConnection() {
             try {
-                if (RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'), timeout)) {
-                    return true
-                }
+                return RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'),
+                        envVars.get('ET_API_PORT'), timeout) instanceof RestApiClient
             } catch (ApiException ignore) {
                 return false
             }
