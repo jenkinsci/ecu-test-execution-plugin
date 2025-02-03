@@ -283,8 +283,8 @@ class StartToolStepIT extends IntegrationTestBase {
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test did not start correctly and stopped with exit code 8 and " +
-                    "was terminated within the timeout of 2 seconds.", run)
+            jenkins.assertLogContains("ecu.test did not start correctly and stopped with exit code 8 " +
+                    "within the timeout of 2 seconds.", run)
     }
 
     def 'Run pipeline: IllegalThreadStateException'() {

@@ -272,8 +272,8 @@ class StartToolStep extends Step {
             }
 
             throw new AbortException(
-                    "${toolName} did not start correctly and stopped with exit code ${exitCode} and " +
-                            "was terminated within the timeout of ${timeout} seconds.")
+                    "${toolName} did not start correctly and stopped with exit code ${exitCode} " +
+                            "within the timeout of ${timeout} seconds.")
         }
 
         /**
