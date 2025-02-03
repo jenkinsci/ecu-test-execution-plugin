@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
@@ -27,12 +28,13 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.Executors
 
 class StartToolStepIT extends IntegrationTestBase {
-
+    String executablePath
+    String executablePathV2
     def setup() {
         ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        String executablePath = Functions.isWindows() ? 'C:\\ecutest\\ECU-TEST.exe' : 'bin/ecu-test'
-        String executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
+        executablePath = Functions.isWindows() ? 'C:\\ecutest\\ECU-TEST.exe' : 'bin/ecu-test'
+        executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
         etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES),
                 new ETInstallation('ecu.test', executablePathV2, JenkinsRule.NO_PROPERTIES))
     }
@@ -320,5 +322,37 @@ class StartToolStepIT extends IntegrationTestBase {
         then:
             jenkins.assertLogContains("Timeout of 60 seconds exceeded for connecting to ecu.test! " +
                     "Please ensure the tool is correctly started and consider restarting it.", run)
+    }
+
+    def 'Run pipeline: return and print result'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+        and:
+            Process processMock = GroovyMock(Process)
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            new ProcessBuilder(_) >> processBuilderMock
+            processBuilderMock.command(_) >> processBuilderMock
+            processBuilderMock.start() >> processMock
+
+            processMock.isAlive() >> true
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killTTProcesses(_) >> true
+        and:
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> { return }
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogContains("ecu.test started successfully.", run)
+            jenkins.assertLogContains("-> installationName: ecu.test", run)
+            jenkins.assertLogContains("-> toolExePath: ${executablePathV2}", run)
+            jenkins.assertLogContains("-> workSpaceDirPath: ${workspaceDir}", run)
+            jenkins.assertLogContains("-> settingsDirPath: ${workspaceDir}", run)
     }
 }
