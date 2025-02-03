@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.StartToolResult
@@ -37,10 +38,6 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
 
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 class StartToolStep extends Step {
@@ -210,7 +207,12 @@ class StartToolStep extends Step {
                 String toolName = installation.getName()
                 if (keepInstance) {
                     listener.logger.println("Re-using running instance ${toolName}...")
-                    connectTool(toolName)
+                    if (!checkToolConnection()) {
+                        throw new AbortException(
+                            "Timeout of ${this.timeout} seconds exceeded for re-using tracetronic tools! " +
+                                    "Please ensure that tracetronic tools are not already stopped or " +
+                                    "blocked by another process.")
+                    }
                 } else {
                     if (stopUndefinedTools) {
                         listener.logger.println("Stop tracetronic tool instances.")
@@ -224,9 +226,7 @@ class StartToolStep extends Step {
                         }
                     }
                     listener.logger.println("Starting ${toolName}...")
-                    checkLicense(toolName)
                     startTool(toolName)
-                    connectTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
                 }
                 return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), workspaceDir, settingsDir)
@@ -237,49 +237,9 @@ class StartToolStep extends Step {
         }
 
         /**
-         * Checks whether the tool has a valid license.
-         * @param the name of the tool, as defined in the Jenkins tool installation settings.
-         */
-        private void checkLicense(String toolName) {
-            ArgumentListBuilder args = new ArgumentListBuilder()
-            args.add(installation.exeFileOnNode.absolutePath)
-            args.add("--license")
-            Process process = new ProcessBuilder().command(args.toCommandArray()).start()
-
-            Callable<Integer> call = new Callable<Integer>() {
-                Integer call() throws Exception {
-                    if (timeout <= 0) {
-                        process.waitFor()
-                    } else {
-                        process.waitFor(timeout, TimeUnit.SECONDS)
-                    }
-                    return process.exitValue()
-                }
-            }
-            Future<Integer> future = Executors.newSingleThreadExecutor().submit(call)
-            try {
-                int exitCode
-                if (timeout <= 0) {
-                    exitCode = future.get()
-                } else {
-                    exitCode = future.get(timeout, TimeUnit.SECONDS)
-                }
-                if (exitCode != 0) {
-                    throw new AbortException("No valid license found for ${toolName}! " +
-                            "Please ensure the license is not expired or corrupted.")
-                }
-            } catch (TimeoutException ignored) {
-                process.destroy()
-                throw new AbortException(
-                        "Timeout of ${this.timeout} seconds exceeded for checking license of ${toolName}! " +
-                        "Please ensure the license server is active and responsive.")
-            }
-        }
-
-        /**
          * Starts the tool (ecu.test or trace.check) with CLI parameters.
          * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
-         * @throws IllegalStateException
+         * @throws AbortException
          */
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
@@ -291,34 +251,41 @@ class StartToolStep extends Step {
 
             Process process = new ProcessBuilder().command(args.toCommandArray()).start()
 
-            boolean isStarted = false
-            long endTimeMillis = System.currentTimeMillis() + (long) timeout * 1000L
-            while (timeout <= 0 || System.currentTimeMillis() < endTimeMillis) {
-                if ((isStarted = process.isAlive())) {
-                    break
-                } else {
-                    Thread.sleep(1000)
+            boolean  isConnected = checkToolConnection()
+            int exitCode = 0
+            if (!isConnected) {
+                try  {
+                    exitCode = process.exitValue()
+                }  catch (IllegalThreadStateException ignore){
+                    process.destroy()
+                    throw new AbortException(
+                            "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
+                                    "Please ensure the tool is correctly configured and consider restarting it.")
                 }
+            } else {
+                return
             }
 
-            if (!isStarted) {
-                throw new AbortException(
-                        "Timeout of ${this.timeout} seconds exceeded for starting ${toolName}! " +
-                        "Please ensure that the tool is correctly configured and accessible.")
+            if (exitCode == 99) {
+                throw new AbortException("No valid license found for ${toolName}! " +
+                        "Please ensure the license is not expired or corrupted.")
             }
+
+            throw new AbortException(
+                    "${toolName} did not start correctly and stopped with exit code ${exitCode} " +
+                            "within the timeout of ${timeout} seconds.")
         }
 
         /**
          * Checks whether the REST API of the tool is available.
-         * @param toolName the name of the tool, as defined in the Jenkins tool installation settings.
+         * @return true if REST API is available, false if not
          */
-        private void connectTool(String toolName) {
+        private boolean checkToolConnection() {
             try {
-                 RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'), timeout)
-            } catch (ApiException e) {
-                throw new AbortException(
-                        "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
-                        "Please ensure the tool is correctly started and consider restarting it.")
+                return RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'),
+                        envVars.get('ET_API_PORT'), timeout) instanceof RestApiClient
+            } catch (ApiException ignore) {
+                return false
             }
         }
     }
