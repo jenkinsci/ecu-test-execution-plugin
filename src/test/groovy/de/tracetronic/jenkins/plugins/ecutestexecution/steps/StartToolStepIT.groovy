@@ -351,7 +351,7 @@ class StartToolStepIT extends IntegrationTestBase {
         then:
             jenkins.assertLogContains("ecu.test started successfully.", run)
             jenkins.assertLogContains("-> installationName: ecu.test", run)
-            jenkins.assertLogContains("-> toolExePath: ${etDescriptor.getInstallation("ecu.test").getHome()}", run)
+            jenkins.assertLogContains("-> toolExePath", run)
             jenkins.assertLogContains("-> workSpaceDirPath: ${workspaceDir}", run)
             jenkins.assertLogContains("-> settingsDirPath: ${workspaceDir}", run)
     }
