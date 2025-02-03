@@ -8,6 +8,10 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.gson.reflect.TypeToken
 import de.tracetronic.cxs.generated.et.client.api.v2.ChecksApi
 import de.tracetronic.cxs.generated.et.client.model.v2.AcceptedCheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionOrder
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckExecutionStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckFinding
+import de.tracetronic.cxs.generated.et.client.model.v2.CheckReport
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
@@ -49,8 +53,10 @@ class CheckPackageStepIT extends IntegrationTestBase {
     def 'Snippet generator'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
+
         when:
             CheckPackageStep step = new CheckPackageStep("test.pkg")
+
         then:
             st.assertRoundTrip(step, "ttCheckPackage 'test.pkg'")
     }
@@ -59,8 +65,10 @@ class CheckPackageStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
+
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+
         then:
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
     }
@@ -76,15 +84,17 @@ class CheckPackageStepIT extends IntegrationTestBase {
             GroovySpy(ChecksApi, global: true) {
                 createCheckExecutionOrder(_) >> { restApiClient.apiClient.execute(mockCall, new TypeToken<AcceptedCheckExecutionOrder>() {}.getType()) }
             }
-
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg'}", true))
+
         and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killProcesses(_, _) >> true
             ProcessUtil.killTTProcesses(_) >> true
+
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+
         then:
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
@@ -100,14 +110,17 @@ class CheckPackageStepIT extends IntegrationTestBase {
             def mockCall = Mock(Call)
             mockCall.clone() >> mockCall
             mockCall.execute() >> MockApiResponse.getResponseBusy()
+
         and:
             GroovySpy(ChecksApi, global: true) {
                 createCheckExecutionOrder(*_) >> { restApiClient.apiClient.execute(mockCall, null) }
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
+
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+
         then:
             jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
@@ -115,4 +128,38 @@ class CheckPackageStepIT extends IntegrationTestBase {
     }
 
 
+    def 'Run pipeline: v2 with finding'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient = new RestApiClientV2('', '')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+
+        and:
+            def acceptedCheckExecutionOrder = Mock(AcceptedCheckExecutionOrder)
+            def finishedStatus = new CheckExecutionStatus()
+            finishedStatus.setStatus("FINISHED")
+            def checkReport = new CheckReport()
+            def checkFinding = new CheckFinding()
+            checkFinding.setFileName("test.pkg")
+            checkFinding.setMessage("Description must not be empty!")
+            checkReport.setIssues([checkFinding])
+            acceptedCheckExecutionOrder.getCheckExecutionId() >> 1
+            GroovySpy(ChecksApi, global: true) {
+                createCheckExecutionOrder(*_) >> acceptedCheckExecutionOrder
+                getCheckExecutionStatus(_) >>>  [null, finishedStatus ]
+                getCheckResult(_) >> checkReport
+            }
+
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
+
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS , job.scheduleBuild2(0).get())
+
+        then:
+            jenkins.assertLogContains("Executing package checks for 'test.pkg'", run)
+            jenkins.assertLogContains("-> result: ERROR", run)
+            jenkins.assertLogContains("--> test.pkg: Description must not be empty!", run)
+    }
 }

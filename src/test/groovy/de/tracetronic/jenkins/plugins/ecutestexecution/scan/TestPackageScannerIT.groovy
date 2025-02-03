@@ -35,7 +35,7 @@ class TestPackageScannerIT extends IntegrationTestBase {
 
     def 'Test No Packages'() {
         given:
-        TestPackageScanner testPackageScanner = new TestPackageScanner(folder.newFolder().getAbsolutePath(),
+            TestPackageScanner testPackageScanner = new TestPackageScanner(folder.newFolder().getAbsolutePath(),
                 false, context)
 
         when:

@@ -5,6 +5,14 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGeneration
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationResult
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
+import de.tracetronic.cxs.generated.et.client.model.v2.TGUpload
+import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadResult
+import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import com.cloudbees.plugins.credentials.CredentialsProvider
@@ -111,5 +119,46 @@ class UploadReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
             jenkins.assertLogNotContains('ecu.test is busy', run)
             jenkins.assertLogContains('unauthorized', run)
+    }
+
+    def 'Run pipeline: v2 mock with and without returned link'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+        and:
+            def reportInfo = new ReportInfo()
+            reportInfo.setTestReportId("1")
+            def currentUpload = new TGUpload()
+            def status = new TGUploadStatus()
+            def result = new TGUploadResult()
+            status.setKey(TGUploadStatus.KeyEnum.FINISHED)
+            status.setMessage("Message")
+            result.setLink(link)
+            currentUpload.setStatus(status)
+            currentUpload.setResult(result)
+            GroovySpy(ReportApi, global: true){
+                createReportGeneration(*_) >> new SimpleMessage()
+                getAllReports(*_) >> [reportInfo]
+                createUpload(*_) >> new SimpleMessage()
+                getCurrentUpload(_) >>> [null, currentUpload]
+            }
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085' }", true))
+
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 1...', run)
+            jenkins.assertLogContains("-> ${resultString}", run)
+            jenkins.assertLogContains(resultString2, run)
+
+        where:
+            link    | resultString                  | resultString2
+            ""      | "Report upload for 1 failed"  | "Report upload(s) unstable. Please see the logging of the uploads."
+            "link"  | "Uploaded successfully"       | "Report upload(s) successful"
     }
 }

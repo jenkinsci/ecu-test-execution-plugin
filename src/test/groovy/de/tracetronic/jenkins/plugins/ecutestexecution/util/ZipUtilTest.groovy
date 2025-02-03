@@ -176,4 +176,32 @@ class ZipUtilTest extends Specification {
                 entriesInNewZip.contains("test3.txt")
                 entriesInNewZip.contains("test4.xml")
         }
+
+    def "should skip directories when checking for file types"() {
+        given:
+            def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
+            new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
+                zip.putNextEntry(new ZipEntry("directory/"))
+                zip.putNextEntry(new ZipEntry("directory/test.txt"))
+            }
+
+        expect:
+            !ZipUtil.containsFileOfType(zipWithDir, ".xml")
+    }
+
+    def "should skip directories during extraction"() {
+        given:
+            def zipWithDir = new File(tempDir.toFile(), "zipWithDir.zip")
+            new ZipOutputStream(new FileOutputStream(zipWithDir)).withCloseable { zip ->
+                zip.putNextEntry(new ZipEntry("directory/"))
+            }
+
+        when:
+            def extractedFiles = ZipUtil.extractFilesByExtension(zipWithDir, [".txt"], outputDir.absolutePath)
+
+        then:
+            extractedFiles.isEmpty()
+            !new File(outputDir, "directory").exists()
+    }
+
 }

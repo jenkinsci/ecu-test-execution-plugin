@@ -23,11 +23,14 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
     def 'Default config round trip'() {
         given:
             ProvideExecutionLogsStep before = new ProvideExecutionLogsStep()
+
         when:
             ProvideExecutionLogsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
+
     def 'Snippet generator'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
@@ -36,8 +39,10 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             publishConfig.setKeepAll(false)
             publishConfig.setAllowMissing(true)
             ProvideExecutionLogsStep step = new ProvideExecutionLogsStep()
+
         when:
             step.setPublishConfig(publishConfig)
+
         then:
             st.assertRoundTrip(step, "ttProvideLogs(publishConfig: [allowMissing: true, keepAll: false, timeout: 10])")
     }
@@ -46,6 +51,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
+
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
@@ -57,6 +63,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [allowMissing: true])}", true))
+
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
@@ -69,6 +76,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [timeout: ${timeout}])}", true))
+
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)

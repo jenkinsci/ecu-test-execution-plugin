@@ -149,13 +149,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
                     ConfigurationOrder loadConfigOrder = new ConfigurationOrder().action(ConfigurationOrder.ActionEnum.STOP)
                     configApi.manageConfiguration(loadConfigOrder)
 
-                    while (checkConfigStatus(configApi.lastConfigurationOrder)) {
+                    while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
                         sleep(1000)
                     }
                 }
 
                 configApi.manageConfiguration(configOrder)
-                while (checkConfigStatus(configApi.lastConfigurationOrder)) {
+                while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
                     sleep(1000)
                 }
             }
@@ -166,7 +166,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             }
 
             Execution execution
-            while (checkStatus(execution = executionApi.currentExecution)) {
+            while (checkStatus(execution = executionApi.getCurrentExecution())) {
                 sleep(1000)
             }
             if (execution.result == null) {
@@ -177,7 +177,7 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         } catch (TimeoutException ignored) {
             if (timeoutExceeded) {
                 timeoutExceeded = false
-                if (executionApi.currentExecution.order == executionOrderV2) {
+                if (executionApi.getCurrentExecution().order == executionOrderV2) {
                     executionApi.abortExecution()
                 }
                 throw new TimeoutException("Timeout exceeded during the execution of '${executionOrder.testCasePath}'")

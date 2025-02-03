@@ -42,16 +42,17 @@ class GenerateReportsStepTest extends Specification {
         stepContext.get(EnvVars.class) >> envVars
         stepContext.get(Run.class) >> run
         stepContext.get(TaskListener.class) >> listener
-
     }
 
     def "Default constructor"() {
         when:
             def step = new GenerateReportsStep(generatorName)
+
         then:
             step.generatorName == "HTML"
             step.additionalSettings == []
             step.reportIds == []
+
         where:
             generatorName << ["HTML", "  HTML  "]
     }
@@ -59,12 +60,15 @@ class GenerateReportsStepTest extends Specification {
     def "setAdditionalSettings should handle '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
+
         when:
             step.setAdditionalSettings(given)
+
         then:
             step.additionalSettings.size() == resultNames.size()
             step.additionalSettings*.name == resultNames
             step.additionalSettings*.value == resultValues
+
         where:
             given                 | resultNames               | resultValues
             additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
@@ -76,10 +80,13 @@ class GenerateReportsStepTest extends Specification {
     def "setReportIds should handle '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
+
         when:
             step.setReportIds(given)
+
         then:
             step.reportIds == result
+
         where:
             given                          | result
             ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
@@ -94,6 +101,7 @@ class GenerateReportsStepTest extends Specification {
             step.setReportIds(["1", "2"])
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
+
         and:
             envVars.expand(generator) >> generator
             envVars.expand("1") >> "1"
@@ -104,8 +112,10 @@ class GenerateReportsStepTest extends Specification {
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
+
         when:
             def results = execution.run()
+
         then:
             results.size() == 2
             results.every {
@@ -118,6 +128,7 @@ class GenerateReportsStepTest extends Specification {
             1 * logger.println("- Generating ${generator} report format for report id 2...")
             2 * logger.println("  -> Success${messagePrint}")
             1 * logger.println("${generator} reports generated successfully.")
+
         where:
             generator   | message       | messagePrint
             'HTML'      | "message"     | " (message)"
@@ -132,16 +143,20 @@ class GenerateReportsStepTest extends Specification {
             }
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
+
         and:
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
             apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
+
         when:
             execution.run()
+
         then:
             calledCount * apiClient.getAllReportIds()
+
         where:
             given    | calledCount
             "skip"   | 1
@@ -153,6 +168,7 @@ class GenerateReportsStepTest extends Specification {
     def "Descriptor should provide correct function name and display name"() {
         given:
             def descriptor = new GenerateReportsStep.DescriptorImpl()
+
         expect:
             descriptor.getFunctionName() == 'ttGenerateReports'
             descriptor.getDisplayName() == '[TT] Generate ecu.test reports'
@@ -161,8 +177,10 @@ class GenerateReportsStepTest extends Specification {
     def "Descriptor should provide valid generator names"() {
         given:
             def descriptor = new GenerateReportsStep.DescriptorImpl()
+
         when:
             def items = descriptor.doFillGeneratorNameItems()
+
         then:
             items.size() == 7
             items*.name as Set == ['ATX', 'EXCEL', 'HTML', 'JSON', 'TRF-SPLIT', 'TXT', 'UNIT'] as Set

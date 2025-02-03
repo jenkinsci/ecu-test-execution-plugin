@@ -33,8 +33,10 @@ class ExpandableConfigTest extends Specification {
             recording.setRecordingGroup('recordingGroup')
             //recording.setMappingNames(['mapping1', 'mapping2'])
             analysisConfig.setRecordings(Arrays.asList(recording))
+
         when:
             AnalysisConfig expAnalysisConfig = analysisConfig.expand(envVars)
+
         then:
             expAnalysisConfig.getMapping() == 'mappingName'
             expAnalysisConfig.getAnalysisName() == 'analysisName'
@@ -52,8 +54,10 @@ class ExpandableConfigTest extends Specification {
 
             PackageConfig packageConfig = new PackageConfig(Arrays.asList(
                     new PackageParameter('${PARAM_LABEL}', '${PARAM_VALUE}')))
+
         when:
             PackageConfig expPackageConfig = packageConfig.expand(envVars)
+
         then:
             expPackageConfig.getPackageParameters().get(0).getLabel() == 'paramLabel'
             expPackageConfig.getPackageParameters().get(0).getValue() == 'paramValue'
@@ -66,14 +70,17 @@ class ExpandableConfigTest extends Specification {
             envVars.put('TCF_PATH', 'test.tcf')
             envVars.put('CONSTANT_LABEL', 'constLabel')
             envVars.put('CONSTANT_VALUE', 'constValue')
+
         and:
             TestConfig testConfig = new TestConfig()
             testConfig.setTbcPath('${TBC_PATH}')
             testConfig.setTcfPath('${TCF_PATH}')
             testConfig.setConstants(Arrays.asList(new Constant('${CONSTANT_LABEL}', '${CONSTANT_VALUE}')))
             testConfig.setForceConfigurationReload(true)
+
         when:
             TestConfig expTestConfig = testConfig.expand(envVars)
+
         then:
             expTestConfig.getTbcPath() == 'test.tbc'
             expTestConfig.getTcfPath() == 'test.tcf'

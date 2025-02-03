@@ -1,0 +1,115 @@
+package de.tracetronic.jenkins.plugins.ecutestexecution.steps
+
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.AnalysisConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PackageConfig
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.PackageParameter
+import hudson.AbortException
+import hudson.EnvVars
+import hudson.FilePath
+import hudson.Launcher
+import hudson.model.TaskListener
+import hudson.remoting.Channel
+import hudson.util.FormValidation
+import hudson.util.IOUtils
+import org.jenkinsci.plugins.workflow.steps.StepContext
+import spock.lang.Specification
+
+class RunPackageStepTest extends Specification {
+    def envVars
+    def launcher
+    def channel
+    def taskListener
+    def logger
+    def context
+
+    void setup() {
+        envVars = Mock(EnvVars)
+        launcher = Mock(Launcher)
+        channel = Mock(Channel)
+        taskListener = Mock(TaskListener)
+        logger = Mock(PrintStream)
+        context = Mock(StepContext) {
+            get(EnvVars) >> envVars
+            get(Launcher) >> launcher
+            get(TaskListener) >> taskListener
+        }
+
+        launcher.getChannel() >> channel
+        taskListener.getLogger() >> logger
+    }
+
+
+
+
+    def "doCheckTestCasePath should validate paths correctly with specified error message"() {
+        given:
+            def descriptor = new RunPackageStep.DescriptorImpl()
+
+        when:
+            def result = descriptor.doCheckTestCasePath(testCasePath)
+
+        then:
+            result.kind == expectedValidation.kind
+            result.message == expectedValidation.message
+
+        where:
+            testCasePath                    | expectedValidation
+            "valid/path/to/test.pkg"        | FormValidation.ok()
+            "invalid/path/to/test.txt"      | FormValidation.error("invalid/path/to/test.txt has to be of file type '.pkg'")
+            '${WORKSPACE}/path/to/test.prj' | FormValidation.warning('Value cannot be resolved at validation-time, be sure to allocate with a valid value.')
+    }
+
+    def "test checkProjectPath valid paths"() {
+        given:
+            GroovyMock(IOUtils, global: true)
+            IOUtils.isAbsolute(_) >> isAbsolute
+            GroovyMock(FilePath, global: true)
+            def projectPath = GroovyMock(FilePath)
+            new FilePath(channel, projectFile) >> projectPath
+            projectPath.exists() >> absPathExists
+            projectPath.getRemote() >> projectFile
+
+            def step = new RunPackageStep(projectFile)
+            def execution = new RunPackageStep.Execution(step, context)
+
+        when:
+            execution.checkPackagePath(projectFile)
+
+        then:
+            noExceptionThrown()
+
+        where:
+            projectFile                    | isAbsolute | absPathExists
+            "/foo/bar/test.pkg"            | true       | true
+            "/foo/bar/test.pkg"            | false      | false
+            "/foo/bar/test.pkg"            | false      | true
+
+    }
+
+    def "test checkProjectPath with invalid absolute project path"() {
+        given:
+            GroovyMock(IOUtils, global: true)
+            IOUtils.isAbsolute(_) >> true
+            GroovyMock(FilePath, global: true)
+            def projectPath = GroovyMock(FilePath)
+            new FilePath(channel, projectFile) >> projectPath
+            projectPath.exists() >> pathExists
+            projectPath.getRemote() >> projectFile
+
+            def step = new RunPackageStep(projectFile)
+            def execution = new RunPackageStep.Execution(step, context)
+
+        when:
+            execution.checkPackagePath(projectFile)
+
+        then:
+            def e = thrown(AbortException)
+            e.message == "ecu.test package at ${projectFile} does not exist! Please ensure that the path " +
+                    "is correctly set and it refers to the desired directory."
+
+
+        where:
+            projectFile         | pathExists
+            "/foo/bar/test.pkg" | false
+    }
+}
