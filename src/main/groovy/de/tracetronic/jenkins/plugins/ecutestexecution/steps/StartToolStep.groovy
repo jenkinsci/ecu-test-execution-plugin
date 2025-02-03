@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.StartToolResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
@@ -118,7 +119,7 @@ class StartToolStep extends Step {
         return new Execution(this, context)
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<Void> implements Serializable {
+    static class Execution extends SynchronousNonBlockingStepExecution<StartToolResult> implements Serializable {
 
         private static final long serialVersionUID = 1L
 
@@ -130,10 +131,12 @@ class StartToolStep extends Step {
         }
 
         @Override
-        protected Void run() throws Exception {
+        protected StartToolResult run() throws Exception {
             try {
                 EnvVars envVars = context.get(EnvVars.class)
                 FilePath workspace = context.get(FilePath.class)
+                TaskListener listener = context.get(TaskListener.class)
+
                 String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
                 String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
 
@@ -142,10 +145,14 @@ class StartToolStep extends Step {
 
                 checkWorkspace(expWorkspaceDir, expSettingsDir)
 
-                return context.get(Launcher.class).getChannel().call(
+                StartToolResult result = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
                                 expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
-                                step.stopUndefinedTools, envVars, context.get(TaskListener.class)))
+                                step.stopUndefinedTools, envVars, listener))
+                listener.logger.println(result.toString())
+                listener.logger.flush()
+                return result
+
             } catch (Exception e) {
                 context.get(Run.class).setResult(Result.FAILURE)
                 // there is no friendly option to stop the step execution without an exception
@@ -171,7 +178,7 @@ class StartToolStep extends Step {
         }
     }
 
-    private static final class ExecutionCallable extends MasterToSlaveCallable<Void, TimeoutException> {
+    private static final class ExecutionCallable extends MasterToSlaveCallable<StartToolResult, TimeoutException> {
 
         private static final long serialVersionUID = 1L
 
@@ -198,7 +205,7 @@ class StartToolStep extends Step {
         }
 
         @Override
-        Void call() throws TimeoutException {
+        StartToolResult call() throws TimeoutException {
             try {
                 String toolName = installation.getName()
                 if (keepInstance) {
@@ -222,7 +229,8 @@ class StartToolStep extends Step {
                     connectTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
                 }
-                return null
+                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), workspaceDir, settingsDir)
+
             } catch (Exception e) {
                 throw new AbortException(e.getMessage())
             }
