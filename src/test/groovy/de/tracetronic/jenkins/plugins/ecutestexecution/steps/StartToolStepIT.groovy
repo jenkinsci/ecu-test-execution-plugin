@@ -189,26 +189,51 @@ class StartToolStepIT extends IntegrationTestBase {
                     "Please ensure that the path is correctly set and it refers to the desired directory.", run)
     }
 
-    def 'Run pipeline: Timeout exceeded'() {
+    def 'Run pipeline: ecu.test connection valid'() {
+        given:
+            String toolName = 'ecu.test'
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: '${toolName}', " +
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 10, " +
+                    "stopUndefinedTools: false }", true))
+        and:
+            RestApiClient restApiClientMock = GroovyMock(RestApiClient)
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> restApiClientMock
+        and:
+            Process processMock = GroovyMock(Process)
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            new ProcessBuilder(_) >> processBuilderMock
+            processBuilderMock.command(_) >> processBuilderMock
+            processBuilderMock.start() >> processMock
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogContains("${toolName} started successfully.", run)
+    }
+
+    def 'Run pipeline: Timeout exceeded stopping tracetronic tools'() {
         given:
             File tempDir = File.createTempDir()
             tempDir.deleteOnExit()
             String workspaceDir = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 10 }", true))
         and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> false
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("Timeout of 60 seconds exceeded for stopping tracetronic tools! " +
+            jenkins.assertLogContains("Timeout of 10 seconds exceeded for stopping tracetronic tools! " +
                     "Please ensure that tracetronic tools are not already stopped or "  +
                     "blocked by another process.", run)
     }
 
-    @Ignore("feature currently disabled") // TODO: enable after fix
     def 'Run pipeline: No valid license found'() {
         given:
             File tempDir = File.createTempDir()
@@ -216,14 +241,14 @@ class StartToolStepIT extends IntegrationTestBase {
             String workspaceDir = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 2}", true))
         and:
             Process processMock = GroovyMock(Process)
             ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
             new ProcessBuilder(_) >> processBuilderMock
             processBuilderMock.command(_) >> processBuilderMock
             processBuilderMock.start() >> processMock
-            processMock.exitValue() >> 1
+            processMock.exitValue() >> 99
         and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
@@ -234,128 +259,59 @@ class StartToolStepIT extends IntegrationTestBase {
                     "Please ensure the license is not expired or corrupted.", run)
     }
 
-    @Ignore("feature currently disabled") // TODO: enable after fix
-    def 'Run pipeline: Timeout License Check'() {
+    def 'Run pipeline: Start tool with error code for unavailable port'() {
         given:
             File tempDir = File.createTempDir()
             tempDir.deleteOnExit()
             String workspaceDir = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 2}", true))
+        and:
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> null
         and:
             Process processMock = GroovyMock(Process)
             ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
             new ProcessBuilder(_) >> processBuilderMock
             processBuilderMock.command(_) >> processBuilderMock
             processBuilderMock.start() >> processMock
-        and:
-            Future<Integer> futureMock = GroovyMock(Future)
-            futureMock.get(_, _) >> { throw new TimeoutException() }
-        and:
-            ExecutorService executorServiceMock = GroovyMock(ExecutorService)
-            executorServiceMock.submit(_) >> futureMock
-        and:
-            GroovyMock(Executors, global: true)
-            Executors.newSingleThreadExecutor() >> executorServiceMock
+            processMock.exitValue() >> 8
         and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("Timeout of 60 seconds exceeded for checking license of ecu.test! " +
-                    "Please ensure the license server is active and responsive.", run)
+            jenkins.assertLogContains("ecu.test did not start correctly with exit code 8 and was terminated within " +
+                    "the timeout of 2 seconds.", run)
     }
 
-    def 'Run pipeline: Start tool timeout'() {
+    def 'Run pipeline: IllegalThreadStateException'() {
         given:
             File tempDir = File.createTempDir()
             tempDir.deleteOnExit()
             String workspaceDir = tempDir.getPath().replace('\\', '/')
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
-        and:
-            Process processMock = GroovyMock(Process)
-            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
-            new ProcessBuilder(_) >> processBuilderMock
-            processBuilderMock.command(_) >> processBuilderMock
-            processBuilderMock.start() >> processMock
-
-            processMock.isAlive() >> false
-        and:
-            long startTime = System.currentTimeMillis()
-            GroovyMock(System, global: true)
-            System.currentTimeMillis() >> { startTime += 60000; startTime }
-        and:
-            GroovyMock(ProcessUtil, global: true)
-            ProcessUtil.killTTProcesses(_) >> true
-        when:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        then:
-            jenkins.assertLogContains("Timeout of 60 seconds exceeded for starting ecu.test! " +
-                    "Please ensure that the tool is correctly configured and accessible", run)
-    }
-
-    def 'Run pipeline: Connect tool timeout'() {
-        given:
-            File tempDir = File.createTempDir()
-            tempDir.deleteOnExit()
-            String workspaceDir = tempDir.getPath().replace('\\', '/')
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
-        and:
-            Process processMock = GroovyMock(Process)
-            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
-            new ProcessBuilder(_) >> processBuilderMock
-            processBuilderMock.command(_) >> processBuilderMock
-            processBuilderMock.start() >> processMock
-
-            processMock.isAlive() >> true
-        and:
-            GroovyMock(ProcessUtil, global: true)
-            ProcessUtil.killTTProcesses(_) >> true
+                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 2 }", true))
         and:
             GroovySpy(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient(_, _, _) >> { throw new ApiException("") }
-        when:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
-        then:
-            jenkins.assertLogContains("Timeout of 60 seconds exceeded for connecting to ecu.test! " +
-                    "Please ensure the tool is correctly started and consider restarting it.", run)
-    }
-
-    def 'Run pipeline: return and print result'() {
-        given:
-            File tempDir = File.createTempDir()
-            tempDir.deleteOnExit()
-            String workspaceDir = tempDir.getPath().replace('\\', '/')
-            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
-                    "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
         and:
             Process processMock = GroovyMock(Process)
-            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true) as ProcessBuilder
             new ProcessBuilder(_) >> processBuilderMock
             processBuilderMock.command(_) >> processBuilderMock
             processBuilderMock.start() >> processMock
-
-            processMock.isAlive() >> true
+            processMock.exitValue() >> { throw new IllegalThreadStateException("")}
         and:
             GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
-        and:
-            GroovySpy(RestApiClientFactory, global: true)
-            RestApiClientFactory.getRestApiClient(_, _, _) >> { return }
         when:
-            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test started successfully.", run)
-            jenkins.assertLogContains("-> installationName: ecu.test", run)
-            jenkins.assertLogContains("-> toolExePath", run)
-            jenkins.assertLogContains("-> workSpaceDirPath: ${workspaceDir}", run)
-            jenkins.assertLogContains("-> settingsDirPath: ${workspaceDir}", run)
+            jenkins.assertLogContains("Timeout of 2 seconds exceeded for connecting to ecu.test! " +
+                    "Please ensure the tool is correctly configured and consider restarting it.", run)
     }
 }

@@ -256,12 +256,12 @@ class StartToolStep extends Step {
                 try  {
                     exitCode = process.exitValue()
                 }  catch (IllegalThreadStateException ignore){
+                    process.destroy()
                     throw new AbortException(
                             "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
                                     "Please ensure the tool is correctly configured and consider restarting it.")
                 }
-            }
-            if (exitCode == 0) {
+            } else {
                 return
             }
 
@@ -271,8 +271,8 @@ class StartToolStep extends Step {
             }
 
             throw new AbortException(
-                    "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
-                            "Please ensure the tool is correctly configured and consider restarting it.")
+                    "${toolName} did not start correctly with exit code ${exitCode} and was terminated within " +
+                            "the timeout of ${timeout} seconds.")
         }
 
         /**
