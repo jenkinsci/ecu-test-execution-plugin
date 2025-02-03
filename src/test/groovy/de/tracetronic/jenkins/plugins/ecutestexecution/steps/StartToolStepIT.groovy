@@ -28,13 +28,13 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.Executors
 
 class StartToolStepIT extends IntegrationTestBase {
-    String executablePath
-    String executablePathV2
+    ETInstallation.DescriptorImpl etDescriptor
+
     def setup() {
-        ETInstallation.DescriptorImpl etDescriptor = jenkins.jenkins
+        etDescriptor = jenkins.jenkins
                 .getDescriptorByType(ETInstallation.DescriptorImpl.class)
-        executablePath = Functions.isWindows() ? 'C:\\ecutest\\ECU-TEST.exe' : 'bin/ecu-test'
-        executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
+        String executablePath = Functions.isWindows() ? 'C:\\ecutest\\ECU-TEST.exe' : 'bin/ecu-test'
+        String executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
         etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES),
                 new ETInstallation('ecu.test', executablePathV2, JenkinsRule.NO_PROPERTIES))
     }
@@ -351,7 +351,7 @@ class StartToolStepIT extends IntegrationTestBase {
         then:
             jenkins.assertLogContains("ecu.test started successfully.", run)
             jenkins.assertLogContains("-> installationName: ecu.test", run)
-            jenkins.assertLogContains("-> toolExePath: ${executablePathV2}", run)
+            jenkins.assertLogContains("-> toolExePath: ${etDescriptor.getInstallation("ecu.test").getHome()}", run)
             jenkins.assertLogContains("-> workSpaceDirPath: ${workspaceDir}", run)
             jenkins.assertLogContains("-> settingsDirPath: ${workspaceDir}", run)
     }
