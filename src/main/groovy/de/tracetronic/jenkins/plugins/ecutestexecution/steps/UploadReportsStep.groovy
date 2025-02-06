@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,6 +16,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -108,7 +109,7 @@ class UploadReportsStep extends Step {
 
     @DataBoundSetter
     void setReportIds(List<String> reportIds) {
-        this.reportIds = reportIds ? removeEmptyReportIds(reportIds) : []
+        this.reportIds = reportIds ? StepUtil.removeEmptyReportIds(reportIds) : []
     }
 
     @Override
@@ -118,10 +119,6 @@ class UploadReportsStep extends Step {
 
     private static List<AdditionalSetting> removeEmptySettings(List<AdditionalSetting> settings) {
         return settings.findAll { setting -> StringUtils.isNotBlank(setting.name) }
-    }
-
-    private static List<String> removeEmptyReportIds(List<String> reportIds) {
-        return reportIds.findAll { id -> StringUtils.isNotBlank(id) }
     }
 
     private static List<AdditionalSetting> expandSettings(List<AdditionalSetting> settings, EnvVars envVars) {

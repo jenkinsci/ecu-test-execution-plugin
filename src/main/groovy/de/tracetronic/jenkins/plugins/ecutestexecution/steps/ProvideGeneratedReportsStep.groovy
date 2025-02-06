@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 tracetronic GmbH
+* Copyright (c) 2024-2025 tracetronic GmbH
 *
 * SPDX-License-Identifier: BSD-3-Clause
 */
@@ -34,6 +34,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
+        reportIds = []
     }
 
     String getSelectedReportTypes() {

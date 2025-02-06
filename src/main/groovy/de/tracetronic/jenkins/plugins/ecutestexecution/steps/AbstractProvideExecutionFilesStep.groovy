@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 tracetronic GmbH
+* Copyright (c) 2024-2025 tracetronic GmbH
 *
 * SPDX-License-Identifier: BSD-3-Clause
 */
@@ -16,12 +16,14 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
 import hudson.AbortException
 import hudson.EnvVars
 import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
+import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepExecution
@@ -35,6 +37,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
     protected String outDirName
     protected String supportVersion
     protected PublishConfig publishConfig
+    protected List<String> reportIds
 
     AbstractProvideExecutionFilesStep() {
         super()
@@ -44,6 +47,15 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
     @Nonnull
     PublishConfig getPublishConfig() {
         return new PublishConfig(publishConfig)
+    }
+
+    List<String> getReportIds() {
+        return reportIds.collect()
+    }
+
+    @DataBoundSetter
+    void setReportIds(List<String> reportIds) {
+        this.reportIds = reportIds ? StepUtil.removeEmptyReportIds(reportIds): []
     }
 
     @DataBoundSetter
