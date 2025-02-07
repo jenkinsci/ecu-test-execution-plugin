@@ -26,7 +26,6 @@ class ProvideExecutionLogsStep extends AbstractProvideExecutionFilesStep {
         iconName = ICON_NAME
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
-        reportIds = []
     }
 
     @Override

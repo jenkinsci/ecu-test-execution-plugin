@@ -38,10 +38,13 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
     protected String supportVersion
     protected PublishConfig publishConfig
     protected List<String> reportIds
+    protected hasWarnings
 
     AbstractProvideExecutionFilesStep() {
         super()
         this.publishConfig = new PublishConfig()
+        this.reportIds = []
+        this.hasWarnings = false
     }
 
     @Nonnull
@@ -93,12 +96,16 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
                 )
                 def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
                 if (!result && !step.publishConfig.allowMissing) {
-                    throw new Exception("Build Result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
+                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
                 }
 
                 result && listener.logger.println("Successfully added ${step.outDirName} to jenkins.")
+                if (step.hasWarnings) {
+                    run.setResult(Result.UNSTABLE)
+                    listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
+                }
             } catch (Exception e) {
-                if (e instanceof AbortException) {
+                if (e instanceof UnsupportedOperationException) {
                     run.setResult(Result.UNSTABLE)
                 } else {
                     run.setResult(Result.FAILURE)
@@ -138,10 +145,31 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
                 if (apiClient instanceof RestApiClientV1) {
-                    throw new AbortException(unsupportedVersionMsg)
+                    throw new UnsupportedOperationException(unsupportedVersionMsg)
                 }
+
                 apiClient = (RestApiClientV2) apiClient
-                List<ReportInfo> reports = apiClient.getAllReports()
+                List<ReportInfo> reports = []
+                if (!step.reportIds) {
+                    listener.logger.println("Providing all ${step.outDirName}...")
+                    reports = apiClient.getAllReports()
+                } else {
+                    step.reportIds.each { id ->
+                        ReportInfo report = apiClient.getReport(id)
+                        if (report) {
+                            reports.add(report)
+                            return
+                        }
+                        if (step.publishConfig.failOnError) {
+                            throw new AbortException("Build result set to ${Result.FAILURE.toString()} due " +
+                                    "missing report ${id}. Set Pipeline step property " +
+                                    "'Fail On Error' to 'false' to ignore missing reports.")
+                        } else {
+                            step.hasWarnings = true
+                            listener.logger.println("[WARNING] Report with id ${id} could not be found!")
+                        }
+                    }
+                }
 
                 if (reports == null || reports.isEmpty()) {
                     return []
@@ -149,11 +177,20 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
 
                 ArrayList<String> reportPaths = []
                 reports.each { report ->
+                    listener.logger.println("Providing ${step.outDirName} for report ${report.testReportId}...")
                     String reportDirName = report.reportDir.split('/').last()
                     File reportZip = apiClient.downloadReportFolder(report.testReportId)
-                    ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
-                    if (reportPath) {
-                        reportPaths.addAll(reportPath)
+                    if (reportZip) {
+                        ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
+                        if (reportPath) {
+                            reportPaths.addAll(reportPath)
+                        }
+                        return
+                    }
+                    if (step.publishConfig.failOnError) {
+                        throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to " +
+                                "failing download of ${report.testReportId}. Set Pipeline step property " +
+                                "'Fail On Error' to 'false' to ignore any download error.")
                     }
                 }
 
@@ -161,7 +198,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
             }
             catch (ApiException e) {
                 if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
-                    throw new AbortException(unsupportedVersionMsg)
+                    throw new UnsupportedOperationException(unsupportedVersionMsg)
                 }
             }
             listener.logger.flush()
