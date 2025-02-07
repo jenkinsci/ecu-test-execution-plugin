@@ -83,7 +83,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains("Successfully added ecu.test Logs to jenkins.", run)
     }
 
-    def 'Run pipeline to provide all reports successfully'() {
+    def 'Run pipeline to provide all logs successfully'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
@@ -119,7 +119,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Successfully added ecu.test Logs to jenkins.", run)
     }
 
-    def 'Run pipeline unstable for report ids not found with warning prints'() {
+    def 'Run pipeline unstable for log ids not found with warning prints'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
@@ -138,7 +138,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains("Build result set to UNSTABLE due to warnings.", run)
     }
 
-    def 'Run pipeline with report ids successfully no warnings printed'() {
+    def 'Run pipeline with log ids successfully no warnings printed'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
@@ -174,7 +174,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
             jenkins.assertLogNotContains("No files found to archive!", run)
     }
 
-    def 'Run pipeline with fail on error missing report ids'() {
+    def 'Run pipeline with fail on error missing log ids'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
@@ -194,7 +194,7 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
                     "Set Pipeline step property 'Fail On Error' to 'false' to ignore missing reports.", run)
     }
 
-    def 'Run pipeline with fail on error missing report download'() {
+    def 'Run pipeline with fail on error missing logs download'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
