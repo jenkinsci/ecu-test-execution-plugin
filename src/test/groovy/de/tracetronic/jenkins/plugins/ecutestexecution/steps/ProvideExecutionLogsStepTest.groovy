@@ -26,7 +26,7 @@ class ProvideExecutionLogsStepTest extends Specification {
 
         then:
             result == extractedFiles
-            loggerCalled * logger.println("[WARNING] TestReport is missing one or all log files!")
+            loggerCalled * logger.println("TestReport is missing one or all log files!")
 
         where:
             scenario               | extractedFiles                           | loggerCalled

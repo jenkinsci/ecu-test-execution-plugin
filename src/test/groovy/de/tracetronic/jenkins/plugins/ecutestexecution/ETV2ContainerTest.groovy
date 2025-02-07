@@ -58,7 +58,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etLogsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
@@ -79,7 +79,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
     }
 
     def "ttRunPackage: keep current configuration."() {
@@ -247,7 +247,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
@@ -268,7 +268,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
     }
 
     def "ttProvideReports: test happy path"() {
@@ -307,7 +307,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etGeneratedReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
     }
 
@@ -328,7 +328,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
     }
 
     def "ttProvideGeneratedReports: happy path"() {
@@ -370,7 +370,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
             then: "expect log information about successful pipeline run"
                 jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
-                jenkins.assertLogContains("[WARNING] Could not find any matching generated report files", run)
-                jenkins.assertLogContains("[WARNING] No files found!", run)
+                jenkins.assertLogContains("Could not find any matching generated report files", run)
+                jenkins.assertLogContains("No files found to archive!", run)
         }
 }

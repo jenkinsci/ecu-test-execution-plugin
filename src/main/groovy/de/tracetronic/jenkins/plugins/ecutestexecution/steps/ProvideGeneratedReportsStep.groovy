@@ -73,7 +73,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
 
         if (generatedZipPaths.isEmpty()) {
-            listener.logger.println("[WARNING] Could not find any matching generated report files in ${reportDirName}!")
+            listener.logger.println("Could not find any matching generated report files in ${reportDirName}!")
         }
 
         return generatedZipPaths

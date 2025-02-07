@@ -39,7 +39,7 @@ class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep {
         } else {
             List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, [".trf"], "${outDirPath}/${reportDirName}")
             if (extractedFiles.size() == 0) {
-                listener.logger.println("[WARNING] Could not find any report files in ${reportDirName}!")
+                listener.logger.println("Could not find any report files in ${reportDirName}!")
             }
             reportPaths.addAll(extractedFiles)
         }

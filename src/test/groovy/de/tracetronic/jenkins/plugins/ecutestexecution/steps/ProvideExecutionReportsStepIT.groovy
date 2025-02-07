@@ -54,7 +54,7 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing ecu.test Reports. Adjust AllowMissing step property if this is not intended.", run)
     }
 
@@ -66,7 +66,7 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
-            jenkins.assertLogContains("[WARNING] No files found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogNotContains("Successfully added ecu.test Reports to jenkins.", run)
     }
 

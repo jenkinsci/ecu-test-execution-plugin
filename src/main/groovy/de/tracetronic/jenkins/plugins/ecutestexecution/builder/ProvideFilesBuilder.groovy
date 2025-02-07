@@ -28,7 +28,7 @@ class ProvideFilesBuilder implements Serializable {
         FilePath workspace = context.get(FilePath.class)
         TaskListener listener = context.get(TaskListener.class)
         if (!filePaths) {
-            listener.logger.println('[WARNING] No files found!')
+            listener.logger.println('No files found to archive!')
             listener.logger.flush()
             return false
         }

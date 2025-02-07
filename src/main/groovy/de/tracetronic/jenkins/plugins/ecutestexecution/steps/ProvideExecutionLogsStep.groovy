@@ -35,7 +35,7 @@ class ProvideExecutionLogsStep extends AbstractProvideExecutionFilesStep {
 
         ArrayList<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, logFileNames, "${outDirPath}/${reportDirName}")
         if (extractedFiles.size() != logFileNames.size()) {
-            listener.logger.println("[WARNING] ${reportDirName} is missing one or all log files!")
+            listener.logger.println("${reportDirName} is missing one or all log files!")
         }
 
         return extractedFiles
