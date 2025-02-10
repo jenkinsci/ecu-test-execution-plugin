@@ -18,9 +18,12 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
+import hudson.AbortException
 import hudson.model.Result
 import okhttp3.Call
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -28,16 +31,15 @@ import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
+import spock.mock.MockFactory
 
 class GenerateReportsStepIT extends IntegrationTestBase {
 
     def 'Default config round trip'() {
         given:
             GenerateReportsStep before = new GenerateReportsStep('HTML')
-
         when:
             GenerateReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
-
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -46,10 +48,9 @@ class GenerateReportsStepIT extends IntegrationTestBase {
         given:
             GenerateReportsStep before = new GenerateReportsStep('HTML')
             before.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
-
+            before.setFailOnError(false)
         when:
             GenerateReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
-
         then:
             jenkins.assertEqualDataBoundBeans(before, after)
     }
@@ -57,31 +58,60 @@ class GenerateReportsStepIT extends IntegrationTestBase {
     def 'Snippet generator'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
-
         when:
             GenerateReportsStep step = new GenerateReportsStep('HTML')
-
         then:
             st.assertRoundTrip(step, "ttGenerateReports 'HTML'")
-
         when:
             step.setAdditionalSettings(Arrays.asList(new AdditionalSetting('javascript', 'False')))
-
         then:
             st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
                     "[name: 'javascript', value: 'False']], generatorName: 'HTML'")
+        when:
+            step.setFailOnError(false)
+        then:
+            st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
+                    "[name: 'javascript', value: 'False']], failOnError: false, generatorName: 'HTML'")
+        when:
+            step.setReportIds(['1', '', '3'])
+        then:
+            st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
+                    "[name: 'javascript', value: 'False']], failOnError: false, generatorName: 'HTML', " +
+                    "reportIds: ['1', '3']")
     }
 
-    def 'Run pipeline'() {
+    def 'Run pipeline html report'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
             GroovyMock(RestApiClientFactory, global: true)
             RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
-
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Generating HTML reports...', run)
+    }
+
+    def 'Run pipeline throw AbortException with failOnError true'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClient clientMock = Mock(RestApiClient)
+            RestApiClientFactory.getRestApiClient(*_) >> clientMock
+            clientMock.generateReport(*_) >>> [
+                    new GenerationResult('Success', 'Success message', "folder"),
+                    new GenerationResult('Error', 'Error message', "folder")
+            ]
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports generatorName: 'HTML', " +
+                    "reportIds: ['1', '', '3'] }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Generating HTML reports...', run)
+            jenkins.assertLogContains('Generating HTML report format for report id 1...', run)
+            jenkins.assertLogContains('-> Success (Success message)', run)
+            jenkins.assertLogContains('Generating HTML report format for report id 3...', run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to failed report generation. " +
+                    "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report generations.)", run)
     }
 
     def 'Run pipeline: with 409 handling'() {
@@ -98,7 +128,6 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             }
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
-
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Generating HTML reports...', run)
@@ -111,7 +140,6 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             GroovyMock(RestApiClientFactory, global: true)
             def restApiClient =  new RestApiClientV2('','')
             RestApiClientFactory.getRestApiClient(*_) >> restApiClient
-
         and:
             def reportInfo = new ReportInfo()
             reportInfo.setTestReportId("1")
@@ -128,11 +156,9 @@ class GenerateReportsStepIT extends IntegrationTestBase {
                 getAllReports(*_) >> [reportInfo]
                 getCurrentReportGeneration(_) >>> [null , currentReportGeneration]
             }
-
         and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttGenerateReports 'HTML' }", true))
-
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Generating HTML reports...', run)
