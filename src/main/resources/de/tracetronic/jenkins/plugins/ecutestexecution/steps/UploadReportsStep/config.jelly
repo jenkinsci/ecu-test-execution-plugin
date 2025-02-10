@@ -13,10 +13,13 @@
              field="useSettingsFromServer">
         <f:checkbox default="true"/>
     </f:entry>
-    <f:advanced title="${%additionalSettings.title}">
+    <f:advanced>
         <f:entry title="${%additionalSettings.title}" description="${%additionalSettings.description}"
                  field="additionalSettings">
             <f:repeatableProperty field="additionalSettings" add="${%additionalSettings.add}" minimum="0"/>
+        </f:entry>
+        <f:entry title="${%failOnError.title}" description="${%failOnError.description}" field="failOnError">
+            <f:checkbox default="true"/>
         </f:entry>
     </f:advanced>
 </j:jelly>

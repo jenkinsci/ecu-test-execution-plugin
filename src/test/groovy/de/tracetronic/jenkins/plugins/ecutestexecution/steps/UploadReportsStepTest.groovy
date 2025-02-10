@@ -66,9 +66,10 @@ class UploadReportsStepTest extends Specification {
             step.testGuideUrl == "http://localhost:8085"
             step.credentialsId == "auth"
             step.projectId == 1
-            step.useSettingsFromServer == true
+            step.useSettingsFromServer
             step.additionalSettings == []
             step.reportIds == []
+            step.failOnError
     }
 
     def "getTestGuideUrl should trim trailing slash from testGuideUrl"() {
@@ -92,7 +93,6 @@ class UploadReportsStepTest extends Specification {
             additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
             []                    | []                        | []
             null                  | []                        | []
-
     }
 
     def "setReportIds should handle '#given'"() {
@@ -116,7 +116,7 @@ class UploadReportsStepTest extends Specification {
             step.setReportIds(givenReportIds)
             def execution = new UploadReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
-
+        and:
             def mockCredential = Mock(StandardUsernamePasswordCredentials) {
                 getId() >> "credId123"
             }
@@ -158,6 +158,50 @@ class UploadReportsStepTest extends Specification {
             ""      | ["1", "2"]        |"Report upload(s) unstable. Please see the logging of the uploads."
     }
 
+    def "Should handle failOnError property"() {
+        given:
+            def logger = Mock(PrintStream)
+            def step = new UploadReportsStep("http://localhost:8085", "credId123")
+            step.setReportIds(givenReportIds)
+            def execution = new UploadReportsStep.Execution(step, stepContext)
+            GroovyMock(RestApiClientFactory, global: true)
+        and:
+            def mockCredential = Mock(StandardUsernamePasswordCredentials) {
+                getId() >> "credId123"
+            }
+            GroovyMock(CredentialsMatchers, global: true)
+            CredentialsMatchers.firstOrNull(_, CredentialsMatchers.withId("credId123")) >> mockCredential
+        and:
+            listener.logger >> logger
+            for (def reportId in givenReportIds){
+                envVars.expand(reportId) >> reportId
+            }
+            envVars.expand("http://localhost:8085") >> "http://localhost:8085"
+            listener.logger >> logger
+            RestApiClientFactory.getRestApiClient(*_) >> apiClient
+
+            apiClient.uploadReport(*_) >>> [
+                    new UploadResult("Success", message, 'a link'),
+                    new UploadResult("Error", message, '')
+            ]
+            channel.call(_) >> { MasterToSlaveCallable callable ->
+                return callable.call()
+            }
+        when:
+            def results = execution.run()
+        then:
+            1 * logger.println("Uploading reports to test.guide http://localhost:8085...")
+            1 * logger.println("- Uploading ATX report for report id 1...")
+            1 * logger.println("  -> ${message}")
+            results.size() == 1
+            results[0].uploadMessage == "A problem occurred during the report upload. See caused exception for more details."
+            0 * logger.println("${resultPrint}")
+        where:
+            givenReportIds = ["1", "2"]
+            message = "message"
+            resultPrint = "Report upload(s) successful"
+    }
+
     def "Call getAllReportIds if setReportIds with: '#given'"() {
         given:
             def step = new UploadReportsStep("http://localhost:8085", "credId123")
@@ -189,8 +233,6 @@ class UploadReportsStepTest extends Specification {
             []       | 1
             ["1"]    | 0
     }
-
-
 
     def "Descriptor should provide correct function name and display name"() {
         given:
@@ -239,11 +281,8 @@ class UploadReportsStepTest extends Specification {
                 mockItem.hasPermission(Item.EXTENDED_READ) >> hasExtendedRead
                 mockItem.hasPermission(CredentialsProvider.USE_ITEM) >> hasUseItem
             }
-
-
         expect:
             descriptor.doCheckCredentialsId(mockItem, credentialId).kind == expectedKind
-
         where:
             itemParam   | hasAdminPerm  | credentialId  | hasExtendedRead   | hasUseItem | expectedKind
             null        | false         | ''            | false             | false      | FormValidation.Kind.OK
@@ -271,13 +310,10 @@ class UploadReportsStepTest extends Specification {
     def "should correctly handle different credential strings based on the format"() {
         given:
             def value = inputValue
-
         when:
             def result = UploadReportsStep.DescriptorImpl.isExpressionBasedCredentials(value)
-
         then:
             result == expectedResult
-
         where:
             inputValue            | expectedResult
             "\${expression}"      | true

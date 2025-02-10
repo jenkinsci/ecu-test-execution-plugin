@@ -21,9 +21,11 @@ import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Result
 import okhttp3.Call
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
@@ -79,9 +81,21 @@ class UploadReportsStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, "ttUploadReports additionalSettings: [" +
                     "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', projectId: 2, " +
                     "testGuideUrl: 'http://localhost:8085'")
+        when:
+            step.setFailOnError(false)
+        then:
+            st.assertRoundTrip(step, "ttUploadReports additionalSettings: [" +
+                    "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', failOnError: false, " +
+                    "projectId: 2, testGuideUrl: 'http://localhost:8085'")
+        when:
+            step.setReportIds(['1', '', '3'])
+        then:
+            st.assertRoundTrip(step, "ttUploadReports additionalSettings: [" +
+                    "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', failOnError: false, " +
+                    "projectId: 2, reportIds: ['1', '3'], testGuideUrl: 'http://localhost:8085'")
     }
 
-    def 'Run pipeline'() {
+    def 'Run pipeline default'() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
@@ -121,44 +135,104 @@ class UploadReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('unauthorized', run)
     }
 
-    def 'Run pipeline: v2 mock with and without returned link'() {
+    def 'Run pipeline successfully with given report IDs'() {
         given:
             GroovyMock(RestApiClientFactory, global: true)
-            def restApiClient =  new RestApiClientV2('','')
-            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+            RestApiClient restApiClientMock =  Mock(RestApiClient)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientMock
+            restApiClientMock.uploadReport(*_) >>> [
+                    new UploadResult('Success', 'success message', 'link'),
+                    new UploadResult('Success', 'another success message', 'link')
+            ]
         and:
-            def reportInfo = new ReportInfo()
-            reportInfo.setTestReportId("1")
-            def currentUpload = new TGUpload()
-            def status = new TGUploadStatus()
-            def result = new TGUploadResult()
-            status.setKey(TGUploadStatus.KeyEnum.FINISHED)
-            status.setMessage("Message")
-            result.setLink(link)
-            currentUpload.setStatus(status)
-            currentUpload.setResult(result)
-            GroovySpy(ReportApi, global: true){
-                createReportGeneration(*_) >> new SimpleMessage()
-                getAllReports(*_) >> [reportInfo]
-                createUpload(*_) >> new SimpleMessage()
-                getCurrentUpload(_) >>> [null, currentUpload]
-            }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085', reportIds: ['1', '', '3'] }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 1...', run)
+            jenkins.assertLogContains("-> success message", run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 3...', run)
+            jenkins.assertLogContains("-> another success message", run)
+            jenkins.assertLogContains("Report upload(s) successful", run)
+    }
+
+    def 'Run pipeline successfully without given report IDs'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClient restApiClientMock =  Mock(RestApiClient)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientMock
+            restApiClientMock.getAllReportIds() >> ['1', '2']
+            restApiClientMock.uploadReport(*_) >>> [
+                    new UploadResult('Success', 'success message', 'link'),
+                    new UploadResult('Success', 'another success message', 'link')
+            ]
         and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttUploadReports credentialsId: 'authKey', " +
                             "testGuideUrl: 'http://localhost:8085' }", true))
-
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
             jenkins.assertLogContains('- Uploading ATX report for report id 1...', run)
-            jenkins.assertLogContains("-> ${resultString}", run)
-            jenkins.assertLogContains(resultString2, run)
+            jenkins.assertLogContains("-> success message", run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 2...', run)
+            jenkins.assertLogContains("-> another success message", run)
+            jenkins.assertLogContains("Report upload(s) successful", run)
+    }
 
-        where:
-            link    | resultString                  | resultString2
-            ""      | "Report upload for 1 failed"  | "Report upload(s) unstable. Please see the logging of the uploads."
-            "link"  | "Uploaded successfully"       | "Report upload(s) successful"
+    def 'Run pipeline with fail on error'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClient restApiClientMock =  Mock(RestApiClient)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientMock
+            restApiClientMock.uploadReport(*_) >>> [
+                    new UploadResult('Success', 'success message', 'link'),
+                    new UploadResult('Error', 'error message', '')
+            ]
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085', reportIds: ['1', '', '3'] }", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 1...', run)
+            jenkins.assertLogContains("-> success message", run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 3...', run)
+            jenkins.assertLogContains("Build result set to ${Result.FAILURE.toString()} due to failed report upload. " +
+                    "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.", run)
+            jenkins.assertLogNotContains("-> error message", run)
+            jenkins.assertLogNotContains("Report upload(s) successful", run)
+    }
+
+    def 'Run pipeline with fail on error false'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClient restApiClientMock =  Mock(RestApiClient)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientMock
+            restApiClientMock.uploadReport(*_) >>> [
+                    new UploadResult('Success', 'success message', 'link'),
+                    new UploadResult('Error', 'error message', '')
+            ]
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'authKey', " +
+                            "testGuideUrl: 'http://localhost:8085', reportIds: ['1', '', '3'], failOnError: false }",
+                    true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 1...', run)
+            jenkins.assertLogContains("-> success message", run)
+            jenkins.assertLogContains('- Uploading ATX report for report id 3...', run)
+            jenkins.assertLogContains("-> error message", run)
+            jenkins.assertLogContains("Report upload(s) unstable. Please see the logging of the uploads.", run)
+            jenkins.assertLogNotContains("Report upload(s) successful", run)
     }
 }
