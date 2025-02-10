@@ -227,6 +227,29 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
                     "ignore any download error.", run)
     }
 
+    def 'Run pipeline with fail missing logs file in .zip'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
+            restApiClientV2Mock.getReport(_) >> new ReportInfo('reportId', 'reportDir', 'result', [])
+            restApiClientV2Mock.downloadReportFolder(_) >> new File('src/test/resources/report.zip')
+        and:
+            GroovyMock(ZipUtil, global: true)
+            ZipUtil.extractFilesByExtension(*_) >> []
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs reportIds: ['reportId']}", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs for report reportId...", run)
+            jenkins.assertLogContains("reportDir is missing one or all log files!", run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing ecu.test Logs. " +
+                    "Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs failed!", run)
+    }
+
     def 'Run pipeline exceeds timeout'() {
         int timeout = 1
         given:
