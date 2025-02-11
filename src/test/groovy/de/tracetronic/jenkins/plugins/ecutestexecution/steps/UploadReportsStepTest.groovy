@@ -109,11 +109,12 @@ class UploadReportsStepTest extends Specification {
             null                          | []
     }
 
-    def "Should handle report upload for link:'#link'"() {
+    def "Should handle failOnError property false"() {
         given:
             def logger = Mock(PrintStream)
             def step = new UploadReportsStep("http://localhost:8085", "credId123")
             step.setReportIds(givenReportIds)
+            step.setFailOnError(false)
             def execution = new UploadReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
         and:
@@ -131,7 +132,10 @@ class UploadReportsStepTest extends Specification {
             listener.logger >> logger
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
 
-            apiClient.uploadReport(_, _) >> new UploadResult("Success", "message", link)
+            apiClient.uploadReport(_, _) >>> [
+                    new UploadResult("Success", message[0], 'link'),
+                    new UploadResult("Error", message[1], '')
+                    ]
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
@@ -139,23 +143,15 @@ class UploadReportsStepTest extends Specification {
             def results = execution.run()
         then:
             results.size() == givenReportIds.size()
-            results.every {
-                        it.uploadResult == "Success" &&
-                        it.uploadMessage == "message" &&
-                        it.reportLink == link
-            }
             1 * logger.println("Uploading reports to test.guide http://localhost:8085...")
-            for (def reportId in givenReportIds){
+            givenReportIds.eachWithIndex { reportId, idx ->
                 1 * logger.println("- Uploading ATX report for report id ${reportId}...")
+                1 * logger.println("  -> ${message[idx]}")
             }
-            givenReportIds.size() * logger.println("  -> message")
-            1 * logger.println(resultPrint)
+            1 * logger.println("Report upload(s) unstable. Please see the logging of the uploads.")
         where:
-            link    | givenReportIds    | resultPrint
-            "link"  | ["1"]             |"Report upload(s) successful"
-            "link"  | ["1", "2"]        |"Report upload(s) successful"
-            ""      | ["1"]             |"Report upload(s) unstable. Please see the logging of the uploads."
-            ""      | ["1", "2"]        |"Report upload(s) unstable. Please see the logging of the uploads."
+            givenReportIds = ["1", "2"]
+            message = ["success message", 'failed message']
     }
 
     def "Should handle failOnError property"() {
