@@ -55,11 +55,13 @@ class ETV2ContainerTest extends ETContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
-
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing all $etLogsFolderName...", run)
             jenkins.assertLogContains("No files found to archive!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etLogsFolderName. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("Providing $etLogsFolderName failed!", run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing $etLogsFolderName. " +
+                    "Adjust AllowMissing step property if this is not intended.", run)
     }
 
     def "ttProvideLogs: Test for allowed missing files"() {
@@ -73,13 +75,32 @@ class ETV2ContainerTest extends ETContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing all $etLogsFolderName...", run)
             jenkins.assertLogContains("No files found to archive!", run)
+    }
+
+    def "ttProvideLogs: Test for failOnError false"() {
+        given: "a pipeline logs provider"
+            String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttProvideLogs(publishConfig: [allowMissing: true, failOnError: false], reportIds: ['1'])
+                        }
+                    }
+                    """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+        then: "expect log information about successful pipeline run"
+            jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] Report with id 1 could not be found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
+            jenkins.assertLogContains("Build result set to ${Result.UNSTABLE.toString()} due to warnings.", run)
     }
 
     def "ttRunPackage: keep current configuration."() {
@@ -111,13 +132,10 @@ class ETV2ContainerTest extends ETContainerTest {
                 }
             }
             """.stripIndent()
-
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about predefined paths being kept"
             jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
@@ -154,13 +172,10 @@ class ETV2ContainerTest extends ETContainerTest {
                 }
             }
             """.stripIndent()
-
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about predefined paths being empty"
             jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
@@ -191,10 +206,8 @@ class ETV2ContainerTest extends ETContainerTest {
                     }
                 }
                 """.stripIndent()
-
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
         and:
@@ -222,10 +235,8 @@ class ETV2ContainerTest extends ETContainerTest {
                 """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etLogsFolderName to jenkins.", run)
             jenkins.assertLogContains("Successfully added $etLogsFolderName to jenkins.", run)
@@ -244,11 +255,33 @@ class ETV2ContainerTest extends ETContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
-
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing all $etReportsFolderName...", run)
+            jenkins.assertLogContains("Providing $etReportsFolderName failed!", run)
             jenkins.assertLogContains("No files found to archive!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing $etReportsFolderName. " +
+                    "Adjust AllowMissing step property if this is not intended.", run)
+    }
+
+    def "ttProvideReports: Test for failOnError false"() {
+        given: "a pipeline logs provider"
+            String script = """
+                        node {
+                            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                ttProvideReports(publishConfig: [allowMissing: true, failOnError: false], reportIds: ['1'])
+                            }
+                        }
+                        """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+        then: "expect log information about successful pipeline run"
+            jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] Report with id 1 could not be found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
+            jenkins.assertLogContains("Build result set to ${Result.UNSTABLE.toString()} due to warnings.", run)
     }
 
     def "ttProvideReports: Test for allowed missing files"() {
@@ -262,10 +295,8 @@ class ETV2ContainerTest extends ETContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("No files found to archive!", run)
@@ -285,7 +316,6 @@ class ETV2ContainerTest extends ETContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("Successfully added $etReportsFolderName to jenkins.", run)
@@ -304,11 +334,33 @@ class ETV2ContainerTest extends ETContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
-
         then: "expect log information about failed pipeline run"
             jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Providing all $etGeneratedReportsFolderName...", run)
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName failed!", run)
             jenkins.assertLogContains("No files found to archive!", run)
-            jenkins.assertLogContains("ERROR: Build Result set to FAILURE due to missing $etGeneratedReportsFolderName. Adjust AllowMissing step property if this is not intended.", run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing $etGeneratedReportsFolderName. " +
+                    "Adjust AllowMissing step property if this is not intended.", run)
+    }
+
+    def "ttProvideGeneratedReports: Test for failOnError false"() {
+        given: "a pipeline logs provider"
+            String script = """
+                            node {
+                                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                                    ttProvideGeneratedReports(publishConfig: [allowMissing: true, failOnError: false], reportIds: ['1'])
+                                }
+                            }
+                            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+        then: "expect log information about successful pipeline run"
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("[WARNING] Report with id 1 could not be found!", run)
+            jenkins.assertLogContains("No files found to archive!", run)
+            jenkins.assertLogContains("Build result set to ${Result.UNSTABLE.toString()} due to warnings.", run)
     }
 
     def "ttProvideGeneratedReports: allow missing files"() {
@@ -322,10 +374,8 @@ class ETV2ContainerTest extends ETContainerTest {
                     """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("No files found to archive!", run)
@@ -346,7 +396,6 @@ class ETV2ContainerTest extends ETContainerTest {
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect log information about successful pipeline run"
             jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
             jenkins.assertLogContains("Successfully added $etGeneratedReportsFolderName to jenkins.", run)
@@ -367,7 +416,6 @@ class ETV2ContainerTest extends ETContainerTest {
                 job.setDefinition(new CpsFlowDefinition(script, true))
             when: "scheduling a new build"
                 WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
             then: "expect log information about successful pipeline run"
                 jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
                 jenkins.assertLogContains("Could not find any matching generated report files", run)
