@@ -83,8 +83,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
             restApiClientV2Mock.getAllReports() >> [
-                    new ReportInfo('reportId', 'reportDir', 'result', []),
-                    new ReportInfo('reportId3', 'reportDir', 'result', [])
+                    new ReportInfo('reportId', 'reportDir1', 'result', []),
+                    new ReportInfo('reportId3', 'reportDir2', 'result', [])
             ]
             restApiClientV2Mock.downloadReportFolder(*_) >>> [
                     new File('src/test/resources/report.zip'),
@@ -107,8 +107,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
             jenkins.assertLogContains("Providing all ecu.test Reports...", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId...", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId3...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir1...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir2...", run)
             jenkins.assertLogContains("Successfully added ecu.test Reports to jenkins.", run)
             jenkins.assertLogNotContains("No files found to archive!", run)
     }
@@ -138,8 +138,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
             restApiClientV2Mock.getReport(*_) >>> [
-                    new ReportInfo('reportId', 'reportDir', 'result', []),
-                    new ReportInfo('reportId3', 'reportDir', 'result', [])
+                    new ReportInfo('reportId', 'reportDir1', 'result', []),
+                    new ReportInfo('reportId3', 'reportDir2', 'result', [])
             ]
             restApiClientV2Mock.downloadReportFolder(*_) >>> [
                     new File('src/test/resources/report.zip'),
@@ -161,8 +161,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId...", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId3...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir1...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir2...", run)
             jenkins.assertLogContains("Successfully added ecu.test Reports to jenkins.", run)
             jenkins.assertLogNotContains("[WARNING] Report with id", run)
             jenkins.assertLogNotContains("No files found to archive!", run)
@@ -184,7 +184,7 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
             jenkins.assertLogContains("Providing ecu.test Reports failed!", run)
-            jenkins.assertLogContains("ERROR: Build result set to FAILURE due missing report reportId3. " +
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing report reportId3. " +
                     "Set Pipeline step property 'Fail On Error' to 'false' to ignore missing reports.", run)
     }
 
@@ -194,8 +194,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
             RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
             restApiClientV2Mock.getReport(*_) >>> [
-                    new ReportInfo('reportId', 'reportDir', 'result', []),
-                    new ReportInfo('reportId3', 'reportDir', 'result', [])
+                    new ReportInfo('reportId', 'reportDir1', 'result', []),
+                    new ReportInfo('reportId3', 'reportDir2', 'result', [])
             ]
             restApiClientV2Mock.downloadReportFolder(*_) >>> [
                     new File('src/test/resources/report.zip'),
@@ -213,8 +213,8 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId...", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId3...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir1...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir2...", run)
             jenkins.assertLogContains("Providing ecu.test Reports failed!", run)
             jenkins.assertLogContains("ERROR: Build result set to FAILURE due to failing " +
                     "download of reportId3. Set Pipeline step property 'Fail On Error' to 'false' to " +
@@ -241,7 +241,7 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Reports to jenkins.", run)
             jenkins.assertLogContains("Providing all ecu.test Reports...", run)
-            jenkins.assertLogContains("Providing ecu.test Reports for report reportId...", run)
+            jenkins.assertLogContains("Providing ecu.test Reports for report reportDir...", run)
             jenkins.assertLogContains("Could not find any report files in reportDir!", run)
             jenkins.assertLogContains("No files found to archive!", run)
             jenkins.assertLogContains("ERROR: Build result set to FAILURE due to missing ecu.test Reports. " +

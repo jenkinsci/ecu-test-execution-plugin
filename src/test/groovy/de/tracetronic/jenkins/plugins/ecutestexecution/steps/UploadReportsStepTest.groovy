@@ -6,6 +6,7 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Item
+import hudson.model.Result
 import hudson.util.FormValidation
 import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
@@ -188,7 +189,9 @@ class UploadReportsStepTest extends Specification {
         then:
             1 * logger.println("Uploading reports to test.guide http://localhost:8085...")
             1 * logger.println("- Uploading ATX report for report id 1...")
-            1 * logger.println("  -> ${message}")
+            1 * logger.println("- Uploading ATX report for report id 2...")
+            2 * logger.println("  -> ${message}")
+
             results.size() == 1
             results[0].uploadMessage == "A problem occurred during the report upload. See caused exception for more details."
             0 * logger.println("${resultPrint}")

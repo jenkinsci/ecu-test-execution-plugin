@@ -206,7 +206,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
             jenkins.assertLogContains('- Uploading ATX report for report id 3...', run)
             jenkins.assertLogContains("Build result set to ${Result.FAILURE.toString()} due to failed report upload. " +
                     "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.", run)
-            jenkins.assertLogNotContains("-> error message", run)
+            jenkins.assertLogContains("-> error message", run)
             jenkins.assertLogNotContains("Report upload(s) successful", run)
     }
 
