@@ -159,15 +159,16 @@ class GenerateReportsStep extends Step {
             reportIds.each { reportId ->
                 listener.logger.println("- Generating ${this.generatorName} report format for report id ${reportId}...")
                 GenerationResult generationResult = apiClient.generateReport(reportId, generationOrder)
-                if (generationResult.generationResult.toLowerCase() == 'error' && failOnError) {
-                    throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report generation. " +
-                            "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report generations.)")
-                }
+
                 String log = "  -> ${generationResult.generationResult}"
                 if (!generationResult.generationMessage.isEmpty()) {
                     log += " (${generationResult.generationMessage})"
                 }
                 listener.logger.println(log)
+                if (generationResult.generationResult.toLowerCase() == 'error' && failOnError) {
+                    throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report generation. " +
+                            "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report generations.)")
+                }
                 result.add(generationResult)
             }
 

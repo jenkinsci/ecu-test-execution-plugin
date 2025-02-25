@@ -225,7 +225,7 @@ class RestApiClientV1 implements RestApiClient {
      */
     @CheckForNull
     ReportInfo getReport(String reportId) {
-        ReportApi apiInstance = new de.tracetronic.cxs.generated.et.client.api.v2.ReportApi(apiClient)
+        ReportApi apiInstance = new ReportApi(apiClient)
         try {
             de.tracetronic.cxs.generated.et.client.model.v1.ReportInfo reportInfo = apiInstance.getReport(reportId)
             return ReportInfo.fromReportInfo(reportInfo)

@@ -161,7 +161,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
                             return
                         }
                         if (step.publishConfig.failOnError) {
-                            throw new AbortException("Build result set to ${Result.FAILURE.toString()} due " +
+                            throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to " +
                                     "missing report ${id}. Set Pipeline step property " +
                                     "'Fail On Error' to 'false' to ignore missing reports.")
                         } else {
@@ -177,7 +177,7 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
 
                 ArrayList<String> reportPaths = []
                 reports.each { report ->
-                    listener.logger.println("Providing ${step.outDirName} for report ${report.testReportId}...")
+                    listener.logger.println("Providing ${step.outDirName} for report ${report.reportDir}...")
                     String reportDirName = report.reportDir.split('/').last()
                     File reportZip = apiClient.downloadReportFolder(report.testReportId)
                     if (reportZip) {

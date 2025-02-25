@@ -233,14 +233,13 @@ class UploadReportsStep extends Step {
 
                 UploadResult uploadResult = apiClient.uploadReport(reportId, uploadOrder)
                 boolean resultError = uploadResult.uploadResult.toLowerCase() == 'error'
-                if (resultError && failOnError) {
+                listener.logger.println("  -> ${uploadResult.uploadMessage}")
+                if (!resultError) {
+                    cntStable += 1
+                } else if (resultError && failOnError) {
                     throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report upload. " +
                             "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.")
-                } else if (!resultError) {
-                    cntStable += 1
                 }
-
-                listener.logger.println("  -> ${uploadResult.uploadMessage}")
                 result.add(uploadResult)
             }
 
