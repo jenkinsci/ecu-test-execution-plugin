@@ -6,5 +6,8 @@
     </f:description>
      <f:advanced>
         <f:property field="publishConfig"/>
+         <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="reportIds">
+             <f:textbox value="[]"/>
+         </f:entry>
     </f:advanced>
 </j:jelly>
