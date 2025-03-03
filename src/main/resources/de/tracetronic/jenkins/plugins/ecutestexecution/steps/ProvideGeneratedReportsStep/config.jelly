@@ -10,7 +10,7 @@
     </f:entry>
     <f:advanced>
         <f:property field="publishConfig"/>
-        <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="reportIds">
+        <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="super.reportIds">
             <f:textbox value=""/>
         </f:entry>
     </f:advanced>

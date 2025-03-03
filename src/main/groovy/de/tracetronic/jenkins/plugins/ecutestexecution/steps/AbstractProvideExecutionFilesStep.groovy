@@ -57,8 +57,14 @@ abstract class AbstractProvideExecutionFilesStep extends Step implements Seriali
     }
 
     @DataBoundSetter
-    void setReportIds(List<String> reportIds) {
-        this.reportIds = reportIds ? StepUtil.removeEmptyReportIds(reportIds): []
+    void setReportIds(def reportIds) {
+        if (reportIds instanceof String) {
+            this.reportIds = reportIds ? reportIds.split(",")*.trim().findAll { it } : []
+        } else if (reportIds instanceof List) {
+            this.reportIds = StepUtil.removeEmptyReportIds(reportIds)
+        } else {
+            this.reportIds = []
+        }
     }
 
     @DataBoundSetter
