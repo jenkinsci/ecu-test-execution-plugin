@@ -35,6 +35,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
 
+import javax.annotation.CheckForNull
 import java.util.concurrent.TimeoutException
 
 class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiClient {
@@ -239,13 +240,30 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     }
 
     /**
-     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * Get a list of de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
      * of all available test reports in the ecu.test instance.
-     * @return List of ReportInfo with report IDs
+     * @return List of ReportInfo with report information
      */
     List<ReportInfo> getAllReports() {
         ReportApi apiInstance = new ReportApi(apiClient)
         return apiInstance.getAllReports()
+    }
+
+    /**
+     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * of the given reportId from ecu.test
+     * @param reportId ID of the test report
+     * @return ReportInfo with report information
+     */
+    @CheckForNull
+    ReportInfo getReport(String reportId) {
+        ReportApi apiInstance = new ReportApi(apiClient)
+        try {
+            de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo reportInfo = apiInstance.getReport(reportId)
+            return ReportInfo.fromReportInfo(reportInfo)
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignore) {
+            return null
+        }
     }
 
     /**
@@ -260,8 +278,13 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * Download the report folder of the given reportId from ecu.test
      * @return File
      */
+    @CheckForNull
     File downloadReportFolder(String reportID) {
         ReportApi apiInstance = new ReportApi(apiClient)
-        return apiInstance.reportDownload(reportID)
+        try {
+            return apiInstance.reportDownload(reportID)
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignore) {
+            return null
+        }
     }
 }

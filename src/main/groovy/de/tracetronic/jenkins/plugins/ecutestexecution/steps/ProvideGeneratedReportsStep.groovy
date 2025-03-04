@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 tracetronic GmbH
+* Copyright (c) 2024-2025 tracetronic GmbH
 *
 * SPDX-License-Identifier: BSD-3-Clause
 */
@@ -73,7 +73,7 @@ class ProvideGeneratedReportsStep extends AbstractProvideExecutionFilesStep {
 
 
         if (generatedZipPaths.isEmpty()) {
-            listener.logger.println("[WARNING] Could not find any matching generated report files in ${reportDirName}!")
+            listener.logger.println("Could not find any matching generated report files in ${reportDirName}!")
         }
 
         return generatedZipPaths

@@ -30,6 +30,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.model.CheckPackageResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 
+import javax.annotation.CheckForNull
 import java.util.concurrent.TimeoutException
 
 class RestApiClientV1 implements RestApiClient {
@@ -214,6 +215,23 @@ class RestApiClientV1 implements RestApiClient {
     List<ReportInfo> getAllReports() {
         ReportApi apiInstance = new ReportApi(apiClient)
         return apiInstance.getAllReports()
+    }
+
+    /**
+     * Get de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
+     * of the given reportId from ecu.test
+     * @param reportId ID of the test report
+     * @return ReportInfo with report information
+     */
+    @CheckForNull
+    ReportInfo getReport(String reportId) {
+        ReportApi apiInstance = new ReportApi(apiClient)
+        try {
+            de.tracetronic.cxs.generated.et.client.model.v1.ReportInfo reportInfo = apiInstance.getReport(reportId)
+            return ReportInfo.fromReportInfo(reportInfo)
+        } catch (de.tracetronic.cxs.generated.et.client.v1.ApiException ignore) {
+            return null
+        }
     }
 
     /**

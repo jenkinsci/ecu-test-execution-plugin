@@ -42,7 +42,7 @@ class ProvideGeneratedReportsStepTest extends Specification {
 
             then:
                 result.collect { it.replaceAll("\\\\", "/") }.toSet() == extractedFiles.toSet()
-                loggerCalled * logger.println("[WARNING] Could not find any matching generated report files in testreport!")
+                loggerCalled * logger.println("Could not find any matching generated report files in testreport!")
 
             where:
                 scenario              | pattern           |extractedFiles                                                                                                   | loggerCalled

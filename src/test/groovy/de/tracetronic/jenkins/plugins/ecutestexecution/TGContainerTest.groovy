@@ -93,10 +93,8 @@ class TGContainerTest extends ContainerTest {
             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect successful test and upload completion"
             StringUtils.countMatches(jenkins.getLog(run), "result: SUCCESS") == 2
             StringUtils.contains(jenkins.getLog(run), "size of returned array: 2")
@@ -117,10 +115,8 @@ class TGContainerTest extends ContainerTest {
             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect successful test and upload completion"
             jenkins.assertLogContains("-> Uploaded successfully", run)
             jenkins.assertLogContains("Report upload(s) successful", run)
@@ -142,10 +138,8 @@ class TGContainerTest extends ContainerTest {
                 """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
-
         then: "expect successful test but upload failed"
             jenkins.assertLogContains("404", run)
             jenkins.assertLogContains("no report with the given report ID ${reportID}", run)
@@ -167,15 +161,34 @@ class TGContainerTest extends ContainerTest {
                 """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+        then: "expect successful test but upload failed"
+            jenkins.assertLogContains("Uploading ATX report for report id", run)
+            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to failed report upload. " +
+                    "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.", run)
+    }
 
+    def "ttUploadReports: test report with invalid config and failOnError false"() {
+        given: "a test execution and upload pipeline"
+            String script = """
+                    node {
+                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                            ttRunPackage testCasePath: 'test.pkg'
+                            ttRunProject testCasePath: 'test.prj'
+                            ttUploadReports testGuideUrl: 'http://${TG_ALIAS}:${TG_PORT}',
+                                credentialsId: 'authKey', failOnError: false
+                        }
+                    }
+                    """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then: "expect successful test but upload failed"
-            StringUtils.countMatches(jenkins.getLog(run), "Report upload for") == 2
+            StringUtils.countMatches(jenkins.getLog(run), "Uploading ATX report for report id") == 2
             StringUtils.countMatches(jenkins.getLog(run), "failed") == 2
-            jenkins.assertLogContains(
-                    "Report upload(s) unstable. Please see the logging of the uploads.", run)
+            jenkins.assertLogContains("Report upload(s) unstable. Please see the logging of the uploads.", run)
     }
 
     def "ttUploadReports: Test #scenario upload using additionalSettings and verify with test.guide request"() {
@@ -189,6 +202,7 @@ class TGContainerTest extends ContainerTest {
                             credentialsId: 'authKey', 
                             useSettingsFromServer: false,
                             reportIds: [run_res.getReportId()],
+                            failOnError: false, 
                             additionalSettings: [
                                 [name: "uploadAsync", value: "${uploadAsync}"],
                                 [name: "setConstants", value: "${customConstants}"],
@@ -231,10 +245,8 @@ class TGContainerTest extends ContainerTest {
             """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
-
         when:
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-
         then:
             //jenkins.assertLogContains("Uploaded successfully", run) TODO ecu.test does not return a report link for uploadAsync:True even tho the report is present in test.guide
             jenkins.assertLogContains("Successfully retrieved the report from test.guide", run)
@@ -242,7 +254,7 @@ class TGContainerTest extends ContainerTest {
             jenkins.assertLogContains(expectAttribues, run)
             jenkins.assertLogContains(expectConstants, run)
         where:
-            scenario                | uploadAsync   | customAttributes                              | customConstants                               |expectAttribues                                | expectConstants
+            scenario                | uploadAsync   | customAttributes              | customConstants               |expectAttribues                                      | expectConstants
             "synchronous"           | "False"       | "CustomAttribute=${scenario}" | "CustomConstant=${scenario}"  |'{"key":"CustomAttribute","values":["'+scenario+'"]}'|'{"key":"CustomConstant","values":["'+scenario+'"]}'
             "asynchronous"          | "True"        | "CustomAttribute=${scenario}" | "CustomConstant=${scenario}"  |'{"key":"CustomAttribute","values":["'+scenario+'"]}'|'{"key":"CustomConstant","values":["'+scenario+'"]}'
     }

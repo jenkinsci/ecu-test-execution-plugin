@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 tracetronic GmbH
+* Copyright (c) 2024-2025 tracetronic GmbH
 *
 * SPDX-License-Identifier: BSD-3-Clause
 */
@@ -39,7 +39,7 @@ class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep {
         } else {
             List<String> extractedFiles = ZipUtil.extractFilesByExtension(reportZip, [".trf"], "${outDirPath}/${reportDirName}")
             if (extractedFiles.size() == 0) {
-                listener.logger.println("[WARNING] Could not find any report files in ${reportDirName}!")
+                listener.logger.println("Could not find any report files in ${reportDirName}!")
             }
             reportPaths.addAll(extractedFiles)
         }

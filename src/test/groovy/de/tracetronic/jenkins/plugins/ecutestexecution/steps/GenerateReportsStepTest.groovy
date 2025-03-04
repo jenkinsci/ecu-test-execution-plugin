@@ -47,12 +47,11 @@ class GenerateReportsStepTest extends Specification {
     def "Default constructor"() {
         when:
             def step = new GenerateReportsStep(generatorName)
-
         then:
             step.generatorName == "HTML"
             step.additionalSettings == []
             step.reportIds == []
-
+            step.failOnError
         where:
             generatorName << ["HTML", "  HTML  "]
     }
@@ -60,33 +59,26 @@ class GenerateReportsStepTest extends Specification {
     def "setAdditionalSettings should handle '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
-
         when:
             step.setAdditionalSettings(given)
-
         then:
             step.additionalSettings.size() == resultNames.size()
             step.additionalSettings*.name == resultNames
             step.additionalSettings*.value == resultValues
-
         where:
             given                 | resultNames               | resultValues
             additionalSettings    | ["setting1","setting2"]   | ["value1","value2"]
             []                    | []                        | []
             null                  | []                        | []
-
     }
 
     def "setReportIds should handle '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
-
         when:
             step.setReportIds(given)
-
         then:
             step.reportIds == result
-
         where:
             given                          | result
             ["1", "", "2", "  ", "3"]     | ["1", "2", "3"]
@@ -101,7 +93,6 @@ class GenerateReportsStepTest extends Specification {
             step.setReportIds(["1", "2"])
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
-
         and:
             envVars.expand(generator) >> generator
             envVars.expand("1") >> "1"
@@ -112,10 +103,8 @@ class GenerateReportsStepTest extends Specification {
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-
         when:
             def results = execution.run()
-
         then:
             results.size() == 2
             results.every {
@@ -135,6 +124,43 @@ class GenerateReportsStepTest extends Specification {
             'JSON'      | ""            | ""
     }
 
+    def "Should handle failOnError property"() {
+        given:
+            def logger = Mock(PrintStream)
+            def step = new GenerateReportsStep(generator)
+            step.setReportIds(["1", "2"])
+            def execution = new GenerateReportsStep.Execution(step, stepContext)
+            GroovyMock(RestApiClientFactory, global: true)
+        and:
+            envVars.expand(generator) >> generator
+            envVars.expand("1") >> "1"
+            envVars.expand("2") >> "2"
+            listener.logger >> logger
+            RestApiClientFactory.getRestApiClient(*_) >> apiClient
+            apiClient.generateReport(_, _) >>> [
+                    new GenerationResult("Success", message, "folder"),
+                    new GenerationResult("Error", message, "folder")
+            ]
+            channel.call(_) >> { MasterToSlaveCallable callable ->
+                return callable.call()
+            }
+        when:
+            def results = execution.run()
+        then:
+            results.size() == 1
+            results[0].generationResult == "A problem occured during the report generation. See caused exception for more details."
+            1 * logger.println("Generating ${generator} reports...")
+            1 * logger.println("- Generating ${generator} report format for report id 1...")
+            1 * logger.println("- Generating ${generator} report format for report id 2...")
+            1 * logger.println("  -> Success${messagePrint}")
+            0 * logger.println("${generator} reports generated successfully.")
+
+        where:
+            generator = 'HTML'
+            message = 'message'
+            messagePrint = ' (message)'
+    }
+
     def "Call getAllReportIds if setReportIds with: '#given'"() {
         given:
             def step = new GenerateReportsStep("HTML")
@@ -143,20 +169,16 @@ class GenerateReportsStepTest extends Specification {
             }
             def execution = new GenerateReportsStep.Execution(step, stepContext)
             GroovyMock(RestApiClientFactory, global: true)
-
         and:
             RestApiClientFactory.getRestApiClient(*_) >> apiClient
             apiClient.generateReport(_, _) >> new GenerationResult("Success", "message", "folder")
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-
         when:
             execution.run()
-
         then:
             calledCount * apiClient.getAllReportIds()
-
         where:
             given    | calledCount
             "skip"   | 1

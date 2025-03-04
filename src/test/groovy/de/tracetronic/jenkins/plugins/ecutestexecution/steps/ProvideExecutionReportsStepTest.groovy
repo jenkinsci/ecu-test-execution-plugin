@@ -33,7 +33,7 @@ class ProvideExecutionReportsStepTest extends Specification {
 
         then:
             result == expectedResult
-            loggerCalled * logger.println("[WARNING] Could not find any report files in ${reportDirName}!")
+            loggerCalled * logger.println("Could not find any report files in ${reportDirName}!")
 
         where:
             scenario                    | containsPrf | expectedResult                            | loggerCalled

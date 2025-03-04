@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,6 +11,8 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.GenerationResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
@@ -33,6 +35,7 @@ class GenerateReportsStep extends Step {
     private final String generatorName
     private List<AdditionalSetting> additionalSettings
     private List<String> reportIds
+    private boolean failOnError
 
     @DataBoundConstructor
     GenerateReportsStep(String generatorName) {
@@ -40,6 +43,7 @@ class GenerateReportsStep extends Step {
         this.generatorName = StringUtils.trimToEmpty(generatorName)
         this.additionalSettings = []
         this.reportIds = []
+        this.failOnError = true
     }
 
     String getGeneratorName() {
@@ -60,8 +64,23 @@ class GenerateReportsStep extends Step {
     }
 
     @DataBoundSetter
-    void setReportIds(List<String> reportIds) {
-        this.reportIds = reportIds ? removeEmptyReportIds(reportIds) : []
+    void setReportIds(def reportIds) {
+        if (reportIds instanceof String) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds.split(",").toList())
+        } else if (reportIds instanceof List) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds)
+        } else {
+            this.reportIds = []
+        }
+    }
+
+    boolean getFailOnError() {
+        return failOnError
+    }
+
+    @DataBoundSetter
+    void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError
     }
 
     @Override
@@ -71,10 +90,6 @@ class GenerateReportsStep extends Step {
 
     private static List<AdditionalSetting> removeEmptySettings(List<AdditionalSetting> settings) {
         return settings.findAll { setting -> StringUtils.isNotBlank(setting.name) }
-    }
-
-    private static List<String> removeEmptyReportIds(List<String> reportIds) {
-        return reportIds.findAll { id -> StringUtils.isNotBlank(id) }
     }
 
     private static List<AdditionalSetting> expandSettings(List<AdditionalSetting> settings, EnvVars envVars) {
@@ -104,7 +119,7 @@ class GenerateReportsStep extends Step {
             try {
                 return getContext().get(Launcher.class).getChannel().call(
                         new ExecutionCallable(step.generatorName, expSettingsMap, step.reportIds,
-                                context.get(EnvVars.class), context.get(TaskListener.class)))
+                                context.get(EnvVars.class), step.failOnError, context.get(TaskListener.class)))
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
@@ -121,15 +136,17 @@ class GenerateReportsStep extends Step {
         private final Map<String, String> additionalSettings
         private List<String> reportIds
         private final EnvVars envVars
+        private final boolean failOnError
         private final TaskListener listener
 
         ExecutionCallable(String generatorName, Map<String, String> additionalSettings, List<String> reportIds,
-                          EnvVars envVars, TaskListener listener) {
+                          EnvVars envVars, boolean failOnError, TaskListener listener) {
             super()
             this.generatorName = envVars.expand(generatorName)
             this.additionalSettings = additionalSettings
             this.reportIds = reportIds.collect { id -> envVars.expand(id) }
             this.envVars = envVars
+            this.failOnError = failOnError
             this.listener = listener
         }
 
@@ -148,11 +165,16 @@ class GenerateReportsStep extends Step {
             reportIds.each { reportId ->
                 listener.logger.println("- Generating ${this.generatorName} report format for report id ${reportId}...")
                 GenerationResult generationResult = apiClient.generateReport(reportId, generationOrder)
+
                 String log = "  -> ${generationResult.generationResult}"
                 if (!generationResult.generationMessage.isEmpty()) {
                     log += " (${generationResult.generationMessage})"
                 }
                 listener.logger.println(log)
+                if (generationResult.generationResult.toLowerCase() == 'error' && failOnError) {
+                    throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report generation. " +
+                            "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report generations.)")
+                }
                 result.add(generationResult)
             }
 

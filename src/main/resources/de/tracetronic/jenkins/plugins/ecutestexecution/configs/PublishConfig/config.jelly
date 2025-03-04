@@ -10,5 +10,8 @@
         <f:entry title="${%keepAll.title}" description="${%keepAll.description}" field="keepAll">
             <f:checkbox default="true"/>
         </f:entry>
+        <f:entry title="${%failOnError.title}" description="${%failOnError.description}" field="failOnError">
+            <f:checkbox default="true"/>
+        </f:entry>
     </f:section>
 </j:jelly>

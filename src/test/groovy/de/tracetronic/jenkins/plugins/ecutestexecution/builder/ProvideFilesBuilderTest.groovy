@@ -34,7 +34,7 @@ class ProvideFilesBuilderTest extends Specification {
 
         then:
             !result
-            1 * logger.println('[WARNING] No files found!')
+            1 * logger.println('No files found to archive!')
             1 * logger.flush()
     }
 

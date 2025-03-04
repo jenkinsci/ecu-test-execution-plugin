@@ -23,6 +23,7 @@ class PublishConfig extends AbstractDescribableImpl<PublishConfig> implements Se
     private int timeout
     private boolean allowMissing
     private boolean keepAll
+    private boolean failOnError
 
 
     @DataBoundConstructor
@@ -30,12 +31,14 @@ class PublishConfig extends AbstractDescribableImpl<PublishConfig> implements Se
         this.timeout = DEFAULT_TIMEOUT
         this.allowMissing = false
         this.keepAll = true
+        this.failOnError = true
     }
 
     PublishConfig(PublishConfig config) {
         this.timeout = config.getTimeout()
         this.allowMissing = config.getAllowMissing()
         this.keepAll = config.getKeepAll()
+        this.failOnError = config.getFailOnError()
     }
 
     int getTimeout() {
@@ -63,6 +66,15 @@ class PublishConfig extends AbstractDescribableImpl<PublishConfig> implements Se
     @DataBoundSetter
     void setKeepAll(boolean keepAll) {
         this.keepAll = keepAll
+    }
+
+    boolean getFailOnError() {
+        return failOnError
+    }
+
+    @DataBoundSetter
+    void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError
     }
 
     @Extension

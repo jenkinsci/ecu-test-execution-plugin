@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,7 +16,9 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
@@ -52,6 +54,7 @@ class UploadReportsStep extends Step {
     private boolean useSettingsFromServer
     private List<AdditionalSetting> additionalSettings
     private List<String> reportIds
+    private boolean failOnError
 
     @DataBoundConstructor
     UploadReportsStep(String testGuideUrl, String credentialsId) {
@@ -62,6 +65,7 @@ class UploadReportsStep extends Step {
         this.useSettingsFromServer = true
         this.additionalSettings = []
         this.reportIds = []
+        this.failOnError = true
     }
 
     String getTestGuideUrl() {
@@ -107,8 +111,23 @@ class UploadReportsStep extends Step {
     }
 
     @DataBoundSetter
-    void setReportIds(List<String> reportIds) {
-        this.reportIds = reportIds ? removeEmptyReportIds(reportIds) : []
+    void setReportIds(def reportIds) {
+        if (reportIds instanceof String) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds.split(",").toList())
+        } else if (reportIds instanceof List) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds)
+        } else {
+            this.reportIds = []
+        }
+    }
+
+    boolean getFailOnError() {
+        return failOnError
+    }
+
+    @DataBoundSetter
+    void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError
     }
 
     @Override
@@ -118,10 +137,6 @@ class UploadReportsStep extends Step {
 
     private static List<AdditionalSetting> removeEmptySettings(List<AdditionalSetting> settings) {
         return settings.findAll { setting -> StringUtils.isNotBlank(setting.name) }
-    }
-
-    private static List<String> removeEmptyReportIds(List<String> reportIds) {
-        return reportIds.findAll { id -> StringUtils.isNotBlank(id) }
     }
 
     private static List<AdditionalSetting> expandSettings(List<AdditionalSetting> settings, EnvVars envVars) {
@@ -155,14 +170,14 @@ class UploadReportsStep extends Step {
                 return getContext().get(Launcher.class).getChannel().call(
                         new ExecutionCallable(step.testGuideUrl, authKey,
                                 step.projectId, step.useSettingsFromServer,
-                                expSettingsMap, step.reportIds,
+                                expSettingsMap, step.reportIds, step.failOnError,
                                 context.get(EnvVars.class),
                                 context.get(TaskListener.class)))
             } catch (Exception e) {
                 context.get(TaskListener.class).error(e.message)
                 context.get(Run.class).setResult(Result.FAILURE)
                 return [ new UploadResult("Report upload failed",
-                        "A problem occured during the report upload. See caused exception for more details.",
+                        "A problem occurred during the report upload. See caused exception for more details.",
                         null) ]
             }
 
@@ -186,11 +201,12 @@ class UploadReportsStep extends Step {
         private final boolean useSettingsFromServer
         private final Map<String, String> additionalSettings
         private List<String> reportIds
+        private boolean failOnError
         private final EnvVars envVars
         private final TaskListener listener
 
         ExecutionCallable(String testGuideUrl, String authKey, int projectId, boolean useSettingsFromServer,
-                          Map<String, String> additionalSettings, List<String> reportIds,
+                          Map<String, String> additionalSettings, List<String> reportIds, boolean failOnError,
                           EnvVars envVars, TaskListener listener) {
             this.testGuideUrl = envVars.expand(testGuideUrl)
             this.authKey = authKey
@@ -198,6 +214,7 @@ class UploadReportsStep extends Step {
             this.useSettingsFromServer = useSettingsFromServer
             this.additionalSettings = additionalSettings
             this.reportIds = reportIds.collect { id -> envVars.expand(id) }
+            this.failOnError = failOnError
             this.envVars = envVars
             this.listener = listener
         }
@@ -221,11 +238,14 @@ class UploadReportsStep extends Step {
                 listener.logger.println("- Uploading ATX report for report id ${reportId}...")
 
                 UploadResult uploadResult = apiClient.uploadReport(reportId, uploadOrder)
-                if (uploadResult.reportLink != null && !uploadResult.reportLink.isEmpty()) {
-                    cntStable += 1
-                }
+                boolean resultError = uploadResult.uploadResult.toLowerCase() == 'error'
                 listener.logger.println("  -> ${uploadResult.uploadMessage}")
-
+                if (!resultError) {
+                    cntStable += 1
+                } else if (resultError && failOnError) {
+                    throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report upload. " +
+                            "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.")
+                }
                 result.add(uploadResult)
             }
 
