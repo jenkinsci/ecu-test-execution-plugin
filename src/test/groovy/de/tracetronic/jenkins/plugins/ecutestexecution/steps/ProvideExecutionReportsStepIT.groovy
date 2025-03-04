@@ -49,6 +49,12 @@ class ProvideExecutionReportsStepIT extends IntegrationTestBase {
         then:
             st.assertRoundTrip(step, "ttProvideReports publishConfig: [allowMissing: true, keepAll: false, " +
                     "timeout: 10], reportIds: ['reportId', 'reportId3']")
+        when:
+            step.setPublishConfig(publishConfig)
+            step.setReportIds("reportId,,reportId3")
+        then:
+            st.assertRoundTrip(step, "ttProvideReports publishConfig: [allowMissing: true, keepAll: false, " +
+                    "timeout: 10], reportIds: ['reportId', 'reportId3']")
     }
 
     def 'Run pipeline default'() {

@@ -78,6 +78,12 @@ class GenerateReportsStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
                     "[name: 'javascript', value: 'False']], failOnError: false, generatorName: 'HTML', " +
                     "reportIds: ['1', '3']")
+        when:
+            step.setReportIds("1, ,3")
+        then:
+            st.assertRoundTrip(step, 'ttGenerateReports additionalSettings: [' +
+                    "[name: 'javascript', value: 'False']], failOnError: false, generatorName: 'HTML', " +
+                    "reportIds: ['1', '3']")
     }
 
     def 'Run pipeline html report'() {
