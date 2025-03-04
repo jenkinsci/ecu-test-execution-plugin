@@ -111,8 +111,14 @@ class UploadReportsStep extends Step {
     }
 
     @DataBoundSetter
-    void setReportIds(List<String> reportIds) {
-        this.reportIds = reportIds ? StepUtil.removeEmptyReportIds(reportIds) : []
+    void setReportIds(def reportIds) {
+        if (reportIds instanceof String) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds.split(",").toList())
+        } else if (reportIds instanceof List) {
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds)
+        } else {
+            this.reportIds = []
+        }
     }
 
     boolean getFailOnError() {

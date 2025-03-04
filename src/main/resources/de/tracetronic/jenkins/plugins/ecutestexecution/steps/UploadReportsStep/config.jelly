@@ -21,5 +21,8 @@
         <f:entry title="${%failOnError.title}" description="${%failOnError.description}" field="failOnError">
             <f:checkbox default="true"/>
         </f:entry>
+        <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="super.reportIds">
+            <f:textbox value=""/>
+        </f:entry>
     </f:advanced>
 </j:jelly>

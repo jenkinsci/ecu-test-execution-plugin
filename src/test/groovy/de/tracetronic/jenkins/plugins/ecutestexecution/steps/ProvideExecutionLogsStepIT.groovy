@@ -59,10 +59,10 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
                     "keepAll: false, timeout: 10], reportIds: ['reportId', 'reportId3']")
         when:
             step.setPublishConfig(publishConfig)
-            step.setReportIds("reportId,,reportId3")
+            step.setReportIds("reportId2,,reportId4")
         then:
             st.assertRoundTrip(step, "ttProvideLogs publishConfig: [allowMissing: true, " +
-                    "keepAll: false, timeout: 10], reportIds: ['reportId', 'reportId3']")
+                    "keepAll: false, timeout: 10], reportIds: ['reportId2', 'reportId4']")
     }
 
     def 'Run pipeline default'() {

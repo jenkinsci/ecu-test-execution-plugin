@@ -66,9 +66,9 @@ class GenerateReportsStep extends Step {
     @DataBoundSetter
     void setReportIds(def reportIds) {
         if (reportIds instanceof String) {
-            this.reportIds = reportIds ? reportIds.split(",")*.trim().findAll { it } : []
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds.split(",").toList())
         } else if (reportIds instanceof List) {
-            this.reportIds = StepUtil.removeEmptyReportIds(reportIds)
+            this.reportIds = StepUtil.trimAndRemoveEmpty(reportIds)
         } else {
             this.reportIds = []
         }

@@ -88,11 +88,17 @@ class UploadReportsStepIT extends IntegrationTestBase {
                     "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', failOnError: false, " +
                     "projectId: 2, testGuideUrl: 'http://localhost:8085'")
         when:
-            step.setReportIds(['1', '', '3'])
+            step.setReportIds(['1',' 2 ', '', '3'])
         then:
             st.assertRoundTrip(step, "ttUploadReports additionalSettings: [" +
                     "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', failOnError: false, " +
-                    "projectId: 2, reportIds: ['1', '3'], testGuideUrl: 'http://localhost:8085'")
+                    "projectId: 2, reportIds: ['1', '2', '3'], testGuideUrl: 'http://localhost:8085'")
+        when:
+            step.setReportIds("2, ,4, 5  ")
+        then:
+            st.assertRoundTrip(step, "ttUploadReports additionalSettings: [" +
+                    "[name: 'uploadToServer', value: 'True']], credentialsId: 'authKey', failOnError: false, " +
+                    "projectId: 2, reportIds: ['2', '4', '5'], testGuideUrl: 'http://localhost:8085'")
     }
 
     def 'Run pipeline default'() {

@@ -9,25 +9,25 @@ import spock.lang.Specification
 
 class StepUtilTest extends Specification{
 
-    def "return empty list for empty reportIds"() {
+    def "return empty list for empty input"() {
         expect:
-            StepUtil.removeEmptyReportIds([]) == []
+            StepUtil.trimAndRemoveEmpty([]) == []
     }
 
     def "return empty list for null input"() {
         expect:
-            StepUtil.removeEmptyReportIds(null) == []
+            StepUtil.trimAndRemoveEmpty(null) == []
     }
 
-    def "remove blank strings and null report ids"() {
+    def "remove whitespace, blank strings and null entries"() {
         expect:
-            StepUtil.removeEmptyReportIds(reportIds) == result
+            StepUtil.trimAndRemoveEmpty(reportIds) == result
 
         where:
             reportIds       | result
-            ["1", "2", ""]  | ["1", "2"]
-            ["1", "2", "3"] | ["1", "2", "3"]
-            ["", "2", "3"]  | ["2", "3"]
-            [null, "2", "3"]| ["2", "3"]
+            ["1", " 2 ", ""]  | ["1", "2"]
+            ["1", " 2 ", "3"] | ["1", "2", "3"]
+            ["", " 2 ", "3"]  | ["2", "3"]
+            [null, " 2 ", "3"]| ["2", "3"]
     }
 }

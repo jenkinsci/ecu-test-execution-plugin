@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils
 
 class StepUtil {
 
-    static List<String> removeEmptyReportIds(List<String> reportIds) {
-        reportIds.findAll { id -> StringUtils.isNotBlank(id) }
+    static List<String> trimAndRemoveEmpty(List<String> entries) {
+        entries.findAll(){StringUtils.isNotBlank(it)}.collect{it.trim()}
     }
 }
