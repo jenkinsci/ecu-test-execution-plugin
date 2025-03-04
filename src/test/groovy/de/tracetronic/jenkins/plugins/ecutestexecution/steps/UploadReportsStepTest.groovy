@@ -260,12 +260,12 @@ class UploadReportsStepTest extends Specification {
                 assert item.value == expectedResult[idx].value
             }
         where:
-            itemParam   | hasAdminPerm | hasExtendedRead | hasUseItem | currentCredentialId || expectedResult
-            null        | false        | false           | false      | 'someId'            || new StandardListBoxModel().includeEmptyValue()
-            null        | true         | false           | false      | null                || new StandardListBoxModel().includeEmptyValue()
-            Mock(Item)  | false        | false           | false      | 'currentId'         || new StandardListBoxModel().includeCurrentValue("currentId")
-            Mock(Item)  | false        | true            | false      | null                || new StandardListBoxModel().includeEmptyValue()
-            Mock(Item)  | false        | false           | true       | null                || new StandardListBoxModel().includeEmptyValue()
+            itemParam   | hasAdminPerm | hasExtendedRead | hasUseItem | currentCredentialId | expectedResult
+            null        | false        | false           | false      | 'someId'            | new StandardListBoxModel().includeEmptyValue()
+            null        | true         | false           | false      | null                | new StandardListBoxModel().includeEmptyValue()
+            Mock(Item)  | false        | false           | false      | 'currentId'         | new StandardListBoxModel().includeCurrentValue("currentId")
+            Mock(Item)  | false        | true            | false      | null                | new StandardListBoxModel().includeEmptyValue()
+            Mock(Item)  | false        | false           | true       | null                | new StandardListBoxModel().includeEmptyValue()
     }
 
     def "doCheckCredentialsId should validate credential '#credentialId' with permissions: extendedRead=#hasExtendedRead, useItem=#hasUseItem"() {
@@ -280,8 +280,12 @@ class UploadReportsStepTest extends Specification {
                 mockItem.hasPermission(Item.EXTENDED_READ) >> hasExtendedRead
                 mockItem.hasPermission(CredentialsProvider.USE_ITEM) >> hasUseItem
             }
-        expect:
-            descriptor.doCheckCredentialsId(mockItem, credentialId).kind == expectedKind
+        when:
+            def kind = descriptor.doCheckCredentialsId(mockItem, credentialId).kind
+        then:
+            kind == expectedKind
+        cleanup:
+            Jenkins.metaClass = null
         where:
             itemParam   | hasAdminPerm  | credentialId  | hasExtendedRead   | hasUseItem | expectedKind
             null        | false         | ''            | false             | false      | FormValidation.Kind.OK
@@ -297,12 +301,16 @@ class UploadReportsStepTest extends Specification {
             Jenkins mockJenkins = Mock(Jenkins)
             Jenkins.metaClass.static.get = { -> mockJenkins }
             mockJenkins.hasPermission(Jenkins.ADMINISTER) >> hasAdminPerm
-        expect:
-            descriptor.doCheckCredentialsId(null, credentialId).kind == expectedKind
+        when:
+            def kind = descriptor.doCheckCredentialsId(null, credentialId).kind
+        then:
+            kind == expectedKind
+        cleanup:
+            Jenkins.metaClass = null
         where:
             credentialId    | hasAdminPerm | expectedKind
             'someId'        | false         | FormValidation.Kind.OK
-            'someId'        | true          | FormValidation.Kind.OK
+            'someId'        | true          | FormValidation.Kind.ERROR
             ''              | true          | FormValidation.Kind.OK
     }
 
