@@ -5,29 +5,25 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-import de.tracetronic.cxs.generated.et.client.model.v2.ReportGeneration
-import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationResult
-import de.tracetronic.cxs.generated.et.client.model.v2.ReportGenerationStatus
-import de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo
-import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
-import de.tracetronic.cxs.generated.et.client.model.v2.TGUpload
-import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadResult
-import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
-import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
-import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
+import com.cloudbees.plugins.credentials.CredentialsStore
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Result
+import hudson.util.Secret
 import okhttp3.Call
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -35,11 +31,19 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 
 class UploadReportsStepIT extends IntegrationTestBase {
+    private  CredentialsStore store
 
     def setup() {
-        CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next()
-                .addCredentials(Domain.global(), new UsernamePasswordCredentialsImpl(
-                        CredentialsScope.GLOBAL, 'authKey', 'test.guide auth key', '', 'authKey'))
+        store = CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next()
+        store.addCredentials(Domain.global(), new UsernamePasswordCredentialsImpl(
+                CredentialsScope.GLOBAL, 'authKey', 'test.guide auth key', '', 'authKey'))
+        store.addCredentials(Domain.global(), new StringCredentialsImpl(
+                CredentialsScope.GLOBAL, 'stringSecret', 'test.guide auth key as secret string',
+                Secret.fromString('authKey')))
+        store.addCredentials(Domain.global(), new BasicSSHUserPrivateKey(
+                    CredentialsScope.GLOBAL, 'unsupportedBaseCredential', 'user',
+                    new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource('unsupported'), null,
+                    'test.guide auth key as unsupported credentials type'))
     }
 
     def 'Default config round trip'() {
@@ -105,7 +109,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition(
-                    "node { ttUploadReports credentialsId: 'authKey', " +
+                    "node { ttUploadReports credentialsId: '$credentialsId', " +
                             "testGuideUrl: 'http://localhost:8085' }", true))
 
             // assume RestApiClient is available
@@ -114,6 +118,24 @@ class UploadReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+        where:
+            credentialsId << ['authKey', 'stringSecret']
+    }
+
+    def "Run pipeline unsupported credentials"() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports credentialsId: 'unsupportedBaseCredential', " +
+                            "testGuideUrl: 'http://localhost:8085' }", true))
+        and:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogNotContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains('ERROR: No credentials found for authentication key. ' +
+                    'Please check the credentials configuration.', run)
     }
 
 
@@ -180,6 +202,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition(
                     "node { ttUploadReports credentialsId: 'authKey', " +
                             "testGuideUrl: 'http://localhost:8085' }", true))
+
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
             jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
