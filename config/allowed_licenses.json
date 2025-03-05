@@ -17,6 +17,14 @@
       "actualLicense" : "$moduleLicense"
     },
     {
+      "moduleLicense": "MIT",
+      "moduleVersion": "179.vc5cb_98f6db_38",
+      "moduleName": "org.jenkins-ci.plugins:plain-credentials",
+      "licenseUrl": null,
+      "moduleCopyright": "Copyright 2013-2016 Jesse Glick, Stephen Connolly and CloudBees, Inc.",
+      "actualLicense" : "$moduleLicense"
+    },
+    {
       "moduleLicense": "Apache License, Version 2.0",
       "moduleVersion": "2.13.2.2",
       "moduleName": "com.fasterxml.jackson.core:jackson-databind",
