@@ -3,26 +3,25 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.cloudbees.plugins.credentials.CredentialsMatchers
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import hudson.EnvVars
+import hudson.Launcher
 import hudson.model.Item
-import hudson.model.Result
+import hudson.model.Job
+import hudson.model.Run
+import hudson.model.TaskListener
+import hudson.remoting.VirtualChannel
 import hudson.util.FormValidation
 import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
+import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.junit.Rule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
-import hudson.EnvVars
-import hudson.Launcher
-import hudson.model.Run
-import hudson.model.Job
-import hudson.model.TaskListener
-import hudson.remoting.VirtualChannel
-import org.jenkinsci.plugins.workflow.steps.StepContext
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 
 class UploadReportsStepTest extends Specification {
 

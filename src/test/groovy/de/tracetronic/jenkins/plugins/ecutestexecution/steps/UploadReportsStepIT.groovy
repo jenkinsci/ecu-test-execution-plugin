@@ -12,11 +12,10 @@ import com.cloudbees.plugins.credentials.CredentialsStore
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
-import de.tracetronic.cxs.generated.et.client.model.v2.*
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
