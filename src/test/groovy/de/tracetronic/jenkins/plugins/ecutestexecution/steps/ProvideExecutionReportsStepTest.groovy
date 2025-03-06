@@ -37,7 +37,7 @@ class ProvideExecutionReportsStepTest extends Specification {
 
         where:
             scenario                    | containsPrf | expectedResult                            | loggerCalled
-            "contains .prf file"        | true        | ["/tmp/output/TestReport/TestReport.zip"] | 0
+            "contains .prf file"        | true        | ["/tmp/output/TestReport/TestReport.prfz"] | 0
             "contains only .trf files"  | false       | ["/tmp/output/TestReport/report1.trf"]    | 0
             "contains no report files"  | false       | []                                        | 1
     }
