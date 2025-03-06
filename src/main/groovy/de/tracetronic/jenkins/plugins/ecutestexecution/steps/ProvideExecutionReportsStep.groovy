@@ -32,7 +32,7 @@ class ProvideExecutionReportsStep extends AbstractProvideExecutionFilesStep {
         ArrayList<String> reportPaths = []
 
         if (ZipUtil.containsFileOfType(reportZip, ".prf")) {
-            def outputFile = new File("${outDirPath}/${reportDirName}/${reportDirName}.zip")
+            def outputFile = new File("${outDirPath}/${reportDirName}/${reportDirName}.prfz")
             outputFile.parentFile.mkdirs()
             String zipPath = ZipUtil.recreateWithEndings(reportZip, [".trf", ".prf"], outputFile)
             reportPaths.add(zipPath)
