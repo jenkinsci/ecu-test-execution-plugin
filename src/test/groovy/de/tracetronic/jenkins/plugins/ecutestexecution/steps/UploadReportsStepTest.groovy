@@ -3,26 +3,25 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.cloudbees.plugins.credentials.CredentialsMatchers
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import hudson.EnvVars
+import hudson.Launcher
 import hudson.model.Item
-import hudson.model.Result
+import hudson.model.Job
+import hudson.model.Run
+import hudson.model.TaskListener
+import hudson.remoting.VirtualChannel
 import hudson.util.FormValidation
 import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
+import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.junit.Rule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
-import hudson.EnvVars
-import hudson.Launcher
-import hudson.model.Run
-import hudson.model.Job
-import hudson.model.TaskListener
-import hudson.remoting.VirtualChannel
-import org.jenkinsci.plugins.workflow.steps.StepContext
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
-import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 
 class UploadReportsStepTest extends Specification {
 
@@ -260,12 +259,12 @@ class UploadReportsStepTest extends Specification {
                 assert item.value == expectedResult[idx].value
             }
         where:
-            itemParam   | hasAdminPerm | hasExtendedRead | hasUseItem | currentCredentialId || expectedResult
-            null        | false        | false           | false      | 'someId'            || new StandardListBoxModel().includeEmptyValue()
-            null        | true         | false           | false      | null                || new StandardListBoxModel().includeEmptyValue()
-            Mock(Item)  | false        | false           | false      | 'currentId'         || new StandardListBoxModel().includeCurrentValue("currentId")
-            Mock(Item)  | false        | true            | false      | null                || new StandardListBoxModel().includeEmptyValue()
-            Mock(Item)  | false        | false           | true       | null                || new StandardListBoxModel().includeEmptyValue()
+            itemParam   | hasAdminPerm | hasExtendedRead | hasUseItem | currentCredentialId | expectedResult
+            null        | false        | false           | false      | 'someId'            | new StandardListBoxModel().includeEmptyValue()
+            null        | true         | false           | false      | null                | new StandardListBoxModel().includeEmptyValue()
+            Mock(Item)  | false        | false           | false      | 'currentId'         | new StandardListBoxModel().includeCurrentValue("currentId")
+            Mock(Item)  | false        | true            | false      | null                | new StandardListBoxModel().includeEmptyValue()
+            Mock(Item)  | false        | false           | true       | null                | new StandardListBoxModel().includeEmptyValue()
     }
 
     def "doCheckCredentialsId should validate credential '#credentialId' with permissions: extendedRead=#hasExtendedRead, useItem=#hasUseItem"() {
@@ -280,8 +279,12 @@ class UploadReportsStepTest extends Specification {
                 mockItem.hasPermission(Item.EXTENDED_READ) >> hasExtendedRead
                 mockItem.hasPermission(CredentialsProvider.USE_ITEM) >> hasUseItem
             }
-        expect:
-            descriptor.doCheckCredentialsId(mockItem, credentialId).kind == expectedKind
+        when:
+            def kind = descriptor.doCheckCredentialsId(mockItem, credentialId).kind
+        then:
+            kind == expectedKind
+        cleanup:
+            Jenkins.metaClass = null
         where:
             itemParam   | hasAdminPerm  | credentialId  | hasExtendedRead   | hasUseItem | expectedKind
             null        | false         | ''            | false             | false      | FormValidation.Kind.OK
@@ -297,12 +300,16 @@ class UploadReportsStepTest extends Specification {
             Jenkins mockJenkins = Mock(Jenkins)
             Jenkins.metaClass.static.get = { -> mockJenkins }
             mockJenkins.hasPermission(Jenkins.ADMINISTER) >> hasAdminPerm
-        expect:
-            descriptor.doCheckCredentialsId(null, credentialId).kind == expectedKind
+        when:
+            def kind = descriptor.doCheckCredentialsId(null, credentialId).kind
+        then:
+            kind == expectedKind
+        cleanup:
+            Jenkins.metaClass = null
         where:
             credentialId    | hasAdminPerm | expectedKind
             'someId'        | false         | FormValidation.Kind.OK
-            'someId'        | true          | FormValidation.Kind.OK
+            'someId'        | true          | FormValidation.Kind.ERROR
             ''              | true          | FormValidation.Kind.OK
     }
 

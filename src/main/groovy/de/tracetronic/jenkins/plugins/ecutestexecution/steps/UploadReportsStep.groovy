@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 tracetronic GmbH
+ * Copyright (c) 2021-2024 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,6 +16,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFact
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.CredentialsUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.AbortException
@@ -34,17 +35,13 @@ import hudson.util.Secret
 import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
-import org.jenkinsci.plugins.workflow.steps.Step
-import org.jenkinsci.plugins.workflow.steps.StepContext
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor
-import org.jenkinsci.plugins.workflow.steps.StepExecution
-import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
+import org.jenkinsci.plugins.plaincredentials.StringCredentials
+import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.AncestorInPath
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
-
-import javax.annotation.CheckForNull
+import org.springframework.security.core.Authentication
 
 class UploadReportsStep extends Step {
 
@@ -163,8 +160,15 @@ class UploadReportsStep extends Step {
             List<AdditionalSetting> expSettings = expandSettings(step.additionalSettings, context.get(EnvVars.class))
             Map<String, String> expSettingsMap = toSettingsMap(expSettings)
 
-            StandardUsernamePasswordCredentials credentials = getCredentials(context.get(Run.class).getParent())
-            String authKey = Secret.toString(credentials.getPassword())
+            StandardCredentials credentials = CredentialsUtil.getCredentials(context.get(Run.class).getParent(), step.credentialsId)
+            if (credentials == null) {
+                context.get(TaskListener.class).error("No credentials found for authentication key. " +
+                        "Please check the credentials configuration.")
+                context.get(Run.class).setResult(Result.FAILURE)
+                return [ new UploadResult("Report upload failed",
+                        "No credentials found for authentication key", "") ]
+            }
+            String authKey = CredentialsUtil.getSecretString(credentials)
 
             try {
                 return getContext().get(Launcher.class).getChannel().call(
@@ -181,13 +185,6 @@ class UploadReportsStep extends Step {
                         null) ]
             }
 
-        }
-
-        @CheckForNull
-        private StandardUsernamePasswordCredentials getCredentials(Job job) {
-            List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(
-                    StandardUsernamePasswordCredentials.class, job, ACL.SYSTEM2, Collections.emptyList())
-            return CredentialsMatchers.firstOrNull(credentials, CredentialsMatchers.withId(step.credentialsId))
         }
     }
 
@@ -283,16 +280,19 @@ class UploadReportsStep extends Step {
 
         ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             StandardListBoxModel result = new StandardListBoxModel()
-            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)){
+            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return result.includeCurrentValue(credentialsId)
             }
-            if (item &&  !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+            if (item && !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
                 return result.includeCurrentValue(credentialsId)
             }
-            return result
-                    .includeEmptyValue()
-                    .includeMatchingAs(ACL.SYSTEM2, (Item) item, StandardCredentials.class, Collections.emptyList(),
-                            CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class))
+           return result
+                   .includeEmptyValue()
+                   .includeMatchingAs((Authentication) ACL.SYSTEM2, (Item) item, StandardCredentials.class, Collections.emptyList(),
+                    CredentialsMatchers.anyOf(
+                            CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                            CredentialsMatchers.instanceOf(StringCredentials.class)
+                    ))
         }
 
         FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
@@ -329,7 +329,10 @@ class UploadReportsStep extends Step {
                     item,
                     ACL.SYSTEM2,
                     Collections.emptyList(),
-                    CredentialsMatchers.withId(value)
+                    CredentialsMatchers.anyOf(
+                            CredentialsMatchers.withId(value),
+                            CredentialsMatchers.instanceOf(StringCredentials.class)
+                    )
             )
             return !creds.isEmpty()
         }
