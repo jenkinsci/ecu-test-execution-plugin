@@ -104,8 +104,9 @@ node('windows') {
 ```
 
 The [test.guide](https://www.tracetronic.com/products/test-guide/) authentication key has to be set as a Jenkins
-[credential](https://www.jenkins.io/doc/book/using/using-credentials/) (username and password) to be used in the
+[credential](https://www.jenkins.io/doc/book/using/using-credentials/) (secret text) to be used in the
 *ttUploadReports* step.
+The usage of username and password credentials is only there for compatibility reasons.
 
 Check out the [advanced usage docs](./docs/AdvancedUsage.md) for more detailed information
 
