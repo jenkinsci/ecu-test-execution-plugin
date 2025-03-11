@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:description>${%step.description}
+        <b>${%step.compatNote}</b>
+    </f:description>
+    <f:entry title="${%unstableThreshold.title}" description="${%unstableThreshold.description}" field="unstableThreshold" >
+        <f:number min="0" max="100" default="0" />
+    </f:entry>
+    <f:entry title="${%failedThreshold.title}" description="${%failedThreshold.description}" field="failedThreshold" >
+        <f:number min="0" max="100" default="0" />
+    </f:entry>
+    <f:advanced>
+        <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="super.reportIds">
+            <f:textbox value=""/>
+        </f:entry>
+        <f:entry title="${%reportGlob.title}" description="${%reportGlob.description}" field="reportGlob">
+            <f:textbox default="${descriptor.defaultReportGlob}"/>
+        </f:entry>
+        <f:property field="publishConfig"/>
+    </f:advanced>
+</j:jelly>

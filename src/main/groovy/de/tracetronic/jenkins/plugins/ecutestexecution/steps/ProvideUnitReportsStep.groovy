@@ -103,6 +103,10 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     @Extension
     static final class DescriptorImpl extends StepDescriptor {
 
+        static String getDefaultReportGlob() {
+            return DEFAULT_REPORT_GLOB
+        }
+
         @Override
         String getFunctionName() {
             'ttProvideUnitReports'
