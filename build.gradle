@@ -51,6 +51,7 @@ dependencies {
     implementation platform('io.jenkins.tools.bom:bom-2.426.x:3041.ve87ce2cdf223')
 
     implementation 'org.jenkins-ci.plugins:credentials'
+    implementation 'org.jenkins-ci.plugins:junit'
     implementation 'org.jenkins-ci.plugins:plain-credentials'
     implementation 'org.jenkins-ci.plugins:script-security'
     implementation 'org.jenkins-ci.plugins:structs'

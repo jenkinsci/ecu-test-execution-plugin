@@ -6,7 +6,10 @@
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -26,6 +29,30 @@ class ZipUtil {
             }
         }
         return result
+    }
+
+    static ArrayList<String> extractFilesByGlobPattern(File reportFolderZip, String globPattern, String saveToDirPath) {
+        ArrayList<String> extractedFilePaths = []
+        new File(saveToDirPath).mkdirs()
+        PathMatcher matcher = FileSystems.default.getPathMatcher("glob:" + globPattern)
+
+        new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
+            ZipEntry entry
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    if (matcher.matches(Paths.get(entry.name))) {
+                        String entryPath = entry.name.replace("\\", "/")
+                        File outputFile = new File(saveToDirPath, entryPath)
+                        outputFile.parentFile.mkdirs()
+                        outputFile.withOutputStream { outputStream ->
+                            outputStream << zipInputStream
+                        }
+                        extractedFilePaths.add(outputFile.path)
+                    }
+                }
+            }
+        }
+        return extractedFilePaths
     }
 
     static ArrayList<String> extractFilesByExtension(File reportFolderZip, List<String> fileEndings, String saveToDirPath) {

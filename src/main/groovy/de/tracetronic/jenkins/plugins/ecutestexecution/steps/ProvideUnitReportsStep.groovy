@@ -16,6 +16,8 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
+import hudson.tasks.junit.TestResult
+import hudson.tasks.junit.TestResultAction
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
@@ -24,16 +26,12 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.PathMatcher
-import java.nio.file.Paths
-import java.util.zip.ZipFile
 
 class ProvideUnitReportsStep extends AbstractDownloadReportStep {
 
-    public static final String DEFAULT_REPORT_GLOB = "**/UNIT/junit-report.xml"
+    public static final String DEFAULT_REPORT_GLOB = "**UNIT/junit-report.xml"
     private static final String SUPPORT_VERSION = "2024.3"
+    private static final String OUT_DIR_NAME = "Unit Reports"
     private double unstableThreshold;
     private double failedThreshold;
     private String reportGlob;
@@ -42,6 +40,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     @DataBoundConstructor
     ProvideUnitReportsStep() {
         super()
+        outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
         unstableThreshold = 0.0
         failedThreshold = 0.0
@@ -75,8 +74,8 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         this.reportGlob = StringUtils.defaultIfBlank(value, DEFAULT_REPORT_GLOB).trim()
     }
 
-    protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
-        return new ArrayList<String>()
+    protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) { ArrayList<String> logFileNames = ["ecu.test_out.log", "ecu.test_err.log"]
+        return ZipUtil.extractFilesByGlobPattern(reportFile, DEFAULT_REPORT_GLOB, "${outDirPath}/${reportDirName}")
     }
 
     @Override
@@ -87,16 +86,61 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     static class Execution extends SynchronousNonBlockingStepExecution<Void> {
         private static final long serialVersionUID = 1L
 
-        private final transient AbstractProvideExecutionFilesStep step
+        private final transient ProvideUnitReportsStep step
 
-        Execution(AbstractProvideExecutionFilesStep step, StepContext context) {
+        Execution(ProvideUnitReportsStep step, StepContext context) {
             super(context)
             this.step = step
         }
 
         @Override
         protected Void run() throws Exception {
-            return new Void()
+            Run run = context.get(Run.class)
+            TaskListener listener = context.get(TaskListener.class)
+            long startTimeMillis = run.getStartTimeInMillis()
+            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
+
+            try {
+                ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
+                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
+                )
+                TestResult testResult = new TestResult()
+                filePaths.each { report ->
+                    listener.logger.println(report)
+                    testResult.parse(new File(report), null)
+                    testResult.tally()
+                }
+
+                TestResultAction action = run.getAction(TestResultAction.class);
+                if (action == null) {
+                    action = new TestResultAction(run, testResult, listener);
+                    run.addAction(action);
+                } else {
+                    action.setResult(testResult, listener);
+                }
+                testResult.freeze(action);
+
+                /*def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
+                if (!result && !step.publishConfig.allowMissing) {
+                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
+                }*/
+                def result = true
+
+                result && listener.logger.println("Successfully added ${step.outDirName} to jenkins.")
+                if (step.hasWarnings) {
+                    run.setResult(Result.UNSTABLE)
+                    listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
+                }
+            } catch (Exception e) {
+                if (e instanceof UnsupportedOperationException) {
+                    run.setResult(Result.UNSTABLE)
+                } else {
+                    run.setResult(Result.FAILURE)
+                }
+                listener.logger.println("Providing ${step.outDirName} failed!")
+                listener.error(e.message)
+            }
+            listener.logger.flush()
         }
     }
 
