@@ -78,13 +78,19 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     }
 
     boolean isUnstable(TestResult results) {
+        if (results.totalCount == 0 || unstableThreshold <= 0.0) {
+            return false
+        }
         double failed = (results.failCount / results.totalCount) * 100.0
-        return unstableThreshold > 0.0 && unstableThreshold < failed
+        return unstableThreshold < failed
     }
 
     boolean isFailure(TestResult results) {
+        if (results.totalCount == 0 || failedThreshold <= 0.0) {
+            return false
+        }
         double failed = results.failCount / results.totalCount * 100.0
-        return failedThreshold > 0.0 && failedThreshold < failed
+        return failedThreshold < failed
     }
 
     protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
@@ -100,39 +106,48 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         private static final long serialVersionUID = 1L
 
         private final transient ProvideUnitReportsStep step
+        private final transient Run run
+        private final transient TaskListener listener
+        private final transient Launcher launcher
 
         Execution(ProvideUnitReportsStep step, StepContext context) {
             super(context)
             this.step = step
+            run = context.get(Run.class)
+            listener = context.get(TaskListener.class)
+            launcher = context.get(Launcher.class)
+        }
+
+        ArrayList<String> getUnitReportFilePaths() throws IOException {
+            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
+            return launcher.getChannel().call(new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, run.getStartTimeInMillis(), context.get(EnvVars.class), outDirPath, listener, step))
+        }
+
+        TestResult parseReportFiles(ArrayList<String> reportPaths) throws IOException {
+            return launcher.getChannel().call(new ParseReportsExecutable(reportPaths))
+        }
+
+        void addResultsToRun(TestResult result) {
+            TestResultAction action = run.getAction(TestResultAction.class);
+            if (action != null) {
+                action.mergeResult(result, listener);
+            } else {
+                action = new TestResultAction(run, result, listener);
+                run.addAction(action);
+            }
         }
 
         @Override
         protected Void run() throws Exception {
-            Run run = context.get(Run.class)
-            TaskListener listener = context.get(TaskListener.class)
-            VirtualChannel channel = context.get(Launcher.class).getChannel()
-
-            long startTimeMillis = run.getStartTimeInMillis()
-            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
-
             try {
-                ArrayList<String> filePaths = channel.call(
-                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
-                )
+                ArrayList<String> reportPaths = getUnitReportFilePaths()
+                TestResult testResult = parseReportFiles(reportPaths)
 
-                if (filePaths.empty && !step.publishConfig.allowMissing) {
+                if (testResult.totalCount == 0 && !step.publishConfig.allowMissing) {
                     throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
                 }
 
-                TestResult testResult = channel.call(new ParseReportsExecutable(filePaths))
-                TestResultAction action = run.getAction(TestResultAction.class);
-                if (action) {
-                    action.mergeResult(testResult, listener);
-                } else {
-                    action = new TestResultAction(run, testResult, listener);
-                    run.addAction(action);
-                }
-                testResult.freeze(action);
+                addResultsToRun(testResult)
 
                 listener.logger.println("Successfully added ${step.outDirName} to Jenkins.")
 

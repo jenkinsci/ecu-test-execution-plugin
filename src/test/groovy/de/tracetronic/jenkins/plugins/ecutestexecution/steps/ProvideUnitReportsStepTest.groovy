@@ -72,16 +72,17 @@ class ProvideUnitReportsStepTest extends Specification {
             TestResult result = GroovyMock(TestResult)
             result.getFailCount() >> failed
             result.getTotalCount() >> total
-        when:
-            def isUnstable = step.isUnstable(result)
-        then:
-            expected == isUnstable
+        expect:
+            expected == step.isUnstable(result)
         where:
             failed | total  | threshold | expected
-            100    | 100    | 0.0       | false
+            0      | 100    | 5.0       | false
+            0      | 0      | 5.0       | false
+            0      | 100    | 0.0       | false
             49999  | 100000 | 50.0      | false
             50000  | 100000 | 50.0      | false
             50001  | 100000 | 50.0      | true
+            80000  | 100000 | 50.0      | true
     }
 
     def "Test isFailure"() {
@@ -92,16 +93,18 @@ class ProvideUnitReportsStepTest extends Specification {
             TestResult result = GroovyMock(TestResult)
             result.getFailCount() >> failed
             result.getTotalCount() >> total
-        when:
-            def isFailure = step.isFailure(result)
-        then:
-            expected == isFailure
+        expect:
+            expected == step.isFailure(result)
+
         where:
             failed | total  | threshold | expected
-            100    | 100    | 0.0       | false
+            0      | 100    | 5.0       | false
+            0      | 0      | 5.0       | false
+            0      | 100    | 0.0       | false
             49999  | 100000 | 50.0      | false
             50000  | 100000 | 50.0      | false
             50001  | 100000 | 50.0      | true
+            80000  | 100000 | 50.0      | true
     }
 
     def "Test DescriptorImpl returns correct values"() {
