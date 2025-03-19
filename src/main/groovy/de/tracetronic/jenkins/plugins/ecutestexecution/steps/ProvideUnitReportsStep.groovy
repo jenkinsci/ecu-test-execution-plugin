@@ -8,6 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.builder.ProvideFilesBuilder
+import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.EnvVars
@@ -16,8 +17,10 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
+import hudson.remoting.VirtualChannel
 import hudson.tasks.junit.TestResult
 import hudson.tasks.junit.TestResultAction
+import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor
@@ -97,36 +100,32 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         protected Void run() throws Exception {
             Run run = context.get(Run.class)
             TaskListener listener = context.get(TaskListener.class)
+            VirtualChannel channel = context.get(Launcher.class).getChannel()
+
             long startTimeMillis = run.getStartTimeInMillis()
             String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
 
             try {
-                ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
-                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
+                ArrayList<String> filePaths = channel.call(
+                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis,
+                                context.get(EnvVars.class),outDirPath, listener, step)
                 )
-                TestResult testResult = new TestResult()
-                filePaths.each { report ->
-                    listener.logger.println(report)
-                    testResult.parse(new File(report), null)
-                    testResult.tally()
+
+                if (filePaths.empty && !step.publishConfig.allowMissing) {
+                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
                 }
 
+                TestResult testResult = channel.call(new ParseReportsExecutable(filePaths))
                 TestResultAction action = run.getAction(TestResultAction.class);
-                if (action == null) {
+                if (action) {
+                    action.mergeResult(testResult, listener);
+                } else {
                     action = new TestResultAction(run, testResult, listener);
                     run.addAction(action);
-                } else {
-                    action.setResult(testResult, listener);
                 }
                 testResult.freeze(action);
 
-                /*def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
-                if (!result && !step.publishConfig.allowMissing) {
-                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
-                }*/
-                def result = true
-
-                result && listener.logger.println("Successfully added ${step.outDirName} to jenkins.")
+                listener.logger.println("Successfully added ${step.outDirName} to Jenkins.")
                 if (step.hasWarnings) {
                     run.setResult(Result.UNSTABLE)
                     listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
@@ -141,6 +140,26 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                 listener.error(e.message)
             }
             listener.logger.flush()
+        }
+    }
+
+    private static final class ParseReportsExecutable extends MasterToSlaveCallable<TestResult, IOException> implements Serializable {
+        private static final long serialVersionUID = 1L
+
+        private final ArrayList<String> reports
+
+        ParseReportsExecutable(ArrayList<String> reportPaths) {
+            super()
+            reports = reportPaths
+        }
+
+        TestResult call() {
+            TestResult testResult = new TestResult()
+            reports.each { report ->
+                testResult.parse(new File(report), null)
+                testResult.tally()
+            }
+            return testResult
         }
     }
 
