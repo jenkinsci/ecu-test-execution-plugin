@@ -40,8 +40,8 @@ class ZipUtil {
             ZipEntry entry
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    if (matcher.matches(Paths.get(entry.name))) {
-                        String entryPath = entry.name.replace("\\", "/")
+                    String entryPath = entry.name.replace("\\", "/")
+                    if (matcher.matches(Paths.get(entryPath))) {
                         File outputFile = new File(saveToDirPath, entryPath)
                         outputFile.parentFile.mkdirs()
                         outputFile.withOutputStream { outputStream ->
