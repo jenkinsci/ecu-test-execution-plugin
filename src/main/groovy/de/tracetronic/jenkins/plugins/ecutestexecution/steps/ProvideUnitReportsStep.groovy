@@ -77,7 +77,17 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         this.reportGlob = StringUtils.defaultIfBlank(value, DEFAULT_REPORT_GLOB).trim()
     }
 
-    protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) { ArrayList<String> logFileNames = ["ecu.test_out.log", "ecu.test_err.log"]
+    boolean isUnstable(TestResult results) {
+        double failed = (results.failCount / results.totalCount) * 100.0
+        return unstableThreshold > 0.0 && unstableThreshold < failed
+    }
+
+    boolean isFailure(TestResult results) {
+        double failed = results.failCount / results.totalCount * 100.0
+        return failedThreshold > 0.0 && failedThreshold < failed
+    }
+
+    protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
         return ZipUtil.extractFilesByGlobPattern(reportFile, DEFAULT_REPORT_GLOB, "${outDirPath}/${reportDirName}")
     }
 
@@ -107,8 +117,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
 
             try {
                 ArrayList<String> filePaths = channel.call(
-                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis,
-                                context.get(EnvVars.class),outDirPath, listener, step)
+                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
                 )
 
                 if (filePaths.empty && !step.publishConfig.allowMissing) {
@@ -126,7 +135,12 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                 testResult.freeze(action);
 
                 listener.logger.println("Successfully added ${step.outDirName} to Jenkins.")
-                if (step.hasWarnings) {
+
+                if (step.isFailure(testResult)) {
+                    run.setResult(Result.FAILURE)
+                } else if (step.isUnstable(testResult)) {
+                    run.setResult(Result.UNSTABLE)
+                } else if (step.hasWarnings) {
                     run.setResult(Result.UNSTABLE)
                     listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
                 }
