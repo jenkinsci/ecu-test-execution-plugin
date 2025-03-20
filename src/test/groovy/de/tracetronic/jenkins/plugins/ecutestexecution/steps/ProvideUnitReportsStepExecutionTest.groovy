@@ -1,5 +1,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
@@ -25,18 +26,61 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
         listener.getLogger() >> logger
     }
 
+    def "Test handling of UnsupportedOperationException"() {
+        given:
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> { throw new UnsupportedOperationException("Unsupported") }
+            })
+        when:
+            exec.run()
+        then:
+        1 * run.setResult(Result.UNSTABLE)
+        1 * logger.println("Providing ${step.outDirName} failed!")
+        1 * listener.error("Unsupported")
+        0 * exec.parseReportFiles(_)
+    }
+
     def "Test fail on empty TestResult"() {
         given:
-            def exec = GroovySpy(ProvideUnitReportsStep.Execution, constructorArgs:[step, context])
-            exec.getUnitReportFilePaths() >> _
-            exec.parseReportFiles(_) >> new TestResult()
+            TestResult result = GroovyStub {
+                getFailCount() >> 0
+                getTotalCount() >> 0
+            }
+        and:
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> _
+                parseReportFiles(_) >> result
+            })
         when:
             exec.run()
         then:
             1 * run.setResult(Result.FAILURE)
             1 * logger.println("Providing ${step.outDirName} failed!")
-            1 * listener.error("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
+            1 * listener.error("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
             0 * exec.addResultsToRun(_)
+    }
+
+    def "Test success on empty TestResult when allowMissing is true"() {
+        given:
+            TestResult result = GroovyStub {
+                getFailCount() >> 0
+                getTotalCount() >> 0
+            }
+        and:
+            def publishConf = new PublishConfig()
+            publishConf.setAllowMissing(true)
+            step.setPublishConfig(publishConf)
+        and:
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> _
+                parseReportFiles(_) >> result
+                addResultsToRun(_) >> _
+            })
+        when:
+            exec.run()
+        then:
+            0 * run.setResult(Result.FAILURE)
+            1 * logger.println("Successfully added test results to Jenkins.")
     }
 
     def "Test addResultsToRun with existing action"() {
@@ -67,40 +111,66 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
 
     def "Test run fails when reaching failedThreshold"() {
         given:
-            def testResult = GroovyMock(TestResult)
-            testResult.getFailCount() >> 6
-            testResult.getTotalCount() >> 100
+            TestResult result = GroovyStub {
+                getFailCount() >> 6
+                getTotalCount() >> 100
+            }
         and:
             step.setFailedThreshold(5.0)
         and:
-            def exec = GroovySpy(ProvideUnitReportsStep.Execution, constructorArgs:[step, context])
-            exec.getUnitReportFilePaths() >> _
-            exec.parseReportFiles(_) >> testResult
-            exec.addResultsToRun(testResult) >> _
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> _
+                parseReportFiles(_) >> result
+                addResultsToRun(_) >> _
+            })
         when:
             exec.run()
         then:
-            1 * logger.println("Successfully added ${step.outDirName} to Jenkins.")
+            1 * logger.println("Successfully added test results to Jenkins.")
+            1 * logger.println("Build result set to ${Result.FAILURE.toString()} due to percentage of failed tests is higher than the configured threshold.")
             1 * run.setResult(Result.FAILURE)
     }
 
     def "Test run unstable when reaching unstableThreshold"() {
         given:
-            def result = GroovyMock(TestResult)
-            result.getFailCount() >> 5
-            result.getTotalCount() >> 10
+            TestResult result = GroovyStub {
+                getFailCount() >> 6
+                getTotalCount() >> 100
+            }
         and:
-            def step = new ProvideUnitReportsStep()
             step.setUnstableThreshold(5.0)
         and:
-            def exec = GroovySpy(ProvideUnitReportsStep.Execution, constructorArgs:[step, context])
-            exec.getUnitReportFilePaths() >> _
-            exec.parseReportFiles(_) >> result
-            exec.addResultsToRun(_) >> _
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> _
+                parseReportFiles(_) >> result
+                addResultsToRun(_) >> _
+            })
         when:
             exec.run()
         then:
-            1 * logger.println("Successfully added ${step.outDirName} to Jenkins.")
+            1 * logger.println("Successfully added test results to Jenkins.")
+            1 * logger.println("Build result set to ${Result.UNSTABLE.toString()} due to percentage of failed tests is higher than the configured threshold.")
+            1 * run.setResult(Result.UNSTABLE)
+    }
+
+    def "Test run unstable when step has warnings"() {
+        given:
+            TestResult result = GroovyStub {
+                getTotalCount() >> 100
+            }
+        and:
+            step.hasWarnings = true
+        and:
+            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
+                getUnitReportFilePaths() >> _
+                parseReportFiles(_) >> result
+                addResultsToRun(_) >> _
+            })
+        when:
+            exec.run()
+        then:
+            1 * logger.println("Successfully added test results to Jenkins.")
+            1 * logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
             1 * run.setResult(Result.UNSTABLE)
     }
 }

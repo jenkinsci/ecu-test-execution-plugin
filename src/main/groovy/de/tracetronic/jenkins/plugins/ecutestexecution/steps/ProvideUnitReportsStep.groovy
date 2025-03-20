@@ -144,17 +144,18 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                 TestResult testResult = parseReportFiles(reportPaths)
 
                 if (testResult.totalCount == 0 && !step.publishConfig.allowMissing) {
-                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing ${step.outDirName}. Adjust AllowMissing step property if this is not intended.")
+                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
                 }
 
                 addResultsToRun(testResult)
-
-                listener.logger.println("Successfully added ${step.outDirName} to Jenkins.")
+                listener.logger.println("Successfully added test results to Jenkins.")
 
                 if (step.isFailure(testResult)) {
                     run.setResult(Result.FAILURE)
+                    listener.logger.println("Build result set to ${Result.FAILURE.toString()} due to percentage of failed tests is higher than the configured threshold.")
                 } else if (step.isUnstable(testResult)) {
                     run.setResult(Result.UNSTABLE)
+                    listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to percentage of failed tests is higher than the configured threshold.")
                 } else if (step.hasWarnings) {
                     run.setResult(Result.UNSTABLE)
                     listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
