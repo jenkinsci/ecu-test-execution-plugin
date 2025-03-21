@@ -39,12 +39,9 @@ abstract class AbstractProvideExecutionFilesStep extends AbstractDownloadReportS
         protected Void run() throws Exception {
             Run run = context.get(Run.class)
             TaskListener listener = context.get(TaskListener.class)
-            long startTimeMillis = run.getStartTimeInMillis()
-            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
 
             try {
                 ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
-                        //new AbstractDownloadReportStep.DownloadReportCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
                         new AbstractDownloadReportStep.DownloadReportCallable(step, step.publishConfig.timeout, context)
                 )
                 def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)

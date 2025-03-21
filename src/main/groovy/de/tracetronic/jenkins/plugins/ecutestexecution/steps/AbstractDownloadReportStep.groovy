@@ -74,18 +74,8 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
         private final long startTimeMillis
         private final EnvVars envVars
         private final String outDirPath
-        //private final TaskListener listener
         private RestApiClient apiClient
         private final AbstractDownloadReportStep step
-
-
-        DownloadReportCallable(long timeout, long startTimeMillis, EnvVars envVars, String outDirPath, TaskListener listener, AbstractDownloadReportStep step) {
-            super(timeout, listener)
-            this.startTimeMillis = startTimeMillis
-            this.envVars = envVars
-            this.outDirPath = outDirPath
-            this.step = step
-        }
 
         DownloadReportCallable(AbstractDownloadReportStep step, long timeout, StepContext context) {
             super(timeout, context)
