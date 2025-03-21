@@ -14,12 +14,15 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiExceptio
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
 import hudson.AbortException
 import hudson.EnvVars
 import hudson.model.Result
+import hudson.model.Run
 import hudson.model.TaskListener
 import org.jenkinsci.plugins.workflow.steps.Step
+import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.kohsuke.stapler.DataBoundSetter
 
 import javax.annotation.Nonnull
@@ -65,23 +68,30 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
 
     protected abstract ArrayList<String> processReport(File reportZip, String reportDirName, String outDirPath, TaskListener listener)
 
-    protected static final class ExecutionCallable extends ControllerToAgentCallableWithTimeout<ArrayList<String>, IOException> implements Serializable {
+    protected static final class DownloadReportCallable extends ControllerToAgentCallableWithTimeout<ArrayList<String>, IOException> implements Serializable {
         private static final long serialVersionUID = 1L
 
         private final long startTimeMillis
         private final EnvVars envVars
         private final String outDirPath
-        private final TaskListener listener
+        //private final TaskListener listener
         private RestApiClient apiClient
         private final AbstractDownloadReportStep step
 
 
-        ExecutionCallable(long timeout, long startTimeMillis, EnvVars envVars, String outDirPath, TaskListener listener, AbstractDownloadReportStep step) {
+        DownloadReportCallable(long timeout, long startTimeMillis, EnvVars envVars, String outDirPath, TaskListener listener, AbstractDownloadReportStep step) {
             super(timeout, listener)
             this.startTimeMillis = startTimeMillis
             this.envVars = envVars
             this.outDirPath = outDirPath
-            this.listener = listener
+            this.step = step
+        }
+
+        DownloadReportCallable(AbstractDownloadReportStep step, long timeout, StepContext context) {
+            super(timeout, context)
+            this.startTimeMillis = context.get(Run.class).getStartTimeInMillis()
+            this.envVars = context.get(EnvVars.class)
+            this.outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
             this.step = step
         }
 

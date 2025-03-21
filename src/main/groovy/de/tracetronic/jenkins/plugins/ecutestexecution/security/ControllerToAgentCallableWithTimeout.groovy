@@ -8,6 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.security
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import jenkins.util.Timer
+import org.jenkinsci.plugins.workflow.steps.StepContext
 
 import java.util.concurrent.Callable
 import java.util.concurrent.ScheduledExecutorService
@@ -18,11 +19,16 @@ import java.util.concurrent.TimeoutException
 abstract class ControllerToAgentCallableWithTimeout<V, T extends Throwable> extends MasterToSlaveCallable<V, T> {
 
     private long timeout
-    private final TaskListener listener
+    protected final TaskListener listener
 
     ControllerToAgentCallableWithTimeout(long timeout, TaskListener listener) {
         this.timeout = timeout
         this.listener = listener
+    }
+
+    ControllerToAgentCallableWithTimeout(long timeout, StepContext context) {
+        this.timeout = timeout
+        this.listener = context.get(TaskListener.class)
     }
 
     abstract V execute() throws Exception

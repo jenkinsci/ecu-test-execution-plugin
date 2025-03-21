@@ -7,30 +7,15 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.builder.ProvideFilesBuilder
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
-import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
-import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.StepUtil
-import hudson.AbortException
 import hudson.EnvVars
 import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import org.apache.commons.lang.StringUtils
-import org.jenkinsci.plugins.workflow.steps.Step
 import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
-import org.kohsuke.stapler.DataBoundSetter
-
-import javax.annotation.Nonnull
 
 abstract class AbstractProvideExecutionFilesStep extends AbstractDownloadReportStep {
     protected String iconName
@@ -59,7 +44,8 @@ abstract class AbstractProvideExecutionFilesStep extends AbstractDownloadReportS
 
             try {
                 ArrayList<String> filePaths = context.get(Launcher.class).getChannel().call(
-                        new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
+                        //new AbstractDownloadReportStep.DownloadReportCallable(step.publishConfig.timeout, startTimeMillis, context.get(EnvVars.class), outDirPath, listener, step)
+                        new AbstractDownloadReportStep.DownloadReportCallable(step, step.publishConfig.timeout, context)
                 )
                 def result = new ProvideFilesBuilder(context).archiveFiles(filePaths, step.outDirName, step.publishConfig.keepAll, step.iconName)
                 if (!result && !step.publishConfig.allowMissing) {

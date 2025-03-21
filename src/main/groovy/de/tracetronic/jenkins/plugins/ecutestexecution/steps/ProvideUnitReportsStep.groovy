@@ -7,8 +7,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.jenkins.plugins.ecutestexecution.builder.ProvideFilesBuilder
-import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.EnvVars
@@ -17,7 +15,6 @@ import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import hudson.remoting.VirtualChannel
 import hudson.tasks.junit.TestResult
 import hudson.tasks.junit.TestResultAction
 import jenkins.security.MasterToSlaveCallable
@@ -119,8 +116,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         }
 
         ArrayList<String> getUnitReportFilePaths() throws IOException {
-            String outDirPath = PathUtil.makeAbsoluteInPipelineHome(step.outDirName, context)
-            return launcher.getChannel().call(new AbstractDownloadReportStep.ExecutionCallable(step.publishConfig.timeout, run.getStartTimeInMillis(), context.get(EnvVars.class), outDirPath, listener, step))
+            return launcher.getChannel().call(new AbstractDownloadReportStep.DownloadReportCallable(step, step.publishConfig.timeout, context))
         }
 
         TestResult parseReportFiles(ArrayList<String> reportPaths) throws IOException {
