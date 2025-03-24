@@ -81,24 +81,45 @@ class ETV1ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Downloading ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
     }
 
-        def "ttProvideGeneratedReports: Test unsupported step"() {
-            given: "a pipeline with test package and report provider"
-                String script = """
+    def "ttProvideGeneratedReports: Test unsupported step"() {
+        given: "a pipeline with test package and report provider"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttRunPackage testCasePath: 'test.pkg'
+                        ttProvideGeneratedReports()
+                    }
+                }
+                """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+
+        then: "expect log information about unstable pipeline run"
+            jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
+            jenkins.assertLogContains("Providing Generated ecu.test Reports failed!", run)
+            jenkins.assertLogContains("Downloading Generated ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
+    }
+
+    def "ttProvideUnitReports: Test unsupported step"() {
+        given: "a pipeline with test package and report provider"
+            String script = """
                     node {
                         withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                             ttRunPackage testCasePath: 'test.pkg'
-                            ttProvideGeneratedReports()
+                            ttProvideUnitReports()
                         }
                     }
                     """.stripIndent()
-                WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-                job.setDefinition(new CpsFlowDefinition(script, true))
-            when: "scheduling a new build"
-                WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.UNSTABLE, job)
 
-            then: "expect log information about unstable pipeline run"
-                jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
-                jenkins.assertLogContains("Providing Generated ecu.test Reports failed!", run)
-                jenkins.assertLogContains("Downloading Generated ecu.test Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
-        }
+        then: "expect log information about unstable pipeline run"
+            jenkins.assertLogContains("Providing Unit Reports to jenkins.", run)
+            jenkins.assertLogContains("Providing Unit Reports failed!", run)
+            jenkins.assertLogContains("Downloading Unit Reports is not supported for this ecu.test version. Please use ecu.test >= 2024.3 instead.", run)
+    }
 }

@@ -6,6 +6,7 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution
 
 import hudson.model.Result
+import hudson.tasks.junit.TestResultAction
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
@@ -40,6 +41,16 @@ class ETV2ContainerTest extends ETContainerTest {
                         BindMode.READ_ONLY)
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .waitingFor(Wait.forHttp("/api/v2/live"))
+    }
+
+    String toPipelineScript(String innerScript) {
+        return """
+        node {
+            withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                ${innerScript}
+            }
+        }
+        """.stripIndent()
     }
 
     def "ttProvideLogs: Test for missing files"() {
@@ -346,12 +357,12 @@ class ETV2ContainerTest extends ETContainerTest {
     def "ttProvideGeneratedReports: Test for failOnError false"() {
         given: "a pipeline logs provider"
             String script = """
-                            node {
-                                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                                    ttProvideGeneratedReports(publishConfig: [allowMissing: true, failOnError: false], reportIds: ['1'])
-                                }
-                            }
-                            """.stripIndent()
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttProvideGeneratedReports(publishConfig: [allowMissing: true, failOnError: false], reportIds: ['1'])
+                    }
+                }
+                """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
@@ -366,12 +377,12 @@ class ETV2ContainerTest extends ETContainerTest {
     def "ttProvideGeneratedReports: allow missing files"() {
         given: "a pipeline reports provider"
             String script = """
-                    node {
-                        withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                            ttProvideGeneratedReports(publishConfig: [allowMissing: true])
-                        }
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttProvideGeneratedReports(publishConfig: [allowMissing: true])
                     }
-                    """.stripIndent()
+                }
+                """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
@@ -384,14 +395,14 @@ class ETV2ContainerTest extends ETContainerTest {
     def "ttProvideGeneratedReports: happy path"() {
         given: "a pipeline with test packages and report provider"
             String script = """
-            node {
-                withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
-                    ttRunPackage testCasePath: 'test.pkg'
-                    ttGenerateReports 'HTML'
-                    ttProvideGeneratedReports()
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttRunPackage testCasePath: 'test.pkg'
+                        ttGenerateReports 'HTML'
+                        ttProvideGeneratedReports()
+                    }
                 }
-            }
-            """.stripIndent()
+                """.stripIndent()
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
             job.setDefinition(new CpsFlowDefinition(script, true))
         when: "scheduling a new build"
@@ -402,8 +413,8 @@ class ETV2ContainerTest extends ETContainerTest {
     }
 
     def "ttProvideGeneratedReports: no matching reports"() {
-            given: "a pipeline with test packages and report provider"
-                String script = """
+        given: "a pipeline with test packages and report provider"
+            String script = """
                 node {
                     withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
                         ttRunPackage testCasePath: 'test.pkg'
@@ -412,13 +423,62 @@ class ETV2ContainerTest extends ETContainerTest {
                     }
                 }
                 """.stripIndent()
-                WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
-                job.setDefinition(new CpsFlowDefinition(script, true))
-            when: "scheduling a new build"
-                WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
-            then: "expect log information about successful pipeline run"
-                jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
-                jenkins.assertLogContains("Could not find any matching generated report files", run)
-                jenkins.assertLogContains("No files found to archive!", run)
-        }
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+        then: "expect log information about successful pipeline run"
+            jenkins.assertLogContains("Providing $etGeneratedReportsFolderName to jenkins.", run)
+            jenkins.assertLogContains("Could not find any matching generated report files", run)
+            jenkins.assertLogContains("No files found to archive!", run)
+    }
+
+    def "ttProvideUnitReports: happy path"() {
+        given: "a pipeline that provides the needed test report"
+            // project has two tests, one successful and one failing
+            // unit.tcf will auto create a standard and a custom unit test report
+            String prepareScript = toPipelineScript("ttRunProject testCasePath: 'UnitTests/RunTests.prj', testConfig: [tbcPath: '', tcfPath: 'unit.tcf']")
+            WorkflowJob prepareJob = jenkins.createProject(WorkflowJob.class, "prepare-test")
+            prepareJob.setDefinition(new CpsFlowDefinition(prepareScript, true))
+        and: "a pipeline that parses the data without thresholds"
+            String successScript = toPipelineScript("ttProvideUnitReports()")
+            WorkflowJob successJob = jenkins.createProject(WorkflowJob.class, "run-success")
+            successJob.setDefinition(new CpsFlowDefinition(successScript, true))
+        and: "a pipeline that evaluates a custom report glob"
+            String customScript = toPipelineScript("ttProvideUnitReports reportGlob: 'MyUnitReport/junit-report.xml'")
+            WorkflowJob customJob = jenkins.createProject(WorkflowJob.class, "run-custom")
+            customJob.setDefinition(new CpsFlowDefinition(customScript, true))
+        and: "a pipeline the has a unstableThreshold"
+            String unstableScript = toPipelineScript("ttProvideUnitReports unstableThreshold: 20.0")
+            WorkflowJob unstableJob = jenkins.createProject(WorkflowJob.class, "run-unstable")
+            unstableJob.setDefinition(new CpsFlowDefinition(unstableScript, true))
+        and: "a Pipeline the has a failed threshold"
+            String failedScript = toPipelineScript("ttProvideUnitReports failedThreshold: 20.0")
+            WorkflowJob failedJob = jenkins.createProject(WorkflowJob.class, "run-failed")
+            failedJob.setDefinition(new CpsFlowDefinition(failedScript, true))
+
+        when: "scheduling prepare job"
+            WorkflowRun prepareRun = jenkins.buildAndAssertStatus(Result.SUCCESS, prepareJob)
+        then: "expect project was executed correctly"
+            jenkins.assertLogContains("Executing project 'UnitTests/RunTests.prj'", prepareRun)
+            jenkins.assertLogContains("Project executed successfully.", prepareRun)
+        when: "scheduling successful running jobs"
+            WorkflowRun successRun = jenkins.buildAndAssertStatus(Result.SUCCESS, successJob)
+            WorkflowRun customRun = jenkins.buildAndAssertStatus(Result.SUCCESS, customJob)
+        then: "expect they are successful and contain test results"
+            jenkins.assertLogContains("Successfully added test results to Jenkins.", successRun)
+            successRun.getAction(TestResultAction.class).getTotalCount() == 2
+            jenkins.assertLogContains("Successfully added test results to Jenkins.", customRun)
+            customRun.getAction(TestResultAction.class).getTotalCount() == 2
+        when: "scheduling non-successful jobs"
+            WorkflowRun unstableRun = jenkins.buildAndAssertStatus(Result.UNSTABLE, unstableJob)
+            WorkflowRun failedRun = jenkins.buildAndAssertStatus(Result.FAILURE, failedJob)
+        then: "they run as expected, log the reaching of the threshold and contain test results"
+            jenkins.assertLogContains("Successfully added test results to Jenkins.", unstableRun)
+            jenkins.assertLogContains("Build result set to UNSTABLE due to percentage of failed tests is higher than the configured threshold", unstableRun)
+            unstableRun.getAction(TestResultAction.class).getTotalCount() == 2
+            jenkins.assertLogContains("Successfully added test results to Jenkins.", failedRun)
+            jenkins.assertLogContains("Build result set to FAILURE due to percentage of failed tests is higher than the configured threshold", failedRun)
+            failedRun.getAction(TestResultAction.class).getTotalCount() == 2
+    }
 }

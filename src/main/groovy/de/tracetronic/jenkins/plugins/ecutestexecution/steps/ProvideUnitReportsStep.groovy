@@ -138,6 +138,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
             try {
                 ArrayList<String> reportPaths = getUnitReportFilePaths()
                 TestResult testResult = parseReportFiles(reportPaths)
+                testResult.tally() // needed, otherwise totalCount is 0 even when it contains test cases
 
                 if (testResult.totalCount == 0 && !step.publishConfig.allowMissing) {
                     throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
