@@ -7,7 +7,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -140,12 +139,17 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                 TestResult testResult = parseReportFiles(reportPaths)
                 testResult.tally() // needed, otherwise totalCount is 0 even when it contains test cases
 
-                if (testResult.totalCount == 0 && !step.publishConfig.allowMissing) {
-                    throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
+                if (testResult.totalCount == 0) {
+                    listener.logger.println("No unit test results found.")
+                    if(!step.publishConfig.allowMissing) {
+                        throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
+                    }
+                } else {
+                    listener.logger.println("Found ${testResult.totalCount} test result(s) in total: " +
+                            "#Passed: ${testResult.passCount}, #Failed: ${testResult.failCount}, #Skipped: ${testResult.skipCount}")
+                    addResultsToRun(testResult)
+                    listener.logger.println("Successfully added test results to Jenkins.")
                 }
-
-                addResultsToRun(testResult)
-                listener.logger.println("Successfully added test results to Jenkins.")
 
                 if (step.isFailure(testResult)) {
                     run.setResult(Result.FAILURE)

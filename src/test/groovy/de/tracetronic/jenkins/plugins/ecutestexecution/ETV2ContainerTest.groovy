@@ -462,21 +462,27 @@ class ETV2ContainerTest extends ETContainerTest {
         then: "expect project was executed correctly"
             jenkins.assertLogContains("Executing project 'UnitTests/RunTests.prj'", prepareRun)
             jenkins.assertLogContains("Project executed successfully.", prepareRun)
+
         when: "scheduling successful running jobs"
             WorkflowRun successRun = jenkins.buildAndAssertStatus(Result.SUCCESS, successJob)
             WorkflowRun customRun = jenkins.buildAndAssertStatus(Result.SUCCESS, customJob)
         then: "expect they are successful and contain test results"
+            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", successRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", successRun)
             successRun.getAction(TestResultAction.class).getTotalCount() == 2
+            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", customRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", customRun)
             customRun.getAction(TestResultAction.class).getTotalCount() == 2
+
         when: "scheduling non-successful jobs"
             WorkflowRun unstableRun = jenkins.buildAndAssertStatus(Result.UNSTABLE, unstableJob)
             WorkflowRun failedRun = jenkins.buildAndAssertStatus(Result.FAILURE, failedJob)
         then: "they run as expected, log the reaching of the threshold and contain test results"
+            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", unstableRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", unstableRun)
             jenkins.assertLogContains("Build result set to UNSTABLE due to percentage of failed tests is higher than the configured threshold", unstableRun)
             unstableRun.getAction(TestResultAction.class).getTotalCount() == 2
+            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", failedRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", failedRun)
             jenkins.assertLogContains("Build result set to FAILURE due to percentage of failed tests is higher than the configured threshold", failedRun)
             failedRun.getAction(TestResultAction.class).getTotalCount() == 2

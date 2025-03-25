@@ -55,6 +55,7 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
             exec.run()
         then:
             1 * run.setResult(Result.FAILURE)
+            1 * logger.println("No unit test results found.")
             1 * logger.println("Providing ${step.outDirName} failed!")
             1 * listener.error("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
             0 * exec.addResultsToRun(_)
@@ -80,7 +81,8 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
             exec.run()
         then:
             0 * run.setResult(Result.FAILURE)
-            1 * logger.println("Successfully added test results to Jenkins.")
+            0 * logger.println("Successfully added test results to Jenkins.")
+            1 * logger.println("No unit test results found.")
     }
 
     def "Test addResultsToRun with existing action"() {
@@ -114,6 +116,8 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
             TestResult result = GroovyStub {
                 getFailCount() >> 6
                 getTotalCount() >> 100
+                getPassCount() >> 90
+                getSkipCount() >> 4
             }
         and:
             step.setFailedThreshold(5.0)
@@ -126,6 +130,7 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
         when:
             exec.run()
         then:
+            1 * logger.println("Found 100 test result(s) in total: #Passed: 90, #Failed: 6, #Skipped: 4")
             1 * logger.println("Successfully added test results to Jenkins.")
             1 * logger.println("Build result set to ${Result.FAILURE.toString()} due to percentage of failed tests is higher than the configured threshold.")
             1 * run.setResult(Result.FAILURE)
