@@ -17,6 +17,7 @@ Existing pipeline jobs can be migrated using the pipeline syntax given in the fo
  *publishATX*    | **ttUploadReports**  
  *publishETLogs* | **ttProvideLogs**    
  *publishTRF*    | **ttProvideReports** 
+ *publishUNIT*   | **ttProvideUnitReports**
 
 Remaining steps which are available in the [current plugin version](https://github.com/jenkinsci/ecutest-plugin) are in
 development and will be available in the future.
