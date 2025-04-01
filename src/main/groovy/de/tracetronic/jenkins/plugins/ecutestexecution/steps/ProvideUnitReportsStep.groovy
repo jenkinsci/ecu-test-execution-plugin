@@ -1,12 +1,13 @@
 /*
-* Copyright (c) 2025 tracetronic GmbH
-*
-* SPDX-License-Identifier: BSD-3-Clause
-*/
+ * Copyright (c) 2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
 import hudson.EnvVars
 import hudson.Extension
@@ -16,6 +17,7 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.tasks.junit.TestResult
 import hudson.tasks.junit.TestResultAction
+import hudson.util.FormValidation
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.steps.StepContext
@@ -209,6 +211,14 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         @Override
         String getDisplayName() {
             '[TT] Provide generated unit reports as job test results.'
+        }
+
+        FormValidation doCheckUnstableThreshold(@QueryParameter String value) {
+            return ValidationUtil.validateDoubleInRange(value, 0.0, 100.0)
+        }
+
+        FormValidation doCheckFailedThreshold(@QueryParameter String value) {
+            return ValidationUtil.validateDoubleInRange(value, 0.0, 100.0)
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -92,5 +92,23 @@ class ValidationUtilTest extends Specification {
             'invalid'                    | FormValidation.Kind.ERROR
             '127.0.0.1:8085'             | FormValidation.Kind.ERROR
             '${URL}'                     | FormValidation.Kind.WARNING
+    }
+
+    def 'Validate double value is in range'() {
+        given:
+            FormValidation validation = ValidationUtil.validateDoubleInRange(value, 0.0, 100.0)
+        expect:
+            validation.kind == expectedKind
+        where:
+            value       | expectedKind
+            "-10.9"     | FormValidation.Kind.ERROR
+            "NaN"       | FormValidation.Kind.ERROR
+            "-0.001"    | FormValidation.Kind.ERROR
+            "0.0"       | FormValidation.Kind.OK
+            "0.001"     | FormValidation.Kind.OK
+            "42"        | FormValidation.Kind.OK
+            "100.0"     | FormValidation.Kind.OK
+            "100.00001" | FormValidation.Kind.ERROR
+            "123"       | FormValidation.Kind.ERROR
     }
 }

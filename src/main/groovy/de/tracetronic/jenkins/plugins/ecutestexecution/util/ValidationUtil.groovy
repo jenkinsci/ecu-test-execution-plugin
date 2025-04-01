@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import hudson.model.Messages
 import hudson.util.FormValidation
 import hudson.util.IOUtils
 import org.apache.commons.lang.StringUtils
@@ -73,6 +74,30 @@ class ValidationUtil {
             }
         }
         return returnValue
+    }
+
+    /**
+     * Port of FormValidation.validateIntegerInRange for Double.
+     *
+     * Make sure that the given string is an double in the range specified by the lower and upper bounds (both inclusive)
+     *
+     * @param value the value to check
+     * @param lower the lower bound (inclusive)
+     * @param upper the upper bound (inclusive)
+     */
+    static FormValidation validateDoubleInRange(String value, double lower, double upper) {
+        try {
+            double doubleValue = Double.parseDouble(value);
+            if (doubleValue < lower) {
+                return FormValidation.error(Messages.Hudson_MustBeAtLeast(lower));
+            }
+            if (doubleValue > upper) {
+                return FormValidation.error(Messages.Hudson_MustBeAtMost(upper));
+            }
+            return FormValidation.ok();
+        } catch (NumberFormatException e) {
+            return FormValidation.error(Messages.Hudson_NotANumber());
+        }
     }
 
     /**
