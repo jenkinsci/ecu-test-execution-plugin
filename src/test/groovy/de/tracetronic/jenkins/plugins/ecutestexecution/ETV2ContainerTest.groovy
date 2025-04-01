@@ -436,7 +436,7 @@ class ETV2ContainerTest extends ETContainerTest {
     def "ttProvideUnitReports: happy path"() {
         given: "a pipeline that provides the needed test report"
             // project has two tests, one successful and one failing
-            // unit.tcf will auto create a standard and a custom unit test report
+            // unit.tcf will auto create a standard and a custom unit test report (the default glob will match both reports)
             String prepareScript = toPipelineScript("ttRunProject testCasePath: 'UnitTests/RunTests.prj', testConfig: [tbcPath: '', tcfPath: 'unit.tcf']")
             WorkflowJob prepareJob = jenkins.createProject(WorkflowJob.class, "prepare-test")
             prepareJob.setDefinition(new CpsFlowDefinition(prepareScript, true))
@@ -467,9 +467,9 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun successRun = jenkins.buildAndAssertStatus(Result.SUCCESS, successJob)
             WorkflowRun customRun = jenkins.buildAndAssertStatus(Result.SUCCESS, customJob)
         then: "expect they are successful and contain test results"
-            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", successRun)
+            jenkins.assertLogContains("Found 4 test result(s) in total: #Passed: 2, #Failed: 2, #Skipped: 0", successRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", successRun)
-            successRun.getAction(TestResultAction.class).getTotalCount() == 2
+            successRun.getAction(TestResultAction.class).getTotalCount() == 4
             jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", customRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", customRun)
             customRun.getAction(TestResultAction.class).getTotalCount() == 2
@@ -478,13 +478,13 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun unstableRun = jenkins.buildAndAssertStatus(Result.UNSTABLE, unstableJob)
             WorkflowRun failedRun = jenkins.buildAndAssertStatus(Result.FAILURE, failedJob)
         then: "they run as expected, log the reaching of the threshold and contain test results"
-            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", unstableRun)
+            jenkins.assertLogContains("Found 4 test result(s) in total: #Passed: 2, #Failed: 2, #Skipped: 0", unstableRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", unstableRun)
             jenkins.assertLogContains("Build result set to UNSTABLE due to percentage of failed tests is higher than the configured threshold", unstableRun)
-            unstableRun.getAction(TestResultAction.class).getTotalCount() == 2
-            jenkins.assertLogContains("Found 2 test result(s) in total: #Passed: 1, #Failed: 1, #Skipped: 0", failedRun)
+            unstableRun.getAction(TestResultAction.class).getTotalCount() == 4
+            jenkins.assertLogContains("Found 4 test result(s) in total: #Passed: 2, #Failed: 2, #Skipped: 0", failedRun)
             jenkins.assertLogContains("Successfully added test results to Jenkins.", failedRun)
             jenkins.assertLogContains("Build result set to FAILURE due to percentage of failed tests is higher than the configured threshold", failedRun)
-            failedRun.getAction(TestResultAction.class).getTotalCount() == 2
+            failedRun.getAction(TestResultAction.class).getTotalCount() == 4
     }
 }

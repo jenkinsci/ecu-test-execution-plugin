@@ -93,7 +93,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     }
 
     protected ArrayList<String> processReport(File reportFile, String reportDirName, String outDirPath, TaskListener listener) {
-        return ZipUtil.extractFilesByGlobPattern(reportFile, DEFAULT_REPORT_GLOB, "${outDirPath}/${reportDirName}")
+        return ZipUtil.extractFilesByGlobPattern(reportFile, reportGlob, "${outDirPath}/${reportDirName}")
     }
 
     @Override
