@@ -26,11 +26,12 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
+import org.kohsuke.stapler.QueryParameter
 
 
 class ProvideUnitReportsStep extends AbstractDownloadReportStep {
 
-    public static final String DEFAULT_REPORT_GLOB = "**UNIT/junit-report.xml"
+    public static final String DEFAULT_REPORT_GLOB = "**/junit-report.xml"
     private static final String SUPPORT_VERSION = "2024.3"
     private static final String OUT_DIR_NAME = "Unit Reports"
     private double unstableThreshold;
@@ -153,15 +154,18 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                     listener.logger.println("Successfully added test results to Jenkins.")
                 }
 
+                Result newResult = Result.SUCCESS
+                String reason = "unknown"
                 if (step.isFailure(testResult)) {
-                    run.setResult(Result.FAILURE)
-                    listener.logger.println("Build result set to ${Result.FAILURE.toString()} due to percentage of failed tests is higher than the configured threshold.")
-                } else if (step.isUnstable(testResult)) {
-                    run.setResult(Result.UNSTABLE)
-                    listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to percentage of failed tests is higher than the configured threshold.")
-                } else if (step.hasWarnings) {
-                    run.setResult(Result.UNSTABLE)
-                    listener.logger.println("Build result set to ${Result.UNSTABLE.toString()} due to warnings.")
+                    newResult = Result.FAILURE
+                    reason = "percentage of failed tests is higher than the configured threshold"
+                } else if (step.isUnstable(testResult) || step.hasWarnings) {
+                    newResult = Result.UNSTABLE
+                    reason = step.hasWarnings ? "warnings" : "percentage of failed tests is higher than the configured threshold"
+                }
+                if (newResult != Result.SUCCESS) {
+                    run.setResult(newResult)
+                    listener.logger.println("Build result set to ${newResult} due to ${reason}.")
                 }
             } catch (Exception e) {
                 if (e instanceof UnsupportedOperationException) {

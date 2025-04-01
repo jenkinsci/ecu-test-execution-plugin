@@ -4,7 +4,7 @@ Upstream-Contact: tracetronic GmbH <info@tracetronic.de>
 Source: https://github.com/tracetronic/ecu-test-execution-plugin
 
 Files: *
-Copyright: 2021-2024 tracetronic GmbH
+Copyright: 2021-2025 tracetronic GmbH
 License: BSD-3-Clause
 
 Files: gradlew gradlew.bat gradle/wrapper/*
@@ -16,9 +16,9 @@ Copyright: 2017 Bill Dennis (macg33zr)
 License: Apache-2.0
 
 Files: specs/openapi_v1.yml
-Copyright: 2020-2024 tracetronic GmbH
+Copyright: 2020-2025 tracetronic GmbH
 License: MIT
 
 Files: specs/openapi_v2.yml
-Copyright: 2020-2024 tracetronic GmbH
+Copyright: 2020-2025 tracetronic GmbH
 License: MIT
