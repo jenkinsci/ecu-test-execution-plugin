@@ -5,10 +5,10 @@
         <b>${%step.compatNote}</b>
     </f:description>
     <f:entry title="${%unstableThreshold.title}" description="${%unstableThreshold.description}" field="unstableThreshold" >
-        <f:textbox default="0.0"/>
+        <f:number min="0" max="100" default="0" />
     </f:entry>
     <f:entry title="${%failedThreshold.title}" description="${%failedThreshold.description}" field="failedThreshold" >
-        <f:textbox default="0.0"/>
+        <f:number min="0" max="100" default="0" />
     </f:entry>
     <f:advanced>
         <f:entry title="${%reportIds.title}" description="${%reportIds.description}" field="super.reportIds">
