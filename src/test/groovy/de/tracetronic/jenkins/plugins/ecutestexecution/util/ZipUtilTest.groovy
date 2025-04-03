@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import spock.lang.Specification
 import spock.lang.TempDir
+
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
