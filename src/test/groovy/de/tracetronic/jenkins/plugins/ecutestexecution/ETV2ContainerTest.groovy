@@ -437,7 +437,7 @@ class ETV2ContainerTest extends ETContainerTest {
         given: "a pipeline that provides the needed test report"
             // project has two tests, one successful and one failing
             // unit.tcf will auto create a standard and a custom unit test report (the default glob will match both reports)
-            String prepareScript = toPipelineScript("ttRunProject testCasePath: 'UnitTests/RunTests.prj', testConfig: [tbcPath: '', tcfPath: 'unit.tcf']")
+            String prepareScript = toPipelineScript("ttRunProject testCasePath: 'ttProvideUnitReports/RunTests.prj', testConfig: [tbcPath: '', tcfPath: 'unit.tcf']")
             WorkflowJob prepareJob = jenkins.createProject(WorkflowJob.class, "prepare-test")
             prepareJob.setDefinition(new CpsFlowDefinition(prepareScript, true))
         and: "a pipeline that parses the data without thresholds"
@@ -460,7 +460,7 @@ class ETV2ContainerTest extends ETContainerTest {
         when: "scheduling prepare job"
             WorkflowRun prepareRun = jenkins.buildAndAssertStatus(Result.SUCCESS, prepareJob)
         then: "expect project was executed correctly"
-            jenkins.assertLogContains("Executing project 'UnitTests/RunTests.prj'", prepareRun)
+            jenkins.assertLogContains("Executing project 'ttProvideUnitReports/RunTests.prj'", prepareRun)
             jenkins.assertLogContains("Project executed successfully.", prepareRun)
 
         when: "scheduling successful running jobs"
