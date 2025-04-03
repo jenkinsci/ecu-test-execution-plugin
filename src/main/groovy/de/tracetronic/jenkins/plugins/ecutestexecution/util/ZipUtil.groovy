@@ -6,7 +6,10 @@
 
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+
+import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -28,10 +31,36 @@ class ZipUtil {
         return result
     }
 
+    static ArrayList<String> extractFilesByGlobPattern(File reportFolderZip, String globPattern, String saveToDirPath) {
+        ArrayList<String> extractedFilePaths = []
+        File pathToSave = new File(saveToDirPath)
+        pathToSave.mkdirs()
+        PathMatcher matcher = FileSystems.default.getPathMatcher("glob:" + globPattern)
+
+        new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
+            ZipEntry entry
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    String entryPath = entry.name.replace("\\", "/")
+                    if (matcher.matches(Paths.get(entryPath))) {
+                        File outputFile = new File(pathToSave, entryPath)
+                        outputFile.parentFile.mkdirs()
+                        outputFile.withOutputStream { outputStream ->
+                            outputStream << zipInputStream
+                        }
+                        extractedFilePaths << outputFile.path
+                    }
+                }
+            }
+        }
+        return extractedFilePaths
+    }
+
     static ArrayList<String> extractFilesByExtension(File reportFolderZip, List<String> fileEndings, String saveToDirPath) {
         ArrayList<String> extractedFilePaths = []
         Set<String> fileEndingsSet = fileEndings.toSet()
-        new File(saveToDirPath).mkdirs()
+        File pathToSave = new File(saveToDirPath)
+        pathToSave.mkdirs()
 
         new ZipInputStream(new FileInputStream(reportFolderZip)).withCloseable { zipInputStream ->
             ZipEntry entry
@@ -42,12 +71,12 @@ class ZipUtil {
                     }
                     if (shouldExtract) {
                         String entryPath = entry.name.replace("\\", "/")
-                        File outputFile = new File(saveToDirPath, entryPath)
+                        File outputFile = new File(pathToSave, entryPath)
                         outputFile.parentFile.mkdirs()
                         outputFile.withOutputStream { outputStream ->
                             outputStream << zipInputStream
                         }
-                        extractedFilePaths.add(outputFile.path)
+                        extractedFilePaths << outputFile.path
                     }
                 }
             }

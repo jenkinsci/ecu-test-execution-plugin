@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import spock.lang.Specification
 import spock.lang.TempDir
+
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -36,17 +43,17 @@ class ZipUtilTest extends Specification {
         }
     }
 
-        def "should check for presence of file types"() {
-            expect:
-                ZipUtil.containsFileOfType(testZip, extension) == exists
+    def "should check for presence of file types"() {
+        expect:
+            ZipUtil.containsFileOfType(testZip, extension) == exists
 
-            where:
-                extension | exists
-                ".txt"    | true
-                ".xml"    | true
-                ".html"   | true
-                ".pdf"    | false
-        }
+        where:
+            extension | exists
+            ".txt"    | true
+            ".xml"    | true
+            ".html"   | true
+            ".pdf"    | false
+    }
 
 
 
@@ -79,41 +86,60 @@ class ZipUtilTest extends Specification {
         then:
             extractedFiles.size() == 4
     }
-        def "should handle empty zip file"() {
-            given:
-                def emptyZip = new File(tempDir.toFile(), "empty.zip")
-                new ZipOutputStream(new FileOutputStream(emptyZip)).close()
 
-            when:
-                def extractedFiles = ZipUtil.extractFilesByExtension(
-                    emptyZip,
-                    [".txt"],
-                    outputDir.absolutePath
-                )
+    def "should handle empty zip file"() {
+        given:
+            def emptyZip = new File(tempDir.toFile(), "empty.zip")
+            new ZipOutputStream(new FileOutputStream(emptyZip)).close()
 
-            then:
-                extractedFiles.isEmpty()
-        }
+        when:
+            def extractedFiles = ZipUtil.extractFilesByExtension(
+                emptyZip,
+                [".txt"],
+                outputDir.absolutePath
+            )
 
-        def "should extract nested directory structure"() {
-            given:
-                def fileEndings = [".txt", ".xml"]
+        then:
+            extractedFiles.isEmpty()
+    }
 
-            when:
-                def extractedFiles = ZipUtil.extractFilesByExtension(
+    def "should extract nested directory structure"() {
+        given:
+            def fileEndings = [".txt", ".xml"]
+
+        when:
+            def extractedFiles = ZipUtil.extractFilesByExtension(
+                testZip,
+                fileEndings,
+                outputDir.absolutePath
+            )
+
+        then:
+            new File(outputDir, "folder").exists()
+            new File(outputDir, "folder").isDirectory()
+            new File(outputDir, "folder/test3.txt").exists()
+            new File(outputDir, "folder/test4.xml").exists()
+    }
+
+    def "extractFilesByGlobPattern should extract by glob"() {
+        when:
+            def extractedFiles = ZipUtil.extractFilesByGlobPattern(
                     testZip,
-                    fileEndings,
+                    pattern,
                     outputDir.absolutePath
-                )
+            )
 
-            then:
-                new File(outputDir, "folder").exists()
-                new File(outputDir, "folder").isDirectory()
-                new File(outputDir, "folder/test3.txt").exists()
-                new File(outputDir, "folder/test4.xml").exists()
-        }
-
-
+        then:
+            extractedFiles.size() == expectedEntryCount
+        where:
+            pattern | expectedEntryCount
+            "folder/**" | 2
+            "*/*.html" | 1
+            "test*" | 2
+            "*.xml" | 1
+            "**/*.xml" | 1
+            "**.xml" | 2
+    }
 
     def "should recreate zip with full file paths given as endings"() {
         given:
@@ -135,8 +161,6 @@ class ZipUtilTest extends Specification {
             entriesInNewZip.contains("folder/test4.xml")
     }
 
-
-
     def "should recreate zip with files at path"() {
         given:
             def path = "folder"
@@ -157,25 +181,25 @@ class ZipUtilTest extends Specification {
             entriesInNewZip.contains("folder/test4.xml")
     }
 
-        def "should recreate zip with files at striped path"() {
-            given:
-                def path = "folder"
+    def "should recreate zip with files at striped path"() {
+        given:
+            def path = "folder"
 
-            when:
-                def newZipPath = ZipUtil.recreateWithPath(testZip, path, outputZip, true)
-                def entriesInNewZip = []
-                new ZipInputStream(new FileInputStream(newZipPath)).withCloseable { zipInputStream ->
-                    ZipEntry entry
-                    while ((entry = zipInputStream.getNextEntry()) != null) {
-                        entriesInNewZip.add(entry.name)
-                    }
+        when:
+            def newZipPath = ZipUtil.recreateWithPath(testZip, path, outputZip, true)
+            def entriesInNewZip = []
+            new ZipInputStream(new FileInputStream(newZipPath)).withCloseable { zipInputStream ->
+                ZipEntry entry
+                while ((entry = zipInputStream.getNextEntry()) != null) {
+                    entriesInNewZip.add(entry.name)
                 }
+            }
 
-            then:
-                entriesInNewZip.size() == 2
-                entriesInNewZip.contains("test3.txt")
-                entriesInNewZip.contains("test4.xml")
-        }
+        then:
+            entriesInNewZip.size() == 2
+            entriesInNewZip.contains("test3.txt")
+            entriesInNewZip.contains("test4.xml")
+    }
 
     def "should skip directories when checking for file types"() {
         given:
