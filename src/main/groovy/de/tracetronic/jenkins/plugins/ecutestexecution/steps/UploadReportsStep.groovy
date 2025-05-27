@@ -162,11 +162,8 @@ class UploadReportsStep extends Step {
 
             StandardCredentials credentials = CredentialsUtil.getCredentials(context.get(Run.class).getParent(), step.credentialsId)
             if (credentials == null) {
-                context.get(TaskListener.class).error("No credentials found for authentication key. " +
+                throw new AbortException("No credentials found for authentication key. " +
                         "Please check the credentials configuration.")
-                context.get(Run.class).setResult(Result.FAILURE)
-                return [ new UploadResult("Report upload failed",
-                        "No credentials found for authentication key", "") ]
             }
             String authKey = CredentialsUtil.getSecretString(credentials)
 
@@ -178,11 +175,7 @@ class UploadReportsStep extends Step {
                                 context.get(EnvVars.class),
                                 context.get(TaskListener.class)))
             } catch (Exception e) {
-                context.get(TaskListener.class).error(e.message)
-                context.get(Run.class).setResult(Result.FAILURE)
-                return [ new UploadResult("Report upload failed",
-                        "A problem occurred during the report upload. See caused exception for more details.",
-                        null) ]
+                throw new AbortException("Upload failed: ${e.message}")
             }
 
         }
@@ -240,6 +233,7 @@ class UploadReportsStep extends Step {
                 if (!resultError) {
                     cntStable += 1
                 } else if (resultError && failOnError) {
+                    listener.logger.flush()
                     throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failed report upload. " +
                             "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.")
                 }
