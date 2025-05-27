@@ -134,7 +134,7 @@ class UploadReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogNotContains('Uploading reports to test.guide http://localhost:8085...', run)
-            jenkins.assertLogContains('ERROR: No credentials found for authentication key. ' +
+            jenkins.assertLogContains('No credentials found for authentication key. ' +
                     'Please check the credentials configuration.', run)
     }
 
