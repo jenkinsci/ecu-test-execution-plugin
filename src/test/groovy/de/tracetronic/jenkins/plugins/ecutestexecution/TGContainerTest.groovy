@@ -165,7 +165,7 @@ class TGContainerTest extends ContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
         then: "expect successful test but upload failed"
             jenkins.assertLogContains("Uploading ATX report for report id", run)
-            jenkins.assertLogContains("ERROR: Build result set to FAILURE due to failed report upload. " +
+            jenkins.assertLogContains("Build result set to FAILURE due to failed report upload. " +
                     "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads.", run)
     }
 
