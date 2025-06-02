@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 // `buildPluginWithGradle` step provided by: https://github.com/jenkins-infra/pipeline-library
-infra.gradleCommand(["--version"])
+def var = getBuildAgentLabel("windows", "17", false)
+println(var)
 buildPluginWithGradle(
         configurations: [
             [platform: 'linux', jdk: 17],
