@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 // `buildPluginWithGradle` step provided by: https://github.com/jenkins-infra/pipeline-library
-def var = getBuildAgentLabel("windows", "17", false)
+def var = infra.getBuildAgentLabel("windows", "17", false)
 println(var)
 buildPluginWithGradle(
         configurations: [
