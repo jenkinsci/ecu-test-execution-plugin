@@ -4,10 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 // `buildPluginWithGradle` step provided by: https://github.com/jenkins-infra/pipeline-library
-library identifier: 'pipeline-library@c3db81b6321dcdaf10e6a58925eab8962eac2921', retriever: modernSCM(
-  [$class: 'GitSCMSource',
-   remote: 'https://github.com/jenkins-infra/pipeline-library.git'])
-
+@Library('pipeline-library@pull/925/head') _
 buildPluginWithGradle(
         configurations: [
             [platform: 'linux', jdk: 17],
