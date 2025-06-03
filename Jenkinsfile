@@ -6,7 +6,7 @@
 // `buildPluginWithGradle` step provided by: https://github.com/jenkins-infra/pipeline-library
 library identifier: 'pipeline-library@master', retriever: modernSCM(
   [$class: 'GitSCMSource',
-   remote: 'https://github.com/jenkins-infra/pipeline-library.git')
+   remote: 'https://github.com/jenkins-infra/pipeline-library.git'])
 
 buildPluginWithGradle(
         configurations: [
