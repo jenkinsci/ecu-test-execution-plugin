@@ -221,23 +221,26 @@ class UploadReportsStepTest extends Specification {
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-        when:
-            def exceptionThrown = false
-            try {
-                execution.run()
-            }
-            catch (AbortException e) {
-                exceptionThrown = true
-            }
-        then:
+        when: "The execution is run"
+            def exceptionThrown = {
+                try {
+                    execution.run()
+                    false
+                }
+                catch (AbortException ignore) {
+                    true
+                }
+            }.call()
+        then: "The correct number of calls to getAllReportIds is made"
             calledCount * apiClient.getAllReportIds()
-            exceptionThrown == (calledCount == 1)
-        where:
-            given    | calledCount
-            "skip"   | 1
-            null     | 1
-            []       | 1
-            ["1"]    | 0
+            exceptionThrown == withError
+
+        where: "Different input scenarios for report IDs"
+            given    | calledCount  | withError
+            "skip"   | 1            | true
+            null     | 1            | true
+            []       | 1            | true
+            ["1"]    | 0            | false
     }
 
     def "Descriptor should provide correct function name and display name"() {
