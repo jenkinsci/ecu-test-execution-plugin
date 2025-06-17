@@ -10,5 +10,4 @@ buildPluginWithGradle(
             [platform: 'windows', jdk: 17]
         ],
         failFast: false,
-
 )

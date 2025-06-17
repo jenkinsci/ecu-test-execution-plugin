@@ -8,6 +8,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Launcher
 import hudson.model.Item
@@ -191,9 +192,9 @@ class UploadReportsStepTest extends Specification {
             1 * logger.println("- Uploading ATX report for report id 2...")
             2 * logger.println("  -> ${message}")
 
-            results.size() == 1
-            results[0].uploadMessage == "A problem occurred during the report upload. See caused exception for more details."
-            0 * logger.println("${resultPrint}")
+            def e = thrown(AbortException)
+            e.message == "Upload failed: Build result set to FAILURE due to failed report upload. "+
+            "Set Pipeline step property 'Fail On Error' to 'false' to ignore failed report uploads."
         where:
             givenReportIds = ["1", "2"]
             message = "message"
@@ -220,16 +221,26 @@ class UploadReportsStepTest extends Specification {
             channel.call(_) >> { MasterToSlaveCallable callable ->
                 return callable.call()
             }
-        when:
-            execution.run()
-        then:
+        when: "The execution is run"
+            def exceptionThrown = {
+                try {
+                    execution.run()
+                    false
+                }
+                catch (AbortException ignore) {
+                    true
+                }
+            }.call()
+        then: "The correct number of calls to getAllReportIds is made"
             calledCount * apiClient.getAllReportIds()
-        where:
-            given    | calledCount
-            "skip"   | 1
-            null     | 1
-            []       | 1
-            ["1"]    | 0
+            exceptionThrown == withError
+
+        where: "Different input scenarios for report IDs"
+            given    | calledCount  | withError
+            "skip"   | 1            | true
+            null     | 1            | true
+            []       | 1            | true
+            ["1"]    | 0            | false
     }
 
     def "Descriptor should provide correct function name and display name"() {
