@@ -37,10 +37,14 @@ class RestApiClientV1 implements RestApiClient {
 
     public ApiClient apiClient
     public boolean timeoutExceeded = false
+    private int  httpClientTimeoutsInMs = 30000
 
     RestApiClientV1(String hostName, String port) {
         apiClient = Configuration.getDefaultApiClient()
         apiClient.setBasePath(String.format('http://%s:%s/api/v1', hostName, port))
+        apiClient.setConnectTimeout(httpClientTimeoutsInMs)
+        apiClient.setReadTimeout(httpClientTimeoutsInMs)
+        apiClient.setWriteTimeout(httpClientTimeoutsInMs)
     }
 
     /**

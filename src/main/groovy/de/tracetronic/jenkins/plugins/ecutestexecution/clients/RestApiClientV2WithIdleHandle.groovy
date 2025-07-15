@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException
 class RestApiClientV2WithIdleHandle {
     public ApiClient apiClient
     public boolean timeoutExceeded = false
+    private int  httpClientTimeoutsInMs = 30000
 
     RestApiClientV2WithIdleHandle(String hostName, String port) {
         apiClient = new ApiClient() {
@@ -47,6 +48,9 @@ class RestApiClientV2WithIdleHandle {
                 throw new TimeoutException("ecu.test could not process the request within the timeout")
             }
         }
+        apiClient.setConnectTimeout(httpClientTimeoutsInMs)
+        apiClient.setReadTimeout(httpClientTimeoutsInMs)
+        apiClient.setWriteTimeout(httpClientTimeoutsInMs)
         apiClient.setBasePath(String.format('http://%s:%s/api/v2', hostName, port))
     }
 }
