@@ -11,6 +11,7 @@ build/
 out/
 work/
 htmlReport/
+lib/
 
 *.DS_Store
 *.class
@@ -76,4 +77,3 @@ generated/
 src/test/resources/workspace
 src/test/resources/autoConfig.prop
 src/test/resources/containerTest.properties
-
