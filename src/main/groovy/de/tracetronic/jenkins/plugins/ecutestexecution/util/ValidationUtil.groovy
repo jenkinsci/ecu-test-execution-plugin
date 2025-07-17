@@ -5,10 +5,17 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers
+import com.cloudbees.plugins.credentials.CredentialsProvider
+import com.cloudbees.plugins.credentials.common.StandardCredentials
+import hudson.model.Item
 import hudson.model.Messages
+import hudson.security.ACL
 import hudson.util.FormValidation
 import hudson.util.IOUtils
+import jenkins.model.Jenkins
 import org.apache.commons.lang.StringUtils
+import org.jenkinsci.plugins.plaincredentials.StringCredentials
 
 class ValidationUtil {
 
@@ -113,5 +120,54 @@ class ValidationUtil {
             return false
         }
         return true
+    }
+
+    /**
+     * Checks if the given credentials ID is valid for the specified item.
+     *
+     * @param item the item to check permissions against
+     * @param value the credentials ID to validate
+     * @return FormValidation result indicating whether the credentials ID is valid or not
+     */
+    static FormValidation validateCredentialsId(Item item, String value) {
+        if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            return FormValidation.ok()
+        }
+
+        if (item && !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+            return FormValidation.ok()
+        }
+
+        if (StringUtils.isBlank(value)) {
+            return FormValidation.ok()
+        }
+
+        if (isExpressionBasedCredentials(value)) {
+            return FormValidation.warning("Cannot validate expression-based credentials")
+        }
+
+        if (!credentialsFound(item, value)) {
+            return FormValidation.error("Cannot find currently selected credentials")
+        }
+
+        return FormValidation.ok()
+    }
+
+    private static boolean isExpressionBasedCredentials(String value) {
+        return value.startsWith('${') && value.endsWith('}')
+    }
+
+    private static boolean credentialsFound(Item item, String value) {
+        def creds = CredentialsProvider.listCredentialsInItem(
+                StandardCredentials.class,
+                item,
+                ACL.SYSTEM2,
+                Collections.emptyList(),
+                CredentialsMatchers.anyOf(
+                        CredentialsMatchers.withId(value),
+                        CredentialsMatchers.instanceOf(StringCredentials.class)
+                )
+        )
+        return !creds.isEmpty()
     }
 }

@@ -5,12 +5,9 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers
-import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.common.StandardCredentials
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.jenkins.plugins.ecutestexecution.TGInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
@@ -24,56 +21,75 @@ import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
 import hudson.model.Item
-import hudson.model.Job
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
-import hudson.security.ACL
 import hudson.util.FormValidation
 import hudson.util.ListBoxModel
-import hudson.util.Secret
-import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
+import net.sf.json.JSONObject
 import org.apache.commons.lang.StringUtils
-import org.jenkinsci.plugins.plaincredentials.StringCredentials
 import org.jenkinsci.plugins.workflow.steps.*
-import org.kohsuke.stapler.AncestorInPath
-import org.kohsuke.stapler.DataBoundConstructor
-import org.kohsuke.stapler.DataBoundSetter
-import org.kohsuke.stapler.QueryParameter
-import org.springframework.security.core.Authentication
+import org.kohsuke.stapler.*
 
 class UploadReportsStep extends Step {
 
-    private final String testGuideUrl
-    private final String credentialsId // for authentication key
+    private String testGuideUrl
+    private String credentialsId
     private int projectId
     private boolean useSettingsFromServer
     private List<AdditionalSetting> additionalSettings
     private List<String> reportIds
     private boolean failOnError
+    private String tgConfiguration
+    private boolean configurationMode
 
     @DataBoundConstructor
-    UploadReportsStep(String testGuideUrl, String credentialsId) {
+    UploadReportsStep() {
         super()
-        this.testGuideUrl = StringUtils.trimToEmpty(testGuideUrl)
-        this.credentialsId = credentialsId
+        this.testGuideUrl = null
+        this.credentialsId = null
         this.projectId = 1
         this.useSettingsFromServer = true
         this.additionalSettings = []
         this.reportIds = []
         this.failOnError = true
+        this.tgConfiguration = ''
+        this.configurationMode = false
+    }
+
+
+    UploadReportsStep(String testGuideUrl, String credentialsId) {
+        this()
+        this.testGuideUrl = testGuideUrl
+        this.credentialsId = credentialsId
+    }
+
+    UploadReportsStep(String tgConfiguration) {
+        this()
+        this.tgConfiguration = tgConfiguration
+        this.configurationMode = true
     }
 
     String getTestGuideUrl() {
-        if (testGuideUrl.endsWith('/')) {
+        if (testGuideUrl && testGuideUrl.endsWith('/')) {
             return testGuideUrl.substring(0, testGuideUrl.length() - 1)
         }
         return testGuideUrl
     }
 
+    @DataBoundSetter
+    void setTestGuideUrl(String testGuideUrl) {
+        this.testGuideUrl = testGuideUrl
+    }
+
     String getCredentialsId() {
         return credentialsId
+    }
+
+    @DataBoundSetter
+    void setCredentialsId(String credentialsId) {
+        this.credentialsId = credentialsId
     }
 
     int getProjectId() {
@@ -127,8 +143,39 @@ class UploadReportsStep extends Step {
         this.failOnError = failOnError
     }
 
+    String getTgConfiguration() {
+        return tgConfiguration
+    }
+
+    @DataBoundSetter
+    void setTgConfiguration(String tgConfiguration) {
+        this.tgConfiguration = tgConfiguration
+    }
+
+    void setConfigurationMode(boolean configurationMode) {
+        this.configurationMode = configurationMode
+    }
+
+    String getConfigurationMode() {
+        return configurationMode
+    }
+
     @Override
     StepExecution start(StepContext context) throws Exception {
+        if (StringUtils.isNotBlank(tgConfiguration)) {
+            TGInstallation installation = TGInstallation.get(tgConfiguration)
+            if (installation != null) {
+                configurationMode = true
+                testGuideUrl = installation.getTestGuideUrl()
+                credentialsId = installation.getCredentialsId()
+                projectId = installation.getProjectId()
+                useSettingsFromServer = installation.getUseSettingsFromServer()
+                additionalSettings = installation.getAdditionalSettings()
+            } else {
+                throw new AbortException("Selected test.guide installation '${tgConfiguration}' not found.")
+            }
+        }
+
         return new Execution(this, context)
     }
 
@@ -268,67 +315,50 @@ class UploadReportsStep extends Step {
             return ImmutableSet.of(Launcher.class, EnvVars.class, TaskListener.class, Run.class)
         }
 
+        @Override
+        UploadReportsStep newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            def processedFormData = processFormData(formData)
+            return (UploadReportsStep) super.newInstance(req, processedFormData);
+        }
+
+        protected static JSONObject processFormData(JSONObject formData) {
+            if (!formData.containsKey("configurationMode")) {
+                return formData
+            }
+
+            boolean configMode = formData.getBoolean("configurationMode")
+
+            if (configMode) {
+                formData.remove("testGuideUrl")
+                formData.remove("credentialsId")
+                formData.remove("projectId")
+                formData.remove("useSettingsFromServer")
+                formData.remove("additionalSettings")
+            } else {
+                formData.put("configurationMode", false)
+                formData.put("tgConfiguration", "")
+            }
+            return formData
+        }
+
+        ListBoxModel doFillTgConfigurationItems() {
+            ListBoxModel model = new ListBoxModel()
+            TGInstallation.all().each { installation ->
+                model.add(installation.getName())
+            }
+            return model
+        }
+
         FormValidation doCheckTestGuideUrl(@QueryParameter String value) {
             return ValidationUtil.validateServerUrl(value)
         }
 
         ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
-            StandardListBoxModel result = new StandardListBoxModel()
-            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                return result.includeCurrentValue(credentialsId)
-            }
-            if (item && !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                return result.includeCurrentValue(credentialsId)
-            }
-           return result
-                   .includeEmptyValue()
-                   .includeMatchingAs((Authentication) ACL.SYSTEM2, (Item) item, StandardCredentials.class, Collections.emptyList(),
-                    CredentialsMatchers.anyOf(
-                            CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
-                            CredentialsMatchers.instanceOf(StringCredentials.class)
-                    ))
+            return CredentialsUtil.fillCredentialsIdItems(item, credentialsId)
         }
 
         FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
-            if (!item && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                return FormValidation.ok()
-            }
-
-            if (item && !item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                return FormValidation.ok()
-            }
-
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.ok()
-            }
-
-            if (isExpressionBasedCredentials(value)) {
-                return FormValidation.warning("Cannot validate expression-based credentials")
-            }
-
-            if (!credentialsFound(item, value)) {
-                return FormValidation.error("Cannot find currently selected credentials")
-            }
-
-            return FormValidation.ok()
-        }
-
-        static boolean isExpressionBasedCredentials(String value) {
-            return value.startsWith('${') && value.endsWith('}')
-        }
-
-        static boolean credentialsFound(Item item, String value) {
-            def creds = CredentialsProvider.listCredentialsInItem(
-                    StandardCredentials.class,
-                    item,
-                    ACL.SYSTEM2,
-                    Collections.emptyList(),
-                    CredentialsMatchers.anyOf(
-                            CredentialsMatchers.withId(value),
-                            CredentialsMatchers.instanceOf(StringCredentials.class)
-                    )
-            )
-            return !creds.isEmpty()
+            return ValidationUtil.validateCredentialsId(item, value)
         }
     }
 }
