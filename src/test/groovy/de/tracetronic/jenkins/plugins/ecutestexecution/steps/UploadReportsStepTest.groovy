@@ -4,6 +4,7 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials
+import de.tracetronic.jenkins.plugins.ecutestexecution.TGInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
@@ -71,6 +72,16 @@ class UploadReportsStepTest extends Specification {
             step.additionalSettings == []
             step.reportIds == []
             step.failOnError
+    }
+
+    def "UploadReportsStep should initialize correctly with tgConfiguration and handle configurationMode"() {
+        given:
+            def tgConfiguration = "TestConfiguration"
+        when:
+            def step = new UploadReportsStep(tgConfiguration)
+        then:
+            step.tgConfiguration == tgConfiguration
+            step.configurationMode
     }
 
     def "getTestGuideUrl should trim trailing slash from testGuideUrl"() {
@@ -243,12 +254,73 @@ class UploadReportsStepTest extends Specification {
             ["1"]    | 0            | false
     }
 
+    def "start method should handle tgConfiguration correctly"() {
+        given:
+            def tgConfiguration = "validConfig"
+            def installation = GroovyMock(TGInstallation) {
+                getTestGuideUrl() >> "http://test.url"
+                getCredentialsId() >> "credId123"
+                getProjectId() >> 1
+                getUseSettingsFromServer() >> true
+                getAdditionalSettings() >> []
+            }
+            def step = new UploadReportsStep()
+            def context = Mock(StepContext)
+            GroovyMock(TGInstallation, global: true)
+
+            TGInstallation.get(_) >> installation
+        when:
+            step.setTgConfiguration(tgConfiguration)
+            step.start(context)
+            then:
+            step.configurationMode
+            step.testGuideUrl == "http://test.url"
+            step.credentialsId == "credId123"
+            step.projectId == 1
+            step.useSettingsFromServer
+            step.additionalSettings == []
+    }
+
+    def "start method should handle invalid tgConfiguration"() {
+        given:
+            def tgConfiguration = "invalidConfig"
+            def installation = null
+            def expectedMessage = "Selected test.guide installation 'invalidConfig' not found."
+            def step = new UploadReportsStep()
+            def context = Mock(StepContext)
+            GroovyMock(TGInstallation, global: true)
+
+            TGInstallation.get(_) >> installation
+        when:
+            step.setTgConfiguration(tgConfiguration)
+            step.start(context)
+        then:
+            def e = thrown(AbortException)
+            e.message == expectedMessage
+    }
+
     def "Descriptor should provide correct function name and display name"() {
         given:
             def descriptor = new UploadReportsStep.DescriptorImpl()
         expect:
             descriptor.getFunctionName() == 'ttUploadReports'
             descriptor.getDisplayName() == '[TT] Upload ecu.test reports to test.guide'
+    }
+
+    def "doFillTgConfigurationItems should return correct ListBoxModel"() {
+        given:
+            GroovyMock(TGInstallation, global: true)
+            TGInstallation.all() >> [
+                    GroovyMock(TGInstallation) { getName() >> "Installation1" },
+                    GroovyMock(TGInstallation) { getName() >> "Installation2" },
+                    GroovyMock(TGInstallation) { getName() >> "Installation3" }
+            ]
+            def descriptor = new UploadReportsStep.DescriptorImpl()
+        when:
+            def result = descriptor.doFillTgConfigurationItems()
+        then:
+            result.size() == 3
+            result*.name == ["Installation1", "Installation2", "Installation3"]
     }
 
     def "doFillCredentialsIdItems should return correct items with permissions: adminPerm=#hasAdminPerm, extendedRead=#hasExtendedRead, useItem=#hasUseItem"() {

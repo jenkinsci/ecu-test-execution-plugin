@@ -13,11 +13,13 @@ import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import de.tracetronic.cxs.generated.et.client.api.v2.ReportApi
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.TGInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockApiResponse
 import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestGuideConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.UploadResult
 import hudson.model.Result
@@ -44,11 +46,23 @@ class UploadReportsStepIT extends IntegrationTestBase {
                     CredentialsScope.GLOBAL, 'unsupportedBaseCredential', 'user',
                     new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource('unsupported'), null,
                     'test.guide auth key as unsupported credentials type'))
+        TGInstallation tgInstallation = new TGInstallation('testInstallation', 'http://localhost:8085', 'authKey')
+        TestGuideConfig testGuideConfig = jenkins.jenkins.getDescriptorByType(TestGuideConfig.class)
+        testGuideConfig.setTgInstallations([tgInstallation])
     }
 
     def 'Default config round trip'() {
         given:
             UploadReportsStep before = new UploadReportsStep('http://localhost:8085', 'authKey')
+        when:
+            UploadReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
+        then:
+            jenkins.assertEqualDataBoundBeans(before, after)
+    }
+
+    def 'Config round trip tg Config'() {
+        given:
+            UploadReportsStep before = new UploadReportsStep('testInstallation')
         when:
             UploadReportsStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -71,7 +85,11 @@ class UploadReportsStepIT extends IntegrationTestBase {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            UploadReportsStep step = new UploadReportsStep('http://localhost:8085', 'authKey')
+            UploadReportsStep step = new UploadReportsStep('testInstallation')
+        then:
+            st.assertRoundTrip(step, "ttUploadReports tgConfiguration: 'testInstallation'")
+        when:
+            step = new UploadReportsStep('http://localhost:8085', 'authKey')
         then:
             st.assertRoundTrip(step, "ttUploadReports credentialsId: 'authKey', testGuideUrl: 'http://localhost:8085'")
         when:
@@ -122,6 +140,20 @@ class UploadReportsStepIT extends IntegrationTestBase {
             credentialsId << ['authKey', 'stringSecret']
     }
 
+    def 'Run pipeline default test.guide config'() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports tgConfiguration: 'testInstallation' }", true))
+
+            // assume RestApiClient is available
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains('Uploading reports to test.guide http://localhost:8085...', run)
+    }
+
     def "Run pipeline unsupported credentials"() {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
@@ -138,6 +170,19 @@ class UploadReportsStepIT extends IntegrationTestBase {
                     'Please check the credentials configuration.', run)
     }
 
+    def "Run pipeline invalid test.guide config"() {
+        given:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition(
+                    "node { ttUploadReports tgConfiguration: 'invalidTestInstallation' }", true))
+        and:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient() >> new MockRestApiClient()
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogNotContains('Uploading reports to test.guide http://localhost:8085...', run)
+            jenkins.assertLogContains("Selected test.guide installation 'invalidTestInstallation' not found.", run)
+    }
 
     def 'Run pipeline: with 409 handling'() {
         given:

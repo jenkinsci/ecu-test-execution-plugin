@@ -4,24 +4,19 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.configs.TestGuideConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.AdditionalSetting
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.CredentialsUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
-import hudson.DescriptorExtensionList
 import hudson.Extension
 import hudson.model.AbstractDescribableImpl
 import hudson.model.Descriptor
 import hudson.model.Item
 import hudson.util.FormValidation
 import hudson.util.ListBoxModel
-import jenkins.model.Jenkins
-import net.sf.json.JSONObject
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.Symbol
 import org.kohsuke.stapler.AncestorInPath
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.QueryParameter
-import org.kohsuke.stapler.StaplerRequest
 
 import javax.annotation.CheckForNull
-import java.lang.reflect.Array
 
 class TGInstallation extends AbstractDescribableImpl<TGInstallation> implements Serializable {
 
