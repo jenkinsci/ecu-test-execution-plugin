@@ -5,7 +5,10 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
+import com.cloudbees.plugins.credentials.CredentialsProvider
+import hudson.model.Item
 import hudson.util.FormValidation
+import org.eclipse.jetty.util.security.CredentialProvider
 import spock.lang.Specification
 
 import java.nio.file.Paths
@@ -110,5 +113,25 @@ class ValidationUtilTest extends Specification {
             "100.0"     | FormValidation.Kind.OK
             "100.00001" | FormValidation.Kind.ERROR
             "123"       | FormValidation.Kind.ERROR
+    }
+
+    def "Validate credentials ID with different formats"() {
+        given:
+            def mockItem = Mock(Item)
+            mockItem.hasPermission(Item.EXTENDED_READ) >> true
+            mockItem.hasPermission(CredentialsProvider.USE_ITEM) >> true
+        when:
+            def validation = ValidationUtil.validateCredentialsId(mockItem, inputValue)
+        then:
+            validation.kind == expectedKind
+            validation.message == expectedMessage
+        where:
+            inputValue            | expectedKind                  | expectedMessage
+            '${expression}'       | FormValidation.Kind.WARNING   | "Cannot validate expression-based credentials"
+            'validCredentialId'   | FormValidation.Kind.ERROR     | "Cannot find currently selected credentials"
+            '${expression'        | FormValidation.Kind.ERROR     | "Cannot find currently selected credentials"
+            'expression}'         | FormValidation.Kind.ERROR     | "Cannot find currently selected credentials"
+            null                  | FormValidation.Kind.OK        | null
+            ''                    | FormValidation.Kind.OK        | null
     }
 }
