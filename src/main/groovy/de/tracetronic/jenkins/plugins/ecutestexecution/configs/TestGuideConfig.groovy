@@ -14,7 +14,6 @@ import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.StaplerRequest
 import org.apache.commons.lang3.StringUtils
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
-import hudson.cli.Messages
 
 @Extension
 class TestGuideConfig extends GlobalConfiguration  {
