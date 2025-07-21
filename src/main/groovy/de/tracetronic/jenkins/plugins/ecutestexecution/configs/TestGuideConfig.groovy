@@ -14,6 +14,7 @@ import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.StaplerRequest
 import org.apache.commons.lang3.StringUtils
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.cli.Messages
 
 @Extension
 class TestGuideConfig extends GlobalConfiguration  {
@@ -63,7 +64,7 @@ class TestGuideConfig extends GlobalConfiguration  {
             List<TGInstallation> list, Map<String, TGInstallation> map, TGInstallation tgInstallation) {
         String name = tgInstallation.getName()
         if (map.containsKey(name)) {
-            throw new IllegalArgumentException(Messages.name_exists(name))
+            throw new IllegalArgumentException("Installation name already exists.")
         }
         list.add(tgInstallation)
         map.put(name, tgInstallation)
