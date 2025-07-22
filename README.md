@@ -96,6 +96,7 @@ node('windows') {
     }
     stage('Upload Reports') {
         ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
+        ttUploadReports tgConfiguration: 'jenkinsTGConfigurationName'
     }
     stage('Stop Tools') {
         ttStopTool 'ecu.test'
