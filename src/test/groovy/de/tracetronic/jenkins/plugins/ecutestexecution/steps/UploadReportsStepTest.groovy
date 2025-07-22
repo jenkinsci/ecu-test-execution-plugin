@@ -18,6 +18,7 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.remoting.VirtualChannel
 import hudson.util.FormValidation
+import hudson.util.Messages
 import jenkins.model.Jenkins
 import jenkins.security.MasterToSlaveCallable
 import org.jenkinsci.plugins.workflow.steps.StepContext
@@ -394,5 +395,17 @@ class UploadReportsStepTest extends Specification {
             'someId'        | false         | FormValidation.Kind.OK
             'someId'        | true          | FormValidation.Kind.ERROR
             ''              | true          | FormValidation.Kind.OK
+    }
+
+    def "Test descriptorImpl doCheckTestGuideUrl"(){
+        given:
+            def descriptor = new UploadReportsStep.DescriptorImpl()
+        expect:
+            assert (descriptor.doCheckTestGuideUrl(url).message == result);
+        where:
+            url                     | result
+            "http://localhost:0815" | FormValidation.ok().message
+            ""                      | Messages.FormValidation_ValidateRequired()
+            null                    | Messages.FormValidation_ValidateRequired()
     }
 }
