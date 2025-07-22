@@ -60,9 +60,6 @@ class TGInstallation extends AbstractDescribableImpl<TGInstallation> implements 
         )
     }
 
-    // TODO: use covered constants for test or use method overloading with TgInstallation @ ttUploadReports; check if
-    //  poroperties are set correctly
-
     String getName() {
         return name
     }
