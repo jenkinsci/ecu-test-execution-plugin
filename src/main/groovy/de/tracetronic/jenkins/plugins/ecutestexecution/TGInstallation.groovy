@@ -18,6 +18,9 @@ import org.kohsuke.stapler.QueryParameter
 
 import javax.annotation.CheckForNull
 
+/**
+ * This class manages the test.guide tool installations, found under the system configuration (test.guide) in Jenkins.
+ */
 class TGInstallation extends AbstractDescribableImpl<TGInstallation> implements Serializable {
 
     private static final long serialVersionUID = 1L
@@ -87,6 +90,10 @@ class TGInstallation extends AbstractDescribableImpl<TGInstallation> implements 
         return additionalSettings.collect({new AdditionalSetting(it)})
     }
 
+    /**
+     * This method returns all test.guide installations
+     * @return list of TGInstallations
+     */
     static TGInstallation[] all() {
         TestGuideConfig config = TestGuideConfig.get()
         if (config == null) {
@@ -94,7 +101,11 @@ class TGInstallation extends AbstractDescribableImpl<TGInstallation> implements 
         }
         return config.getTgInstallations() as TGInstallation[]
     }
-
+    /**
+     * This method gets a test.guide installation by name
+     * @param name
+     * @return TGInstallation with the given name
+     */
     @CheckForNull
     static TGInstallation get(final String name) {
         final TGInstallation[] installations = all()
