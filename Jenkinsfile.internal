@@ -47,7 +47,7 @@ pipeline {
         string(name: 'CONTAINER_TEST_DATA_BRANCH', defaultValue: 'main', description: 'The specified branch name to use for testing.')
         string(name: 'ET_VERSION', defaultValue: '2023.4.0', description: 'The specified ecu.test version to use for testing.')
         string(name: 'ET_V1_VERSION', defaultValue: '2023.3.0', description: 'The specified ecu.test v1 version to use for testing.')
-        string(name: 'ET_V2_VERSION', defaultValue: '2024.4.0', description: 'The specified ecu.test v2 version to use for testing.')
+        string(name: 'ET_V2_VERSION', defaultValue: '2025.2.0', description: 'The specified ecu.test v2 version to use for testing.')
         string(name: 'TG_VERSION', defaultValue: '1.180.0', description: 'The specified test.guide version to use for testing.')
     }
 
@@ -98,7 +98,7 @@ pipeline {
                 }
                 stage('Container Tests') {
                     stages {
-                        stage('Prepare Resources') {
+                        stage('Prepare Resources and Docker') {
                             steps {
                                 script {
                                     catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
@@ -110,6 +110,15 @@ pipeline {
                                         .replaceAll(/ET_V2_VERSION=.*/, "ET_V2_VERSION=${params.ET_V2_VERSION}")
                                         .replaceAll(/TG_VERSION=.*/, "TG_VERSION=${params.TG_VERSION}")
                                     writeFile(file: 'src/test/resources/containerTest.properties', text: properties)
+
+                                    def  updatedProperties = readProperties text:updatedProperties
+                                    def registry = updatedProperties['DOCKER_REGISTRY_ARTIFACTORY']
+                                    def username = updatedProperties['ARTIFACTORY_ACCESS_USERNAME']
+                                    def access_token = updatedProperties['ARTIFACTORY_ACCESS_TOKEN']
+
+                                    sh """
+                                        echo "${access_token}" | docker login ${registry} --username ${username} --password-stdin
+                                    """
                                 }
                             }
                         }
