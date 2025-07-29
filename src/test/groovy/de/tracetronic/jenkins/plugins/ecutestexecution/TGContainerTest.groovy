@@ -39,7 +39,7 @@ class TGContainerTest extends ContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(TGContainerTest.class)
 
     private static final int TG_PORT = 8085
-    private static final String TG_IMAGE_NAME =  BASE_IMAGE_PATH + "test-guide:"+ System.getenv('TG_VERSION')
+    private static final String TG_IMAGE_NAME =  System.getenv('DOCKER_REGISTRY_OLD') + "test-guide:"+ System.getenv('TG_VERSION')
     private static final String TG_AUTH_KEY = System.getenv('TG_AUTH_KEY')
     private static final String TG_ALIAS = 'tgTestContainer'
 
