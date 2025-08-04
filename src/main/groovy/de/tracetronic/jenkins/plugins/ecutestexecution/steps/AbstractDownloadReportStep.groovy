@@ -87,70 +87,82 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
 
         @Override
         ArrayList<String> execute() throws IOException {
-            String unsupportedVersionMsg = "Downloading ${step.outDirName} is not supported for this ecu.test version. Please use ecu.test >= ${step.supportVersion} instead."
-
+            String unsupportedVersionMsg = "Downloading ${step.outDirName} is not supported for " +
+                    "this ecu.test version. Please use ecu.test >= ${step.supportVersion} instead."
             listener.logger.println("Providing ${step.outDirName} to jenkins.")
+
             try {
-                RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+                RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'),
+                        envVars.get('ET_API_PORT'))
                 if (apiClient instanceof RestApiClientV1) {
                     throw new UnsupportedOperationException(unsupportedVersionMsg)
                 }
 
                 apiClient = (RestApiClientV2) apiClient
-                List<ReportInfo> reports = []
-                if (!step.reportIds) {
-                    listener.logger.println("Providing all ${step.outDirName}...")
-                    reports = apiClient.getAllReports()
-                } else {
-                    step.reportIds.each { id ->
-                        ReportInfo report = apiClient.getReport(id)
-                        if (report) {
-                            reports.add(report)
-                            return
-                        }
-                        if (step.publishConfig.failOnError) {
-                            throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to " +
-                                    "missing report ${id}. Set Pipeline step property " +
-                                    "'Fail On Error' to 'false' to ignore missing reports.")
-                        } else {
-                            step.hasWarnings = true
-                            listener.logger.println("[WARNING] Report with id ${id} could not be found!")
-                        }
-                    }
-                }
+                List<ReportInfo> reports = step.reportIds ? fetchReportsByIds(apiClient) : fetchAllReports(apiClient)
 
-                if (reports == null || reports.isEmpty()) {
+                if (reports.isEmpty()) {
                     return []
                 }
 
-                ArrayList<String> reportPaths = []
-                reports.each { report ->
-                    String reportDirName = report.reportDir.split('/').last()
-                    listener.logger.println("Providing ${step.outDirName} for report ${reportDirName}...")
-                    File reportZip = apiClient.downloadReportFolder(report.testReportId)
-                    if (reportZip) {
-                        ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
-                        if (reportPath) {
-                            reportPaths.addAll(reportPath)
-                        }
-                        return
-                    }
-                    if (step.publishConfig.failOnError) {
-                        throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to " +
-                                "failing download of ${report.testReportId}. Set Pipeline step property " +
-                                "'Fail On Error' to 'false' to ignore any download error.")
-                    }
+                ArrayList<String> reportPaths = new ArrayList<>()
+                for (ReportInfo report : reports) {
+                    processSingleReport(apiClient, report, reportPaths)
                 }
 
+                listener.logger.flush()
                 return reportPaths
+            } catch (Exception e) {
+                throw new AbortException(e.message)
             }
-            catch (ApiException e) {
-                if (e instanceof de.tracetronic.cxs.generated.et.client.v2.ApiException && e.code == 404) {
-                    throw new UnsupportedOperationException(unsupportedVersionMsg)
+        }
+
+
+        private List<ReportInfo> fetchReportsByIds(RestApiClientV2 apiClient) throws AbortException {
+            List<ReportInfo> reports = []
+            for (String id : step.reportIds) {
+                ReportInfo report = apiClient.getReport(id)
+                if (report) {
+                    reports.add(report)
+                } else {
+                    handleMissingReport(id)
                 }
             }
-            listener.logger.flush()
-            return []
+            return reports
+        }
+
+        private List<ReportInfo> fetchAllReports(RestApiClientV2 apiClient) {
+            listener.logger.println("Providing all ${step.outDirName}...")
+            return apiClient.getAllReports()
+        }
+
+        private void processSingleReport(RestApiClientV2 apiClient, ReportInfo report, ArrayList<String> reportPaths)
+                throws AbortException {
+            String reportDirName = report.reportDir.split('/').last()
+            listener.logger.println("Providing ${step.outDirName} for report ${reportDirName}...")
+            File reportZip = apiClient.downloadReportFolder(report.testReportId)
+
+            if (reportZip) {
+                ArrayList<String> reportPath = step.processReport(reportZip, reportDirName, outDirPath, listener)
+                if (reportPath) {
+                    reportPaths.addAll(reportPath)
+                }
+            } else if (step.publishConfig.failOnError) {
+                throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to failing download " +
+                        "of ${report.testReportId}. Set Pipeline step property 'Fail On Error' to 'false' to ignore " +
+                        "any download error.")
+            }
+        }
+
+        private void handleMissingReport(String id) throws AbortException {
+            if (step.publishConfig.failOnError) {
+                throw new AbortException("Build result set to ${Result.FAILURE.toString()} due to " +
+                        "missing report ${id}. Set Pipeline step property 'Fail On Error' to 'false' to " +
+                        "ignore missing reports.")
+            } else {
+                step.hasWarnings = true
+                listener.logger.println("[WARNING] Report with id ${id} could not be found!")
+            }
         }
 
         @Override
