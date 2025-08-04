@@ -98,7 +98,7 @@ pipeline {
                 }
                 stage('Container Tests') {
                     stages {
-                        stage('Prepare Resources and Docker') {
+                        stage('Prepare Resources') {
                             steps {
                                 script {
                                     catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
