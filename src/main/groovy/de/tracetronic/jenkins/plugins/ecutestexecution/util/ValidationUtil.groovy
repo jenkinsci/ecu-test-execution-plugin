@@ -86,13 +86,18 @@ class ValidationUtil {
     /**
      * Port of FormValidation.validateIntegerInRange for Double.
      *
-     * Make sure that the given string is an double in the range specified by the lower and upper bounds (both inclusive)
+     * Make sure that the given string is an double in the range specified by the lower and upper bounds (both inclusive).
+     * Empty strings are considered valid.
      *
      * @param value the value to check
      * @param lower the lower bound (inclusive)
      * @param upper the upper bound (inclusive)
      */
     static FormValidation validateDoubleInRange(String value, double lower, double upper) {
+        if (StringUtils.isBlank(value)) {
+            return FormValidation.ok()
+        }
+
         try {
             double doubleValue = Double.parseDouble(value);
             if (doubleValue < lower) {

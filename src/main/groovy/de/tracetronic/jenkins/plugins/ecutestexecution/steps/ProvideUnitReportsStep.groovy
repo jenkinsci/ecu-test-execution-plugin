@@ -34,8 +34,8 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     public static final String DEFAULT_REPORT_GLOB = "**/junit-report.xml"
     private static final String SUPPORT_VERSION = "2024.3"
     private static final String OUT_DIR_NAME = "Unit Reports"
-    private double unstableThreshold;
-    private double failedThreshold;
+    private Double unstableThreshold;
+    private Double failedThreshold;
     private String reportGlob;
 
 
@@ -44,16 +44,22 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
         super()
         outDirName = OUT_DIR_NAME
         supportVersion = SUPPORT_VERSION
-        unstableThreshold = 0.0
-        failedThreshold = 0.0
+        unstableThreshold = null
+        failedThreshold = null
         reportGlob = DEFAULT_REPORT_GLOB
     }
 
-    double getUnstableThreshold() {
+    ProvideUnitReportsStep(Double failedThreshold, Double unstableThreshold) {
+        super()
+        this.failedThreshold = failedThreshold
+        this.unstableThreshold = unstableThreshold
+    }
+
+    Double getUnstableThreshold() {
         return this.unstableThreshold
     }
 
-    double getFailedThreshold() {
+    Double getFailedThreshold() {
         return this.failedThreshold
     }
 
@@ -62,13 +68,13 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     }
 
     @DataBoundSetter
-    void setUnstableThreshold(final double value) {
-        this.unstableThreshold = Math.max(0.0, Math.min(value, 100.0))
+    void setUnstableThreshold(final Double value) {
+        this.unstableThreshold =  value != null ? Math.max(0.0, Math.min(value, 100.0)) : null
     }
 
     @DataBoundSetter
-    void setFailedThreshold(final double value) {
-        this.failedThreshold = Math.max(0.0, Math.min(value, 100.0))
+    void setFailedThreshold(final Double value) {
+        this.failedThreshold = value != null ? Math.max(0.0, Math.min(value, 100.0)) : null
     }
 
     @DataBoundSetter
@@ -77,7 +83,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     }
 
     boolean isUnstable(TestResult results) {
-        if (results.totalCount == 0 || unstableThreshold <= 0.0) {
+        if (results.totalCount == 0 || unstableThreshold == null) {
             return false
         }
         double failed = (results.failCount / results.totalCount) * 100.0
@@ -85,7 +91,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
     }
 
     boolean isFailure(TestResult results) {
-        if (results.totalCount == 0 || failedThreshold <= 0.0) {
+        if (results.totalCount == 0 || failedThreshold == null) {
             return false
         }
         double failed = results.failCount / results.totalCount * 100.0
@@ -145,11 +151,13 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                 if (testResult.totalCount == 0) {
                     listener.logger.println("No unit test results found.")
                     if(!step.publishConfig.allowMissing) {
-                        throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test results. Adjust AllowMissing step property if this is not intended.")
+                        throw new Exception("Build result set to ${Result.FAILURE.toString()} due to missing test " +
+                                "results. Adjust AllowMissing step property if this is not intended.")
                     }
                 } else {
                     listener.logger.println("Found ${testResult.totalCount} test result(s) in total: " +
-                            "#Passed: ${testResult.passCount}, #Failed: ${testResult.failCount}, #Skipped: ${testResult.skipCount}")
+                            "#Passed: ${testResult.passCount}, #Failed: ${testResult.failCount}, " +
+                            "#Skipped: ${testResult.skipCount}")
                     addResultsToRun(testResult)
                     listener.logger.println("Successfully added test results to Jenkins.")
                 }
