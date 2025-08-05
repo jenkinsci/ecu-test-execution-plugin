@@ -21,7 +21,7 @@ Additionally, further examples are provided.
 
 ## Advanced Pipeline Examples
 
-Conditional execution based on package check results
+### Conditional execution based on package check results
 
 ```groovy
 node {
@@ -39,7 +39,7 @@ node {
 }
 ```
 
-Using returned reportId to generate specific reports.
+### Using returned reportId to generate specific reports.
 
 ```groovy
 node {
@@ -63,6 +63,121 @@ node {
 
     echo "Upload Result: ${uploadResult.collect { it.getUploadResult() }}"
      */
+}
+```
+
+### Using different Agents for running and uploading Reports
+Enables downstream report generation and uploads with the use of either artifacts (multiple runs) or stash (single run with multiple agents)
+#### Two Pipelines using artifacts
+Requires CopyArtifact Plugin.
+
+First Agent Run And Archive Report Pipeline:
+```groovy
+pipeline {
+    agent {
+        label 'upStreamAgent'
+    }
+
+    stages {
+        stage('Run Package WS1') {
+            steps{
+                ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws1/'
+                ttRunPackage 'Package 0.pkg'
+                ttStopTool 'ecu.test'
+            }
+
+        }
+        stage('Archive Report'){
+            steps{
+                dir('Path to ws1/TestReports') {
+                    archiveArtifacts artifacts: '**/*', fingerprint: true
+                }
+            }
+
+        }
+        stage('Trigger Upload Pipeline'){
+            steps {
+                build job: 'uploadReport_secondAgent',
+                        parameters: [
+                                string(name: 'SOURCE_BUILD', value: "${env.BUILD_NUMBER}")
+                        ],
+                        wait: false
+            }
+        }
+    }
+}
+```
+Second Agent Downstream Report Generation, Upload:
+```groovy
+pipeline {
+    agent {
+        label 'downStreamAgent'
+    }
+
+    parameters {
+        string(name: 'SOURCE_BUILD', defaultValue: '', description: 'Triggered from which build?')
+    }
+
+    stages {
+        stage('Copy Artifacts') {
+            steps {
+                copyArtifacts(
+                        projectName: 'runPackage_firstAgent',
+                        selector: [$class: 'SpecificBuildSelector', buildNumber: "${params.SOURCE_BUILD}"],,
+                        filter: '**/*',
+                        target: 'Path to ws2/TestReports'
+                )
+            }
+        }
+        stage('Upload Reports'){
+            steps {
+                dir('Path to ws2') {
+                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws2/'
+                    ttUploadReports credentialsId: 'local_tg_auth', projectId: 1, testGuideUrl: 'http://localhost:8085/', useSettingsFromServer: false
+                    ttGenerateReports 'UNIT'
+                    ttStopTool 'ecu.test'
+                }
+            }
+        }
+    }
+}
+```
+
+#### Single Pipeline Using stash
+```groovy
+pipeline {
+    agent none
+
+    stages {
+        stage('Upstream Run Package WS1') {
+            agent {
+                label 'upStreamAgent'
+            }
+            steps {
+                dir('Path to ws1/') {
+                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws1/'
+                    ttRunPackage 'Package 0.pkg'
+                    ttStopTool 'ecu.test'
+
+                    stash includes: 'TestReports/**/*', name: 'Reports'
+                }
+            }
+        }
+        stage('Downstream Generate Upload Reports WS2'){
+            agent {
+                label 'downStreamAgent'
+            }
+            steps{
+                dir('Path to ws2') {
+                    unstash 'Reports'
+                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws2/'
+                    ttGenerateReports 'UNIT'
+                    ttUploadReports credentialsId: 'local_tg_auth', projectId: 1, testGuideUrl: 'http://localhost:8085/', useSettingsFromServer: false
+                    ttStopTool 'ecu.test'
+                }
+            }
+        }
+    }
 }
 ```
 
