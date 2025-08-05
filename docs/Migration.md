@@ -26,7 +26,7 @@ development and will be available in the future.
 Still works by archiving the test run report file as artifact and using the Copy Artifact plugin to generate other 
 report formats or upload the report to test.guide on a downstream agent. 
 
-See [advanced usage docs](./docs/AdvancedUsage.md) for example pipelines.
+See [advanced usage docs](./AdvancedUsage.md) for example pipelines.
 ## Example pipelines
 
 The following pipeline examples show the differences between both plugin versions. For plugin version 2.x the following
