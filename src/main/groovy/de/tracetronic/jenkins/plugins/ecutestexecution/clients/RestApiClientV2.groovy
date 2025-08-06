@@ -247,14 +247,9 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
     @CheckForNull
     List<ReportInfo> getAllReports() {
         ReportApi apiInstance = new ReportApi(apiClient)
-        try {
-            List<ReportInfo> reportInfo = apiInstance.getAllReports()
-            List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reportsV2 =
-                    reportInfo.collect { ReportInfo.fromReportInfo(it) }
-            return reportsV2
-        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignore) {
-            return null
-        }
+        List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reportsV2 = apiInstance.getAllReports()
+        List<ReportInfo> reportsInfo = reportsV2.collect { ReportInfo.fromReportInfo(it) }
+        return reportsInfo
     }
 
     /**
