@@ -67,6 +67,7 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing Generated ecu.test Reports to jenkins.", run)
+            jenkins.assertLogContains("Providing Generated ecu.test Reports failed!", run)
             jenkins.assertLogContains("ERROR: Could not find a ecu.test REST api for host: localhost:5050", run)
     }
 
