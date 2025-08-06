@@ -110,7 +110,7 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
                 listener.logger.flush()
                 return reportPaths
             } catch (Exception e) {
-                if (e instanceof TimeoutException) {
+                if (e instanceof TimeoutException || e instanceof UnsupportedOperationException) {
                     throw e
                 }
 
