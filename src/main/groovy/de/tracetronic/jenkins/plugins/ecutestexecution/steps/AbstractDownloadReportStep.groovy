@@ -102,10 +102,6 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
                 apiClient = (RestApiClientV2) apiClient
                 List<ReportInfo> reports = step.reportIds ? fetchReportsByIds(apiClient) : fetchAllReports(apiClient)
 
-                if (reports.isEmpty()) {
-                    return []
-                }
-
                 ArrayList<String> reportPaths = new ArrayList<>()
                 for (ReportInfo report : reports) {
                     processSingleReport(apiClient, report, reportPaths)
