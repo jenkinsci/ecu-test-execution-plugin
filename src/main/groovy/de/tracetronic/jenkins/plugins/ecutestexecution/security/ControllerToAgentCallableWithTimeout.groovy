@@ -5,6 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.security
 
+import hudson.AbortException
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import jenkins.util.Timer
