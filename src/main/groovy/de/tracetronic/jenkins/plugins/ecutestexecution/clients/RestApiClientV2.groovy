@@ -244,9 +244,17 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
      * of all available test reports in the ecu.test instance.
      * @return List of ReportInfo with report information
      */
+    @CheckForNull
     List<ReportInfo> getAllReports() {
         ReportApi apiInstance = new ReportApi(apiClient)
-        return apiInstance.getAllReports()
+        try {
+            List<ReportInfo> reportInfo = apiInstance.getAllReports()
+            List<de.tracetronic.cxs.generated.et.client.model.v2.ReportInfo> reportsV2 =
+                    reportInfo.collect { ReportInfo.fromReportInfo(it) }
+            return reportsV2
+        } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignore) {
+            return null
+        }
     }
 
     /**
