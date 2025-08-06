@@ -8,7 +8,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import org.apache.commons.lang.StringUtils
 
-import java.util.concurrent.TimeoutException
 
 class RestApiClientFactory {
     private static int DEFAULT_TIMEOUT = 10
