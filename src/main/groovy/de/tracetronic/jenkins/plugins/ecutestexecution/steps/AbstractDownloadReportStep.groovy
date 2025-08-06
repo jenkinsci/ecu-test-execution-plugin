@@ -26,6 +26,7 @@ import org.jenkinsci.plugins.workflow.steps.StepContext
 import org.kohsuke.stapler.DataBoundSetter
 
 import javax.annotation.Nonnull
+import java.util.concurrent.TimeoutException
 
 abstract class AbstractDownloadReportStep extends Step implements Serializable {
     protected String outDirName
@@ -113,6 +114,10 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
                 listener.logger.flush()
                 return reportPaths
             } catch (Exception e) {
+                if (e instanceof TimeoutException) {
+                    throw e
+                }
+
                 throw new AbortException(e.message)
             }
         }
