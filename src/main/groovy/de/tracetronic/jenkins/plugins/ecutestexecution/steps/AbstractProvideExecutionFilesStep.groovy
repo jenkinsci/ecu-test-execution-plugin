@@ -7,8 +7,6 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.builder.ProvideFilesBuilder
-import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
-import hudson.EnvVars
 import hudson.Launcher
 import hudson.model.Result
 import hudson.model.Run
