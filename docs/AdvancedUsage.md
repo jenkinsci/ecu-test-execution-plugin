@@ -68,11 +68,15 @@ node {
 
 ### Using different Agents for running and uploading Reports
 Enables downstream report generation and uploads with the use of either artifacts (multiple runs) or stash (single run with multiple agents)
+
 #### Two Pipelines using artifacts
-Requires CopyArtifact Plugin.
+> [!IMPORTANT]  
+> - Requires [CopyArtifact Plugin](https://www.jenkins.io/doc/pipeline/steps/copyartifact/).
+> - You may need to [specify projects that can copy artifacts](https://github.com/jenkinsci/copyartifact-plugin?tab=readme-ov-file#specify-projects-who-can-copy-artifacts) as well.
 
 First Agent Run And Archive Report Pipeline:
 ```groovy
+// job name "runPackage_firstAgent"
 pipeline {
     agent {
         label 'upStreamAgent'
@@ -81,15 +85,15 @@ pipeline {
     stages {
         stage('Run Package WS1') {
             steps{
-                ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws1/'
-                ttRunPackage 'Package 0.pkg'
+                ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws1>'
+                ttRunPackage 'example.pkg'
                 ttStopTool 'ecu.test'
             }
 
         }
         stage('Archive Report'){
             steps{
-                dir('Path to ws1/TestReports') {
+                dir('<Path_to_ws1>/TestReports') {
                     archiveArtifacts artifacts: '**/*', fingerprint: true
                 }
             }
@@ -109,6 +113,7 @@ pipeline {
 ```
 Second Agent Downstream Report Generation, Upload:
 ```groovy
+// job name 'uploadReport_secondAgent'
 pipeline {
     agent {
         label 'downStreamAgent'
@@ -121,18 +126,24 @@ pipeline {
     stages {
         stage('Copy Artifacts') {
             steps {
-                copyArtifacts(
-                        projectName: 'runPackage_firstAgent',
-                        selector: [$class: 'SpecificBuildSelector', buildNumber: "${params.SOURCE_BUILD}"],,
-                        filter: '**/*',
-                        target: 'Path to ws2/TestReports'
-                )
+                scripts {
+                    // use latest successful build if no SOURCE_BUILD parameter is given
+                    def selector = params.SOURCE_BUILD?.trim() ?
+                            specific(params.SOURCE_BUILD) :
+                            lastSuccessful()
+                    copyArtifacts(
+                            projectName: 'runPackage_firstAgent',
+                            selector: selector,
+                            filter: '**/*',
+                            target: '<Path_to_ws2>/TestReports'
+                    )
+                }
             }
         }
         stage('Upload Reports'){
             steps {
                 dir('Path to ws2') {
-                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws2/'
+                    ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws2>'
                     ttUploadReports credentialsId: 'local_tg_auth', projectId: 1, testGuideUrl: 'http://localhost:8085/', useSettingsFromServer: false
                     ttGenerateReports 'UNIT'
                     ttStopTool 'ecu.test'
@@ -155,8 +166,8 @@ pipeline {
             }
             steps {
                 dir('Path to ws1/') {
-                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws1/'
-                    ttRunPackage 'Package 0.pkg'
+                    ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws1>'
+                    ttRunPackage 'example.pkg'
                     ttStopTool 'ecu.test'
 
                     stash includes: 'TestReports/**/*', name: 'Reports'
@@ -170,7 +181,7 @@ pipeline {
             steps{
                 dir('Path to ws2') {
                     unstash 'Reports'
-                    ttStartTool toolName: 'ecu.test', workspaceDir: 'Path to ws2/'
+                    ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws2>'
                     ttGenerateReports 'UNIT'
                     ttUploadReports credentialsId: 'local_tg_auth', projectId: 1, testGuideUrl: 'http://localhost:8085/', useSettingsFromServer: false
                     ttStopTool 'ecu.test'
