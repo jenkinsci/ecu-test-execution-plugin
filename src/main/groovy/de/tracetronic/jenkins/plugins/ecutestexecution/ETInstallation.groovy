@@ -39,9 +39,10 @@ class ETInstallation extends ToolInstallation implements
 
     private static final long serialVersionUID = 1L
 
-    private static final List<String> UNIX_EXECUTABLES = ['ecu-test', 'trace-check', 'ecu.test', 'trace.check']
+    private static final List<String> UNIX_EXECUTABLES = ['ecu-test', 'trace-check', 'ecu.test', 'trace.check',
+                                                          'ecu.test_runner', 'trace.check_runner']
     private static final List<String> WINDOWS_EXECUTABLES = ['ECU-TEST.exe', 'TRACE-CHECK.exe', 'ecu.test.exe',
-                                                             'trace.check.exe']
+                                                             'trace.check.exe', 'ecu.test_runner', 'trace.check_runner']
 
     @DataBoundConstructor
     /**
