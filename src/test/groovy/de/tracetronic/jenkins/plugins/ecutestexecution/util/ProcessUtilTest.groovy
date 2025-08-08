@@ -71,7 +71,7 @@ class ProcessUtilTest extends Specification {
             withArgs.contains(processName)
         where:
             isWindows << [false, true]
-            processName << ['pkill', 'taskkill.exe']
+            processName << ['kill', 'taskkill.exe']
     }
 
     def 'test killProcesses with default timeout'() {
