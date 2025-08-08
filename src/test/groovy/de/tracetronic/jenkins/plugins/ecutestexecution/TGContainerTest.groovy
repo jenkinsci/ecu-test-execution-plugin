@@ -58,7 +58,6 @@ class TGContainerTest extends ContainerTest {
     private GenericContainer etContainer = new GenericContainer<>(ET_V2_IMAGE_NAME)
             .withExposedPorts(ET_PORT)
             .withNetwork(network)
-            .withEnv("tracet_LICENSE", ET_LICENSE_SERVER)
             .withClasspathResourceMapping("workspace/.workspace", "${ET_WS_PATH}/.workspace",
                     BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/Configurations",
