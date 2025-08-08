@@ -8,7 +8,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution
 import spock.lang.Specification
 
 class ContainerTest extends Specification {
-
     protected static final String BASE_IMAGE_PATH =
             "registry.hq-vcs-3.ad.tracetronic.de/hausintern/productdemos/docker/docker-base-images/"
     protected static final String ET_V1_IMAGE_NAME = BASE_IMAGE_PATH + "ecu-test/linux:" + System.getenv('ET_V1_VERSION')

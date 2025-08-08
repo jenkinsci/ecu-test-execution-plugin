@@ -131,8 +131,8 @@ create an [issue](#contribution).
 <details>
     <summary>When executing ttRunTestFolders, an error with the messages that the path does not exist occurs.</summary>
 
-> This is an issue related to the path resolution. In order to resolve paths correctly, ecu.test needs to be run either
-> on the server, or on a machine together with the step-executing Jenkins agent. This means in particular, that, when
+> This is an issue related to the path resolution. To resolve paths correctly, ecu.test needs to be run either
+> on the server or on a machine together with the step-executing Jenkins agent. This means, in particular, that, when
 > using a containerized version of ecu.test, the executing Jenkins agent needs to be within the same container.
 </details>
 
@@ -145,17 +145,12 @@ create an [issue](#contribution).
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
 
-| Version |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
-|---------|:------------------:|:------------------:|:------------------:|:------------------:|
-| 2024.4  | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
-| 2024.3  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
-| 2024.2  | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
-| 2024.1  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.4  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.3  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2023.2  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| 2023.1  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| 2022.4  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
+|-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
+| 2024.4 - 2025.2 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
+| 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
+| 2023.3 - 2024.1 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| 2022.4 - 2023.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
