@@ -39,7 +39,7 @@ class TGContainerTest extends ContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(TGContainerTest.class)
 
     private static final int TG_PORT = 8085
-    private static final String TG_IMAGE_NAME =  BASE_IMAGE_PATH + "test-guide:"+ System.getenv('TG_VERSION')
+    private static final String TG_IMAGE_NAME =  System.getenv('REGISTRY_GITLAB') + "/hausintern/productdemos/docker/docker-base-images/test-guide:"+ System.getenv('TG_VERSION')
     private static final String TG_AUTH_KEY = System.getenv('TG_AUTH_KEY')
     private static final String TG_ALIAS = 'tgTestContainer'
 
@@ -58,6 +58,7 @@ class TGContainerTest extends ContainerTest {
     private GenericContainer etContainer = new GenericContainer<>(ET_V2_IMAGE_NAME)
             .withExposedPorts(ET_PORT)
             .withNetwork(network)
+            .withEnv("tracet_LICENSE", ET_LICENSE_SERVER)
             .withClasspathResourceMapping("workspace/.workspace", "${ET_WS_PATH}/.workspace",
                     BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/Configurations",
@@ -65,7 +66,8 @@ class TGContainerTest extends ContainerTest {
             .withClasspathResourceMapping("workspace/Packages", "${ET_WS_PATH}/Packages",
                     BindMode.READ_ONLY)
             .withClasspathResourceMapping("workspace/localsettings.xml", "${ET_WS_PATH}/localsettings.xml",
-                    BindMode.READ_ONLY)            .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                    BindMode.READ_ONLY)
+            .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .waitingFor(Wait.forHttp("/api/v2/live"))
             .dependsOn(tgContainer)
 
@@ -209,7 +211,7 @@ class TGContainerTest extends ContainerTest {
                                 [name: "setAttributes", value: "${customAttributes}"]
                             ]     
                             
-                        sleep(2)
+                        sleep(5)
                                                     
                         def response = httpRequest (
                                             ignoreSslErrors: true,
@@ -232,10 +234,10 @@ class TGContainerTest extends ContainerTest {
                                             }
                                             '''
                                        )
-                        if (response.status == 200 && response.content != []) {
+
+                        if (response.status == 200 && response.content != '[]') {
                             println "Successfully retrieved the report from test.guide"
                             println response.content
-
                         } else {
                             println "Retrieving the report from test.guide failed"
                         }

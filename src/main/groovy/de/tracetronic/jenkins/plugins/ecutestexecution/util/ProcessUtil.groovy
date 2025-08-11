@@ -31,10 +31,13 @@ final class ProcessUtil implements Serializable {
         if (Functions.isWindows()) {
             args.add('taskkill.exe')
             args.addTokenized('/f /im')
+            args.add(taskName)
         } else {
-            args.add('pkill')
+            args.add('sh')
+            args.add('-c')
+            args.add("kill")
+            args.add("\$(ps -eo pid,cmd | awk '/[${taskName}]/ {print \$1}')")
         }
-        args.add(taskName)
 
         Process process = new ProcessBuilder().command(args.toCommandArray()).start()
         if (timeout <= 0) {
