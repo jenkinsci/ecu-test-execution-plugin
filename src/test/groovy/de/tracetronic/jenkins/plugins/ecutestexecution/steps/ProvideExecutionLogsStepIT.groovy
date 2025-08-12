@@ -69,7 +69,22 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
         given:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
+        expect:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
+            jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
+            jenkins.assertLogContains("Providing ecu.test Logs failed!", run)
+            jenkins.assertLogContains("ERROR: Could not find a ecu.test REST api for host: localhost:5050", run)
+    }
 
+    def 'Run pipeline do not allow missing logs'() {
+        given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
+            restApiClientV2Mock.getAllReports() >> []
+        and:
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs()}", true))
         expect:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
             jenkins.assertLogContains("Providing ecu.test Logs to jenkins.", run)
@@ -80,6 +95,11 @@ class ProvideExecutionLogsStepIT extends IntegrationTestBase {
 
     def 'Run pipeline allow missing logs'() {
         given:
+            GroovyMock(RestApiClientFactory, global: true)
+            RestApiClientV2 restApiClientV2Mock = GroovyMock(RestApiClientV2, global: true)
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClientV2Mock
+            restApiClientV2Mock.getAllReports() >> []
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node {ttProvideLogs(publishConfig: [allowMissing: true])}", true))
         expect:
