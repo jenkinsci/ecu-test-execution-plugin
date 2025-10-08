@@ -129,21 +129,28 @@ create an [issue](#contribution).
 > using a containerized version of ecu.test, the executing Jenkins agent needs to be within the same container.
 </details>
 
+<details>
+    <summary>When executing ttStopTool, tools started over the ToolServer are not terminated.</summary>
+
+> The plugin currently has no config handling for the ToolServer.
+> This means that all tools that are in the config and started via the ToolServer remain open and are not terminated.
+> To close these tools as well the loaded configuration must be actively unloaded before the tool is closed with the command.
+</details>
+
 ## Compatibility
 
-- Jenkins LTS 2.332.3 or higher
-- Java SE Runtime Environment 11 or higher
+- Jenkins LTS 2.426.3 or higher
+- Java SE Runtime Environment 17 or higher
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
-    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
+    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2023.3) </summary>
 
 | Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
 |-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
-| 2024.4 - 2025.2 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
+| 2024.4 - 2025.3 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
 | 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
 | 2023.3 - 2024.1 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2022.4 - 2023.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
@@ -153,6 +160,10 @@ create an [issue](#contribution).
 
 | Version | latest - 3.6       |     3.5 - 3.0      |
 |---------|--------------------|:------------------:|
+| 1.203.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.199.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.193.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.187.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.180.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.147.0 | :x:                | :heavy_check_mark: |
