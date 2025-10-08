@@ -92,7 +92,7 @@ node('windows') {
         ttUploadReports tgConfiguration: 'jenkinsTGConfigurationName'
     }
     stage('Stop Tools') {
-        ttStopTool 'ecu.test'
+        ttStopTool 'ecu.test' // Please see Known Issues below
     }
 }
 ```
