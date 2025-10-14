@@ -134,7 +134,12 @@ create an [issue](#contribution).
 
 > The plugin currently has no config handling for the ToolServer.
 > This means that all tools that are in the config and started via the ToolServer remain open and are not terminated.
-> To close these tools as well the loaded configuration must be actively unloaded before the tool is closed with the command.
+> To close these tools as well the custom loaded configuration must be actively unloaded before the tool is closed with the command.
+> To do so run a run command without a defined TestConfig beforehand (see example below).
+```groovy
+ttRunPackage testCasePath: 'test.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true] // this will load the default config
+ttStopTool stopUndefinedTools: true
+```
 </details>
 
 ## Compatibility
