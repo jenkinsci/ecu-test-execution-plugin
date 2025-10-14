@@ -155,7 +155,7 @@ catchError {
 
 | Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
 |-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
-| 2024.4 - 2025.3 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
+| 2024.4 - 2025.2 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
 | 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
 | 2023.3 - 2024.1 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
 
