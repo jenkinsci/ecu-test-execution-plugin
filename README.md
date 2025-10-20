@@ -18,13 +18,6 @@ control units (ECUs).<br/>
 It supports standardized access to a broad range of test tools and provides automation of distributed test
 environments (SiL – MiL – HiL – vehicle).<br><br>
 
-**tracetronic ecu.test Jenkins Plugin** project is part of
-the [Automotive DevOps Platform](https://www.tracetronic.com/products/automotive-devops-platform/) by tracetronic. With
-the **Automotive DevOps Platform**, we go from the big picture to the details and unite all phases of vehicle software
-testing – from planning the test scopes to summarizing the test results. At the same time, continuous monitoring across
-all test phases always provides an overview of all activities – even with several thousand test executions per day and
-in different test environments.<br><br>
-
 Please consider other open-source automation solutions by [tracetronic](https://github.com/tracetronic?type=source),
 especially [Jenkins Library](https://github.com/tracetronic/jenkins-library)
 and [CX Templates](https://github.com/tracetronic/cx-templates).
@@ -99,7 +92,7 @@ node('windows') {
         ttUploadReports tgConfiguration: 'jenkinsTGConfigurationName'
     }
     stage('Stop Tools') {
-        ttStopTool 'ecu.test'
+        ttStopTool 'ecu.test' // Please see Known Issues below
     }
 }
 ```
@@ -136,21 +129,35 @@ create an [issue](#contribution).
 > using a containerized version of ecu.test, the executing Jenkins agent needs to be within the same container.
 </details>
 
+<details>
+    <summary>When executing ttStopTool, tools started over the ToolServer are not terminated.</summary>
+
+> The plugin currently has no config handling for the ToolServer.
+> This means that all tools that are in the config and started via the ToolServer remain open and are not terminated.
+> Workaround: See code example below
+```groovy
+// Workaround closing all tools including from ToolServer
+catchError {
+    // this will load the default config and stopOnError (true by default) will exit all running tools
+    ttRunPackage testCasePath: '<non_existing_package>.pkg', testConfig: [tbcPath: '', tcfPath: '']
+}
+```
+</details>
+
 ## Compatibility
 
-- Jenkins LTS 2.332.3 or higher
-- Java SE Runtime Environment 11 or higher
+- Jenkins LTS 2.426.3 or higher
+- Java SE Runtime Environment 17 or higher
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
-    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2022.4) </summary>
+    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2023.3) </summary>
 
 | Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
 |-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
 | 2024.4 - 2025.2 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
 | 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
 | 2023.3 - 2024.1 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-| 2022.4 - 2023.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
@@ -160,6 +167,10 @@ create an [issue](#contribution).
 
 | Version | latest - 3.6       |     3.5 - 3.0      |
 |---------|--------------------|:------------------:|
+| 1.203.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.199.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.193.0 | :heavy_check_mark: | :heavy_check_mark: |
+| 1.187.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.180.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
 | 1.147.0 | :x:                | :heavy_check_mark: |
