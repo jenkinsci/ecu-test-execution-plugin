@@ -11,7 +11,6 @@ Prerequisites
 * Global environment variables set:
 - EMAIL_RECIPIENTS
 - TG_AUTH_KEY
-- ET_V1_VERSION
 - ET_V2_VERSION
 - TG_VERSION
 * Jenkins plugins installed:
@@ -46,7 +45,6 @@ pipeline {
     parameters {
         string(name: 'CONTAINER_TEST_DATA_BRANCH', defaultValue: 'main', description: 'The specified branch name to use for testing.')
         string(name: 'ET_VERSION', defaultValue: '2023.4.0', description: 'The specified ecu.test version to use for testing.')
-        string(name: 'ET_V1_VERSION', defaultValue: '2023.3.0', description: 'The specified ecu.test v1 version to use for testing.')
         string(name: 'ET_V2_VERSION', defaultValue: '2025.2.2', description: 'The specified ecu.test v2 version to use for testing.')
         string(name: 'TG_VERSION', defaultValue: '1.180.0', description: 'The specified test.guide version to use for testing.')
     }
@@ -82,7 +80,7 @@ pipeline {
                 jacoco execPattern: '**/build/jacoco/unitTest.exec,**/build/jacoco/integrationTest.exec',
                        classPattern: '**/build/classes/groovy/main',
                        sourcePattern: '**/src/main/groovy',
-                       exclusionPattern: '**/build/classes/groovy/test,**/RestApiClientV1.class'
+                       exclusionPattern: '**/build/classes/groovy/test,**/RestApiClientV2.class'
             }
         }
 
@@ -106,7 +104,6 @@ pipeline {
                                     }
                                     def properties = readFile('src/test/resources/containerTest.properties')
                                         .replaceAll(/ET_VERSION=.*/, "ET_VERSION=${params.ET_VERSION}")
-                                        .replaceAll(/ET_V1_VERSION=.*/, "ET_V1_VERSION=${params.ET_V1_VERSION}")
                                         .replaceAll(/ET_V2_VERSION=.*/, "ET_V2_VERSION=${params.ET_V2_VERSION}")
                                         .replaceAll(/TG_VERSION=.*/, "TG_VERSION=${params.TG_VERSION}")
                                     writeFile(file: 'src/test/resources/containerTest.properties', text: properties)

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
 /**
@@ -18,13 +24,6 @@ class ReportInfo implements Serializable {
         this.subReportIds = subReportIds
     }
 
-    /**
-     * Convert the ecu.test V1 REST api object ReportInfo to an abstract LabeledValue object.
-     * @return ReportInfo abstract object with data from the V1 ReportInfo data
-     */
-    static ReportInfo fromReportInfo(de.tracetronic.cxs.generated.et.client.model.v1.ReportInfo reportInfo) {
-        return new ReportInfo(reportInfo.testReportId, reportInfo.reportDir, reportInfo.result, reportInfo.subReportIds)
-    }
 
     /**
      * Convert the ecu.test V2 REST api object ReportInfo to an abstract LabeledValue object.

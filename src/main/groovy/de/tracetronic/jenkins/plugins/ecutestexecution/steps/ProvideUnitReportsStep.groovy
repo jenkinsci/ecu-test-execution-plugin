@@ -176,11 +176,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                     listener.logger.println("Build result set to ${newResult} due to ${reason}.")
                 }
             } catch (Exception e) {
-                if (e instanceof UnsupportedOperationException) {
-                    run.setResult(Result.UNSTABLE)
-                } else {
-                    run.setResult(Result.FAILURE)
-                }
+                run.setResult(Result.FAILURE)
                 listener.logger.println("Providing ${step.outDirName} failed!")
                 listener.error(e.message)
             }

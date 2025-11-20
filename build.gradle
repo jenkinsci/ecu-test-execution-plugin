@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -312,27 +312,6 @@ codenarcTest {
     ignoreFailures = true
 }
 
-tasks.register('openApiGenerateV1', GenerateTask) {
-    inputSpec = "$rootDir/specs/openapi_v1.yml".toString()
-    generatorName = "java"
-    id = 'ecu-test-rest-java-client_v1'
-    version = project.version
-    groupId = 'de.tracetronic.cxs'
-    outputDir = "$rootDir/generated/v1".toString()
-    packageName = "de.tracetronic.cxs.generated.et.client.v1"
-    apiPackage = 'de.tracetronic.cxs.generated.et.client.api.v1'
-    invokerPackage = 'de.tracetronic.cxs.generated.et.client.v1'
-    modelPackage = 'de.tracetronic.cxs.generated.et.client.model.v1'
-    library = 'okhttp-gson'
-    generateModelTests = false
-    generateApiTests = false
-    configOptions = [
-            licenseName: "MIT License",
-            licenseUrl: "https://spdx.org/licenses/MIT.html",
-            dateLibrary: "java${project.properties['javaVersion']}"
-    ]
-}
-
 tasks.register('openApiGenerateV2', GenerateTask) {
     inputSpec = "$rootDir/specs/openapi_v2.yml".toString()
     generatorName = "java"
@@ -390,13 +369,12 @@ tasks.register('dependencyCheckEval') {
 sourceSets {
     main {
         java {
-            srcDir(files("${openApiGenerateV1.outputDir.get()}/src/main/java"))
             srcDir(files("${openApiGenerateV2.outputDir.get()}/src/main/java"))
         }
     }
 }
 
-tasks.register('generateApi') { dependsOn openApiGenerateV1, openApiGenerateV2 }
+tasks.register('generateApi') { dependsOn openApiGenerateV2 }
 tasks.compileJava.dependsOn generateApi
 
 idea {

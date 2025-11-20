@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
 /**
@@ -17,19 +23,6 @@ class Recording {
         this.mappingNames = mappingNames
         this.deviceName = deviceName
         this.formatDetails = formatDetails
-    }
-
-    /**
-     * Convert the abstract Recording object to a ecu.test REST api object of the api version V1
-     * @return Recording for ecu-test REST api in version V1
-     */
-    de.tracetronic.cxs.generated.et.client.model.v1.Recording toRecordingV1(){
-        return new de.tracetronic.cxs.generated.et.client.model.v1.Recording()
-                .path(this.path)
-                .recordingGroup(this.recordingGroup)
-                .mappingNames(this.mappingNames)
-                .deviceName(this.deviceName)
-                .formatDetails(this.formatDetails)
     }
 
     /**

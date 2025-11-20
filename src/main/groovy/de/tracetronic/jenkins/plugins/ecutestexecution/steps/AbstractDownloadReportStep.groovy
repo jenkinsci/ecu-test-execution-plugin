@@ -8,7 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
+
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
@@ -87,16 +87,11 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
 
         @Override
         ArrayList<String> execute() throws IOException {
-            String unsupportedVersionMsg = "Downloading ${step.outDirName} is not supported for " +
-                    "this ecu.test version. Please use ecu.test >= ${step.supportVersion} instead."
             listener.logger.println("Providing ${step.outDirName} to jenkins.")
 
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'),
                         envVars.get('ET_API_PORT'))
-                if (apiClient instanceof RestApiClientV1) {
-                    throw new UnsupportedOperationException(unsupportedVersionMsg)
-                }
 
                 apiClient = (RestApiClientV2) apiClient
                 List<ReportInfo> reports = step.reportIds ? fetchReportsByIds(apiClient) : fetchAllReports(apiClient)
@@ -109,7 +104,7 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
                 listener.logger.flush()
                 return reportPaths
             } catch (Exception e) {
-                if (e instanceof TimeoutException || e instanceof UnsupportedOperationException) {
+                if (e instanceof TimeoutException) {
                     throw e
                 }
 
