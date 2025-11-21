@@ -35,7 +35,7 @@ pipeline {
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
         TEST_LEVEL = "pipeline"
-        JENKINS_VERSION = "2.426.3"
+        JENKINS_VERSION = "2.528.2"
     }
 
     tools {
