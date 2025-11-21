@@ -151,30 +151,22 @@ catchError {
 
  <details>
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
-    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2023.3) </summary>
+    <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2024.3) </summary>
 
 | Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
 |-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
-| 2024.4 - 2025.2 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
+| 2024.4 - 2025.3 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
 | 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
-| 2023.3 - 2024.1 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
 </details>
 <details>
-    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.142.0)</summary>
+    <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.180.0)</summary>
 
-| Version | latest - 3.6       |     3.5 - 3.0      |
-|---------|--------------------|:------------------:|
-| 1.203.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.199.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.193.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.187.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.180.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.178.0 | :heavy_check_mark: | :heavy_check_mark: |
-| 1.147.0 | :x:                | :heavy_check_mark: |
-| 1.142.0 | :x:                | :heavy_check_mark: |
+| Version           | latest - 3.0       |
+|-------------------|--------------------|
+| 1.180.0 - 1.206.1 | :heavy_check_mark: |
 
  </details>
 
