@@ -9,6 +9,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
+import groovy.transform.CompileStatic
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher

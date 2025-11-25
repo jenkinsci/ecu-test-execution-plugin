@@ -5,7 +5,7 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.security
 
-import hudson.AbortException
+
 import hudson.model.TaskListener
 import jenkins.security.MasterToSlaveCallable
 import jenkins.util.Timer
@@ -16,8 +16,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-
-abstract class ControllerToAgentCallableWithTimeout<V, T extends Throwable> extends MasterToSlaveCallable<V, T> {
+abstract class ControllerToAgentCallableWithTimeout<V, E extends Exception> extends MasterToSlaveCallable<V, E> {
 
     private long timeout
     protected final TaskListener listener
@@ -43,7 +42,7 @@ abstract class ControllerToAgentCallableWithTimeout<V, T extends Throwable> exte
      * @return V
      */
     @Override
-    V call() throws T {
+    V call() throws E {
         try {
             ScheduledExecutorService exe = Timer.get()
             V result

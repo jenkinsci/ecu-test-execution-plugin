@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
     // provides to correct versions of typical needed plugins
-    implementation platform('io.jenkins.tools.bom:bom-2.426.x:3041.ve87ce2cdf223')
+    implementation platform('io.jenkins.tools.bom:bom-2.528.x:5701.va_b_018a_a_6b_0d3')
 
     implementation 'org.jenkins-ci.plugins:credentials'
     implementation 'org.jenkins-ci.plugins:junit'
@@ -62,17 +62,17 @@ dependencies {
     codenarc('org.codehaus.groovy:groovy-all:3.0.23')
 
     // ecu.test-java-rest-client
-    api 'io.swagger:swagger-annotations:1.6.14'
+    api 'io.swagger:swagger-annotations:1.6.15'
     api 'com.google.code.gson:gson:2.11.0'
     api 'io.gsonfire:gson-fire:1.9.0'
     api 'com.squareup.okhttp3:logging-interceptor:4.12.0'
-    api 'org.apache.commons:commons-lang3:3.17.0'
+    api 'org.apache.commons:commons-lang3:3.19.0'
     api 'javax.annotation:javax.annotation-api:1.3.2'
     api 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    api 'org.slf4j:slf4j-api:2.0.16'
+    api 'org.slf4j:slf4j-api:2.0.17'
 
     // test
-    testImplementation 'io.swagger:swagger-parser:1.0.72'
+    testImplementation 'io.swagger:swagger-parser:1.0.73'
 
     // sandbox 1.34 seems to be incompatible with jenkins 2.426.3
     testImplementation('org.kohsuke:groovy-sandbox') { version { strictly '1.33'}}
@@ -95,17 +95,6 @@ dependencies {
     testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'cglib:cglib-nodep:3.3.0'
     testImplementation 'org.objenesis:objenesis:3.4'
-}
-
-configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
-            /* org.jenkins-ci.main:jenkins-core:2.426.3 use com.google.guava:guava:32.1.1-jre
-             * which has dependency issues https://github.com/google/guava/issues/6657
-             */
-            details.useVersion '33.2.0-jre'
-        }
-    }
 }
 
 // jenkins-bom is added by the jpi plugin since version 0.46, but creates issues with the spockframework
@@ -273,8 +262,15 @@ tasks.register('containerTest', Test) {
     useJUnitPlatform()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    // suppress annotation processing warnings for generated FormValidations for stapler
+    options.compilerArgs += ['-Xlint:-processing']
+}
+
 tasks.withType(GroovyCompile).configureEach {
     groovyOptions.optimizationOptions.indy = true
+    // suppress annotation processing warnings for generated FormValidations for stapler
+    options.compilerArgs += ['-Xlint:-processing']
 }
 
 jacocoTestReport {
@@ -347,7 +343,7 @@ licenseReport {
 }
 
 cyclonedxBom {
-    outputFormat = "json"
+    xmlOutput.unsetConvention()
 }
 
 dependencyCheck {
