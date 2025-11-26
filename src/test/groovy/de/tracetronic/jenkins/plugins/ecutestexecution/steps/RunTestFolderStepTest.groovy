@@ -67,7 +67,7 @@ class RunTestFolderStepTest extends Specification {
 
     }
 
-    def "checkFolder validates relative folder existence and path"() {
+    def "checkFolder validates relative folder existence and path2"() {
         given:
 
             def step = new RunTestFolderStep(baseFolder)
