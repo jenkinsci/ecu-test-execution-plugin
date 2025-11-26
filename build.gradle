@@ -93,10 +93,9 @@ dependencies {
     }
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
-    testImplementation 'cglib:cglib-nodep:3.3.0'
-    testImplementation 'org.objenesis:objenesis:3.4'
 
-    // use byte-buddy for spock mocking instead of cglib to avoid conflicts
+    // use byte-buddy for spock mocking instead of cglib (legacy mode)
+    testImplementation 'org.objenesis:objenesis:3.4'
     testImplementation 'net.bytebuddy:byte-buddy:1.14.12'
     testImplementation 'net.bytebuddy:byte-buddy-agent:1.14.12'
 }
