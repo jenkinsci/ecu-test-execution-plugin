@@ -10,8 +10,8 @@ class LoadConfigurationStepTest extends Specification {
         when:
             def step = new LoadConfigurationStep()
         then:
-            step.getTbcPath() == null
-            step.getTcfPath() == null
+            step.getTbcPath() == ""
+            step.getTcfPath() == ""
             step.getStartConfig()
             step.getConstants().isEmpty()
     }
