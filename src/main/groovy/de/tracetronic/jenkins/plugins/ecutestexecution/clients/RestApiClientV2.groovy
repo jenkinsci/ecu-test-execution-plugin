@@ -27,6 +27,7 @@ import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.TestConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.TestbenchConfiguration
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
@@ -273,7 +274,17 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         }
     }
 
-    private void doLoadConfiguration(ConfigurationOrder configurationOrder, boolean forceReload) throws ApiException, TimeoutException {
+    @Override
+    LoadConfigurationResult loadConfiguration(de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder configurationOrder) throws ApiException, TimeoutException {
+        ConfigurationOrder apiConfigurationOrder = new ConfigurationOrder()
+            .tbc(new TestbenchConfiguration().tbcPath(configurationOrder.tbcPath))
+            .tcf(new TestConfiguration().tcfPath(configurationOrder.tcfPath))
+            .constants(configurationOrder.constants.collect {it -> new LabeledValue().label(it.label).value(it.value)})
+            .action(configurationOrder.startConfig ? ConfigurationOrder.ActionEnum.START : ConfigurationOrder.ActionEnum.LOAD)
+        return doLoadConfiguration(apiConfigurationOrder, true)
+    }
+
+    private LoadConfigurationResult doLoadConfiguration(ConfigurationOrder configurationOrder, boolean forceReload) throws ApiException, TimeoutException {
         ConfigurationApi configApi = new ConfigurationApi(apiClient)
 
         Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
@@ -291,8 +302,11 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
 
         configApi.manageConfiguration(configurationOrder)
 
-        while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
+        ModelConfiguration order
+        while (checkConfigStatus(order = configApi.getLastConfigurationOrder())) {
             sleep(1000)
         }
+
+        return LoadConfigurationResult.fromConfigurationStatus(order.status)
     }
 }
