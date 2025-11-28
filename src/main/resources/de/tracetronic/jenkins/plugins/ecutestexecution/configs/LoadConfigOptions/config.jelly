@@ -1,0 +1,11 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%optionSection.title}">
+        <f:entry title="${%stopOnError.title}" description="${%stopOnError.description}" field="stopOnError">
+            <f:checkbox default="true"/>
+        </f:entry>
+        <f:entry title="${%stopUndefinedTools.title}" description="${%stopUndefinedTools.description}" field="stopUndefinedTools">
+            <f:checkbox default="true"/>
+        </f:entry>
+    </f:section>
+</j:jelly>

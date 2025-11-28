@@ -5,7 +5,9 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.LoadConfigOptions
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
+import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import hudson.AbortException
 import hudson.EnvVars
@@ -22,12 +24,17 @@ import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
 
+import javax.annotation.Nonnull
+import java.time.Duration
+
 class LoadConfigurationStep extends Step {
 
     private String tbcPath
     private String tcfPath
     private boolean startConfig
     private List<Constant> constants
+    @Nonnull
+    private LoadConfigOptions options
 
     @DataBoundConstructor
     LoadConfigurationStep() {
@@ -35,6 +42,7 @@ class LoadConfigurationStep extends Step {
         this.tbcPath = ""
         this.startConfig = true
         this.constants = []
+        this.options = new LoadConfigOptions()
     }
 
     String getTbcPath() {
@@ -73,6 +81,16 @@ class LoadConfigurationStep extends Step {
         this.constants = constants ? removeEmptyConstants(constants) : []
     }
 
+    @Nonnull
+    LoadConfigOptions getOptions() {
+        return new LoadConfigOptions(options)
+    }
+
+    @DataBoundSetter
+    void setOptions(LoadConfigOptions options) {
+        this.options = options ?: new LoadConfigOptions()
+    }
+
     private static List<Constant> removeEmptyConstants(List<Constant> constants) {
         return constants.findAll { constant -> StringUtils.isNotBlank(constant.getLabel()) }
     }
@@ -100,13 +118,13 @@ class LoadConfigurationStep extends Step {
                 String expTbcPath = envVars.expand(step.tbcPath)
                 String expTcfPath = envVars.expand(step.tcfPath)
                 List<Constant> expConstants = step.constants.collect { it -> it.expand(envVars) }
-                boolean expStartConfig = step.startConfig
 
                 TaskListener listener = context.get(TaskListener.class)
+                ToolInstallations toolInstallations = new ToolInstallations(context)
 
                 LoadConfigurationResult result
                 try {
-                    result = context.get(Launcher.class).getChannel().call(new LoadConfigurationCallable(expTbcPath, expTcfPath, expConstants, expStartConfig, envVars, listener))
+                    result = context.get(Launcher.class).getChannel().call(new LoadConfigurationCallable(expTbcPath, expTcfPath, expConstants, step.startConfig, step.options, toolInstallations, envVars, listener))
                 } catch (Exception e) {
                     listener.logger.println(StringUtils.capitalize(e.getClass().getSimpleName()) +
                             " occurred during loading configuration with tbcPath '${expTbcPath}' and tcfPath '${expTcfPath}': ${e.getMessage()}")
@@ -129,20 +147,25 @@ class LoadConfigurationStep extends Step {
     private static final class LoadConfigurationCallable extends MasterToSlaveCallable<LoadConfigurationResult, Exception> {
 
         private static final long serialVersionUID = 1L
+        private static final Duration STOP_TOOLS_TIMEOUT = Duration.ofHours(1)
 
         private final String tbcPath
         private final String tcfPath
         private final List<Constant> constants
         private final boolean startConfig
+        private final LoadConfigOptions options
+        private final ToolInstallations toolInstallations
         private final EnvVars envVars
         private final TaskListener listener
 
         LoadConfigurationCallable(String tbcPath, String tcfPath, List<Constant> constants,
-                                  boolean startConfig, EnvVars envVars, TaskListener taskListener) {
+                                  boolean startConfig, LoadConfigOptions options, ToolInstallations toolInstallations, EnvVars envVars, TaskListener taskListener) {
             this.tbcPath = tbcPath
             this.tcfPath = tcfPath
             this.constants = constants
             this.startConfig = startConfig
+            this.options = options
+            this.toolInstallations = toolInstallations
             this.envVars = envVars
             this.listener = taskListener
         }
@@ -157,6 +180,14 @@ class LoadConfigurationStep extends Step {
 
             LoadConfigurationResult result = apiClient.loadConfiguration(configurationOrder)
             listener.logger.println(result.toString())
+
+            if (result.result == "ERROR" && options.stopOnError) {
+                toolInstallations.stopToolInstances((int) STOP_TOOLS_TIMEOUT.toSeconds())
+                if (options.stopUndefinedTools) {
+                    toolInstallations.stopTTInstances((int) STOP_TOOLS_TIMEOUT.toSeconds())
+                }
+            }
+
             listener.logger.flush()
 
             return result

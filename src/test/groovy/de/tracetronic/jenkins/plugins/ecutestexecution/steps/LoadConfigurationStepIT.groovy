@@ -1,7 +1,15 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
+import de.tracetronic.cxs.generated.et.client.api.v2.ConfigurationApi
+import de.tracetronic.cxs.generated.et.client.model.v2.ConfigurationStatus
+import de.tracetronic.cxs.generated.et.client.model.v2.ModelConfiguration
+import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
+import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.LoadConfigOptions
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import hudson.Functions
 import hudson.model.Result
@@ -116,6 +124,19 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
             st.assertRoundTrip(step, "ttLoadConfig(constants: [[label: 'constLabel', value: 'constValue']])")
     }
 
+    def 'Snippet generator with options only'() {
+        given:
+            SnippetizerTester st = new SnippetizerTester(jenkins)
+        when:
+            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigOptions options = new LoadConfigOptions()
+            options.setStopOnError(false)
+            options.setStopUndefinedTools(false)
+            step.setOptions(options)
+        then:
+            st.assertRoundTrip(step, "ttLoadConfig(options: [stopOnError: false, stopUndefinedTools: false])")
+    }
+
     def 'Snippet generator with constants and startConfig false and paths'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
@@ -133,21 +154,51 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
     // Pipeline smoke tests
     def 'Pipeline usage default'() {
         given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+        and:
+            def modelConfiguration = new ModelConfiguration()
+            def configStatus = new ConfigurationStatus()
+            configStatus.setKey(ConfigurationStatus.KeyEnum.FINISHED)
+            modelConfiguration.setStatus(configStatus)
+            GroovySpy(ConfigurationApi, global: true) {
+                manageConfiguration(_) >> new SimpleMessage()
+                getLastConfigurationOrder() >>  modelConfiguration
+            }
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipelineLoadConfigDefault')
             job.setDefinition(new CpsFlowDefinition("node { ttLoadConfig() }", true))
+
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+
         then:
             jenkins.assertLogContains('Finished: SUCCESS', run)
     }
 
     def 'Pipeline usage with config data'() {
         given:
+            GroovyMock(RestApiClientFactory, global: true)
+            def restApiClient =  new RestApiClientV2('','')
+            RestApiClientFactory.getRestApiClient(*_) >> restApiClient
+        and:
+            def modelConfiguration = new ModelConfiguration()
+            def configStatus = new ConfigurationStatus()
+            configStatus.setKey(ConfigurationStatus.KeyEnum.FINISHED)
+            modelConfiguration.setStatus(configStatus)
+            GroovySpy(ConfigurationApi, global: true) {
+                manageConfiguration(_) >> new SimpleMessage()
+                getLastConfigurationOrder() >>  modelConfiguration
+            }
+        and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipelineLoadConfigData')
             job.setDefinition(new CpsFlowDefinition("node { ttLoadConfig tbcPath: 'config.tbc', tcfPath: 'config.tcf', " +
                     "constants: [[label: 'constLabel', value: 'constValue']], startConfig: false }", true))
+
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+
         then:
             jenkins.assertLogContains('Finished: SUCCESS', run)
     }
