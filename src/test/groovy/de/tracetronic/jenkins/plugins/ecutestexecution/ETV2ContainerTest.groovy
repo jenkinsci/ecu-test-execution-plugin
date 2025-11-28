@@ -488,4 +488,179 @@ class ETV2ContainerTest extends ETContainerTest {
             jenkins.assertLogContains("Build result set to FAILURE due to percentage of failed tests is higher than the configured threshold", failedRun)
             failedRun.getAction(TestResultAction.class).getTotalCount() == 4
     }
+
+    def "ttLoadConfig: happy path"() {
+        given: "a pipeline that loads a test configuration"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttLoadConfig tbcPath: 'test.tbc', tcfPath: 'test.tcf'
+
+                        def response = httpRequest(
+                            ignoreSslErrors: true,
+                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration"
+                        )
+                        echo response.content
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "the configuration is set and the build is successful"
+            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("\"action\": \"Start\"", run)
+            jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
+            jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
+            jenkins.assertLogContains("{\"message\": \"Configuration successfully started.\", \"key\": \"FINISHED\"}", run)
+            logRun(run)
+    }
+
+    def "ttLoadConfig: load only without start"() {
+        given: "a pipeline that loads test configuration without starting it"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttLoadConfig tbcPath: 'test.tbc', tcfPath: 'test.tcf', startConfig: false
+
+                        def response = httpRequest(
+                            ignoreSslErrors: true,
+                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration"
+                        )
+                        echo response.content
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig-noStart")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "the configuration is loaded but not started and the build is successful"
+        jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+        jenkins.assertLogContains("\"action\": \"Load\"", run)
+        jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
+        jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
+        jenkins.assertLogContains("{\"message\": \"Configuration successfully loaded.\", \"key\": \"FINISHED\"}", run)
+        logRun(run)
+    }
+
+    def "ttLoadConfig: unload previous configuration"() {
+        given: "a pipeline that loads a configuration and then unloads it by loading empty paths"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        // initial load
+                        ttLoadConfig tbcPath: 'test.tbc', tcfPath: 'test.tcf'
+                        // unload by loading empty paths
+                        ttLoadConfig tbcPath: '', tcfPath: ''
+
+                        def response = httpRequest(
+                            ignoreSslErrors: true,
+                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration"
+                        )
+                        echo response.content
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig-unload")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "the first configuration is loaded then cleared on second load"
+            // final API response contains empty paths
+            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("\"action\": \"Start\"", run)
+            jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"\"}", run)
+            jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"\"}", run)
+            jenkins.assertLogContains("{\"message\": \"Configuration successfully started.\", \"key\": \"FINISHED\"}", run)
+            logRun(run)
+    }
+
+    def "ttLoadConfig: load with constants"() {
+        given: "a pipeline that loads a configuration with two constants"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        ttLoadConfig tbcPath: 'test.tbc', tcfPath: 'test.tcf', constants: [[label: 'constString', value: '\"constValue\"'], [label: 'constInt', value: '123'], [label: 'constBool', value: 'True']]
+
+                        def response = httpRequest(
+                            ignoreSslErrors: true,
+                            url: "http://\${ET_API_HOSTNAME}:\${ET_API_PORT}/api/v2/configuration"
+                        )
+                        echo response.content
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig-constants")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
+
+        then: "the configuration is started and constants are passed"
+            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("\"action\": \"Start\"", run)
+            jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
+            jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
+            jenkins.assertLogContains("\"constants\": [{\"label\": \"constString\", \"value\": \"\\\"constValue\\\"\"}, {\"label\": \"constInt\", \"value\": \"123\"}, {\"label\": \"constBool\", \"value\": \"True\"}]", run)
+            jenkins.assertLogContains("{\"message\": \"Configuration successfully started.\", \"key\": \"FINISHED\"}", run)
+            logRun(run)
+    }
+
+    def "ttLoadConfig: fails on non-existing TCF"() {
+        given: "a pipeline that attempts to load a non-existing TCF"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        // try to load a TCF that does not exist
+                        ttLoadConfig tbcPath: 'test.tbc', tcfPath: 'does-not-exist.tcf'
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig-missing-tcf")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+
+        then: "the build fails and logs the configuration loading error"
+            jenkins.assertLogContains("Loading configuration failed!", run)
+            logRun(run)
+    }
+
+    def "ttLoadConfig: fails on non-existing TBC"() {
+        given: "a pipeline that attempts to load a non-existing TBC"
+            String script = """
+                node {
+                    withEnv(['ET_API_HOSTNAME=${etContainer.host}', 'ET_API_PORT=${etContainer.getMappedPort(ET_PORT)}']) {
+                        // try to load a TBC that does not exist
+                        ttLoadConfig tbcPath: 'does-not-exist.tbc', tcfPath: 'test.tcf'
+                    }
+                }
+            """.stripIndent()
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, "pipeline-ttLoadConfig-missing-tbc")
+            job.setDefinition(new CpsFlowDefinition(script, true))
+
+        when: "scheduling a new build"
+            WorkflowRun run = jenkins.buildAndAssertStatus(Result.FAILURE, job)
+
+        then: "the build fails and logs the configuration loading error"
+            jenkins.assertLogContains("Loading configuration failed!", run)
+            logRun(run)
+    }
+
+    private void logRun(WorkflowRun run) {
+        String log = jenkins.getLog(run)
+        println("===== Pipeline Log Start =====")
+        println(log)
+        println("===== Pipeline Log End =====")
+    }
+
 }

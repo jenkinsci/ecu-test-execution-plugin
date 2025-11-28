@@ -1,14 +1,21 @@
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
+import hudson.AbortException
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
+import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.FormValidation
+import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.DataBoundConstructor
@@ -75,7 +82,7 @@ class LoadConfigurationStep extends Step {
         return new Execution(this, context)
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<Void> {
+    static class Execution extends SynchronousNonBlockingStepExecution<LoadConfigurationResult> {
 
         private static final long serialVersionUID = 1L
 
@@ -87,8 +94,72 @@ class LoadConfigurationStep extends Step {
         }
 
         @Override
-        protected Void run() throws Exception {
-            return null
+        protected LoadConfigurationResult run() throws Exception {
+            try {
+                EnvVars envVars = context.get(EnvVars.class)
+                String expTbcPath = envVars.expand(step.tbcPath)
+                String expTcfPath = envVars.expand(step.tcfPath)
+                List<Constant> expConstants = step.constants.collect { it -> it.expand(envVars) }
+                boolean expStartConfig = step.startConfig
+
+                TaskListener listener = context.get(TaskListener.class)
+
+                LoadConfigurationResult result
+                try {
+                    result = context.get(Launcher.class).getChannel().call(new LoadConfigurationCallable(expTbcPath, expTcfPath, expConstants, expStartConfig, envVars, listener))
+                } catch (Exception e) {
+                    listener.logger.println(StringUtils.capitalize(e.getClass().getSimpleName()) +
+                            " occurred during loading configuration with tbcPath '${expTbcPath}' and tcfPath '${expTcfPath}': ${e.getMessage()}")
+                    result = new LoadConfigurationResult("ERROR", "Loading configuration failed!")
+                }
+                if (result.result == "ERROR") {
+                    listener.logger.println("Loading configuration failed!")
+                    context.get(Run.class).setResult(Result.FAILURE)
+                }
+
+                listener.logger.flush()
+
+                return result
+            } catch (Exception e) {
+                throw new AbortException(e.getMessage())
+            }
+        }
+    }
+
+    private static final class LoadConfigurationCallable extends MasterToSlaveCallable<LoadConfigurationResult, Exception> {
+
+        private static final long serialVersionUID = 1L
+
+        private final String tbcPath
+        private final String tcfPath
+        private final List<Constant> constants
+        private final boolean startConfig
+        private final EnvVars envVars
+        private final TaskListener listener
+
+        LoadConfigurationCallable(String tbcPath, String tcfPath, List<Constant> constants,
+                                  boolean startConfig, EnvVars envVars, TaskListener taskListener) {
+            this.tbcPath = tbcPath
+            this.tcfPath = tcfPath
+            this.constants = constants
+            this.startConfig = startConfig
+            this.envVars = envVars
+            this.listener = taskListener
+        }
+
+        @Override
+        LoadConfigurationResult call() throws Exception {
+            listener.logger.println("Loading configuration with tbcPath: ${tbcPath}, tcfPath: ${tcfPath}, " +
+                    "startConfig: ${startConfig}, constants: ${constants}")
+            RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'), envVars.get('ET_API_PORT'))
+
+            ConfigurationOrder configurationOrder = new ConfigurationOrder(tbcPath, tcfPath, constants, startConfig)
+
+            LoadConfigurationResult result = apiClient.loadConfiguration(configurationOrder)
+            listener.logger.println(result.toString())
+            listener.logger.flush()
+
+            return result
         }
     }
 
