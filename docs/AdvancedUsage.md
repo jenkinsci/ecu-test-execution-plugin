@@ -7,6 +7,7 @@ Additionally, further examples are provided.
 |-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | **ttCheckPackage**            | **testCasePath**: String - The path to the file that should be checked. Can be package or project <br/><br/> **executionConfig**: [ExecutionConfig](#executionconfig) - Contains settings to handle ecu.test executions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | [CheckPackageResult](#checkpackageresult)    |
 | **ttGenerateReports**         | **generatorName**: String - The name of the report generator to trigger, currently ATX, EXCEL, HTML, JSON, TRF-SPLIT, TXT and UNIT are supported <br/><br/> **additionalSettings**: List\<[AdditionalSetting](#additionalsetting)> - Additional settings for the chosen report generator. <br/><br/> **reportIds**: List\<String> - reportIds to generate a report for, ignore to generate all. <br/><br/>  **failOnError**: boolean - If checked, the build will be marked as failed if an error occurs during report generation.                                                                                                                                                                                                                                                                                                 | List\<[GenerationResult](#generationresult)> |
+| **ttLoadConfig**              | **tbcPath**: String - The relative path of the .tbc file in the Configurations directory. If empty, the currently loaded test bench configuration will be unloaded. <br/><br/> **tcfPath**: The relative path of the .tcf file in the Configurations directory. If empty, the currently loaded test configuration will be unloaded. <br/><br/> **startConfig**: boolean - Automatically starts the loaded configurations. Default: true <br/><br/>  **constants**: List\<[Constant](#constant)> - Global constants that remain available in following executions <br/><br/> **options**: [LoadConfigOptions](#LoadConfigOptions) - Options how to handle errors when loading configurations                                                                                                                                        | List\<[GenerationResult](#generationresult)> |
 | **ttProvideLogs**             | **publishConfig**: [PublishConfig](#publishconfig) - Contains settings to adjust how logs will be provided <br/><br/> **reportIds**: List\<String> - reportIds to upload, ignore to upload all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | /                                            |
 | **ttProvideReports**          | **publishConfig**: [PublishConfig](#publishconfig) - Contains settings to adjust how reports will be provided <br/><br/> **reportIds**: List\<String> - reportIds to upload, ignore to upload all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | /                                            |
 | **ttProvideGeneratedReports** | **selectedReportTypes**: String - Comma seperated names of generated report folders that should be included. <br/><br/> **publishConfig**: [PublishConfig](#publishconfig) - Contains settings to adjust how reports will be provided <br/><br/> **reportIds**: List\<String> - reportIds to upload, ignore to upload all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | /                                            |
@@ -67,14 +68,20 @@ node {
 ```
 
 ### Using different Agents for running and uploading Reports
-Enables downstream report generation and uploads with the use of either artifacts (multiple runs) or stash (single run with multiple agents)
+
+Enables downstream report generation and uploads with the use of either artifacts (multiple runs) or stash (single run
+with multiple agents)
 
 #### Two Pipelines using artifacts
-> [!IMPORTANT]  
+
+> [!IMPORTANT]
 > - Requires [CopyArtifact Plugin](https://www.jenkins.io/doc/pipeline/steps/copyartifact/).
-> - You may need to [specify projects that can copy artifacts](https://github.com/jenkinsci/copyartifact-plugin?tab=readme-ov-file#specify-projects-who-can-copy-artifacts) as well.
+> - You may need
+    to [specify projects that can copy artifacts](https://github.com/jenkinsci/copyartifact-plugin?tab=readme-ov-file#specify-projects-who-can-copy-artifacts)
+    as well.
 
 First Agent Run And Archive Report Pipeline:
+
 ```groovy
 // job name "runPackage_firstAgent"
 pipeline {
@@ -84,22 +91,22 @@ pipeline {
 
     stages {
         stage('Run Package WS1') {
-            steps{
+            steps {
                 ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws1>'
                 ttRunPackage 'example.pkg'
                 ttStopTool 'ecu.test'
             }
 
         }
-        stage('Archive Report'){
-            steps{
+        stage('Archive Report') {
+            steps {
                 dir('<Path_to_ws1>/TestReports') {
                     archiveArtifacts artifacts: '**/*', fingerprint: true
                 }
             }
 
         }
-        stage('Trigger Upload Pipeline'){
+        stage('Trigger Upload Pipeline') {
             steps {
                 build job: 'uploadReport_secondAgent',
                         parameters: [
@@ -111,7 +118,9 @@ pipeline {
     }
 }
 ```
+
 Second Agent Downstream Report Generation, Upload:
+
 ```groovy
 // job name 'uploadReport_secondAgent'
 pipeline {
@@ -140,7 +149,7 @@ pipeline {
                 }
             }
         }
-        stage('Upload Reports'){
+        stage('Upload Reports') {
             steps {
                 dir('Path to ws2') {
                     ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws2>'
@@ -155,6 +164,7 @@ pipeline {
 ```
 
 #### Single Pipeline Using stash
+
 ```groovy
 pipeline {
     agent none
@@ -174,11 +184,11 @@ pipeline {
                 }
             }
         }
-        stage('Downstream Generate Upload Reports WS2'){
+        stage('Downstream Generate Upload Reports WS2') {
             agent {
                 label 'downStreamAgent'
             }
-            steps{
+            steps {
                 dir('Path to ws2') {
                     unstash 'Reports'
                     ttStartTool toolName: 'ecu.test', workspaceDir: '<Path_to_ws2>'
@@ -228,8 +238,12 @@ pipeline {
 
 ### Configuration Change Options
 
-- **Load Configuration**: The TestConfiguration and/or the TestBenchConfiguration files must be explicitly set whenever a new configuration is needed. If both are empty, Test Configuration will be unloaded. Setting `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
-- **Keep Configuration**: Enable this option by not specifying the testConfig property, for example `ttRunTestPackage '<myPackageName>.pkg'` this option retains the existing configuration for continued use throughout the execution.
+- **Load Configuration**: The TestConfiguration and/or the TestBenchConfiguration files must be explicitly set whenever
+  a new configuration is needed. If both are empty, Test Configuration will be unloaded. Setting
+  `forceConfigurationReload` to `true` forces a configuration reload, even if the same configuration is still active.
+- **Keep Configuration**: Enable this option by not specifying the testConfig property, for example
+  `ttRunTestPackage '<myPackageName>.pkg'` this option retains the existing configuration for continued use throughout
+  the execution.
 
 ## PublishConfig
 
@@ -252,6 +266,13 @@ pipeline {
 |-------------------|---------------|
 | **label**: String | /             |
 | **value**: String | /             |
+
+## LoadConfigOptions
+
+| Properties                      | Default Value | Description                                                                                                                                                         |
+|---------------------------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **stopOnError**: boolean        | true          | If loading the specified configurations fails, stop running ecu.test/trace.check instances.                                                                         |
+| **stopUndefinedTools**: boolean | true          | It only has an impact if Stop Tools on Error is also selected. Additionally, all tracetronic tools that are not defined by the Jenkins ETInstallations are stopped. |
 
 ## PackageParameter
 
