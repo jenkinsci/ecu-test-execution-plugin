@@ -149,7 +149,7 @@ class ETV2ContainerTest extends ETContainerTest {
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
         then: "expect log information about predefined paths being kept"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}, \"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
             jenkins.assertLogContains("\"action\": \"Start\"", run)
@@ -189,7 +189,7 @@ class ETV2ContainerTest extends ETContainerTest {
         when: "scheduling a new build"
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
         then: "expect log information about predefined paths being empty"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"\"}, \"tcf\": {\"tcfPath\": \"\"}", run)
     }
@@ -225,7 +225,7 @@ class ETV2ContainerTest extends ETContainerTest {
         and:
             String containerLogs = etContainer.getLogs()
         then: "expect log information about predefined paths being empty"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("Executing package 'test.pkg'...", run)
             containerLogs.contains("Stop TCF")
             containerLogs.contains("Stop TBC")
