@@ -310,12 +310,15 @@ class UploadReportsStepTest extends Specification {
 
     def "doFillTgConfigurationItems should return correct ListBoxModel"() {
         given:
+            def inst1 = GroovyStub(TGInstallation) { getName() >> "Installation1" }
+            def inst2 = GroovyStub(TGInstallation) { getName() >> "Installation2" }
+            def inst3 = GroovyStub(TGInstallation) { getName() >> "Installation3" }
+        and:
             GroovyMock(TGInstallation, global: true)
             TGInstallation.all() >> [
-                    GroovyMock(TGInstallation) { getName() >> "Installation1" },
-                    GroovyMock(TGInstallation) { getName() >> "Installation2" },
-                    GroovyMock(TGInstallation) { getName() >> "Installation3" }
+                    inst1, inst2, inst3
             ]
+        and:
             def descriptor = new UploadReportsStep.DescriptorImpl()
         when:
             def result = descriptor.doFillTgConfigurationItems()
