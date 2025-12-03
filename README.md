@@ -166,7 +166,7 @@ catchError {
 
 | Version           | latest - 3.0       |
 |-------------------|--------------------|
-| 1.180.0 - 1.206.1 | :heavy_check_mark: |
+| 1.180.0 - 1.207.0 | :heavy_check_mark: |
 
  </details>
 
