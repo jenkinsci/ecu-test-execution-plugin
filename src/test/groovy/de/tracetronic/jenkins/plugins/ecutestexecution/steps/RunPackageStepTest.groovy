@@ -15,6 +15,7 @@ import org.jenkinsci.plugins.workflow.steps.StepContext
 import spock.lang.Specification
 
 class RunPackageStepTest extends Specification {
+
     def envVars
     def launcher
     def channel
@@ -38,9 +39,6 @@ class RunPackageStepTest extends Specification {
         taskListener.getLogger() >> logger
     }
 
-
-
-
     def "doCheckTestCasePath should validate paths correctly with specified error message"() {
         given:
             def descriptor = new RunPackageStep.DescriptorImpl()
@@ -62,12 +60,11 @@ class RunPackageStepTest extends Specification {
     def "test checkProjectPath valid paths"() {
         given:
             GroovyMock(IOUtils, global: true)
-            IOUtils.isAbsolute(_) >> isAbsolute
-            GroovyMock(FilePath, global: true)
-            def projectPath = GroovyMock(FilePath)
-            new FilePath(channel, projectFile) >> projectPath
-            projectPath.exists() >> absPathExists
-            projectPath.getRemote() >> projectFile
+			IOUtils.isAbsolute(_) >> isAbsolute
+			def projectPath = GroovyMock(FilePath, global: true)
+			new FilePath(channel, projectFile) >> projectPath
+			projectPath.exists() >> absPathExists
+			projectPath.getRemote() >> projectFile
 
             def step = new RunPackageStep(projectFile)
             def execution = new RunPackageStep.Execution(step, context)
@@ -89,12 +86,11 @@ class RunPackageStepTest extends Specification {
     def "test checkProjectPath with invalid absolute project path"() {
         given:
             GroovyMock(IOUtils, global: true)
-            IOUtils.isAbsolute(_) >> true
-            GroovyMock(FilePath, global: true)
-            def projectPath = GroovyMock(FilePath)
-            new FilePath(channel, projectFile) >> projectPath
-            projectPath.exists() >> pathExists
-            projectPath.getRemote() >> projectFile
+			IOUtils.isAbsolute(_) >> true
+			def projectPath = GroovyMock(FilePath, global: true)
+			new FilePath(channel, projectFile) >> projectPath
+			projectPath.exists() >> pathExists
+			projectPath.getRemote() >> projectFile
 
             def step = new RunPackageStep(projectFile)
             def execution = new RunPackageStep.Execution(step, context)
@@ -106,7 +102,6 @@ class RunPackageStepTest extends Specification {
             def e = thrown(AbortException)
             e.message == "ecu.test package at ${projectFile} does not exist! Please ensure that the path " +
                     "is correctly set and it refers to the desired directory."
-
 
         where:
             projectFile         | pathExists

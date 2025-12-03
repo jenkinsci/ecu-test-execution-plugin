@@ -98,6 +98,9 @@ dependencies {
     testImplementation 'org.objenesis:objenesis:3.4'
     testImplementation 'net.bytebuddy:byte-buddy:1.14.12'
     testImplementation 'net.bytebuddy:byte-buddy-agent:1.14.12'
+
+    // Jenkins 2.528.2 needs bouncycastle-api for instance-identity; missing plugin causes     NoClassDefFoundError during tests and forces Jenkins idle ~30s
+    testImplementation 'org.jenkins-ci.plugins:bouncycastle-api'
 }
 
 // jenkins-bom is added by the jpi plugin since version 0.46, but creates issues with the spockframework
@@ -240,6 +243,8 @@ tasks.register('integrationTest', Test) {
         excludeTestsMatching '*Test'
     }
     useJUnitPlatform()
+    maxHeapSize = "2g"
+    minHeapSize = "512m"
 
     // skip some process tests for ci
     systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
