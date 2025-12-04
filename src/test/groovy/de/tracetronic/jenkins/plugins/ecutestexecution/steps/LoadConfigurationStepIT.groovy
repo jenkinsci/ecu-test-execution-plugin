@@ -133,7 +133,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
             options.setStopUndefinedTools(false)
             step.setStopOptions(options)
         then:
-            st.assertRoundTrip(step, "ttLoadConfig(options: [stopOnError: false, stopUndefinedTools: false])")
+            st.assertRoundTrip(step, "ttLoadConfig(stopOptions: [stopOnError: false, stopUndefinedTools: false])")
     }
 
     def 'Snippet generator with constants and startConfig false and paths'() {
