@@ -14,6 +14,6 @@
             <f:repeatableProperty field="constants" add="${%constants.add}" minimum="0"/>
         </f:entry>
 
-        <f:property field="options"/>
+        <f:property field="stopOptions"/>
     </f:advanced>
 </j:jelly>
