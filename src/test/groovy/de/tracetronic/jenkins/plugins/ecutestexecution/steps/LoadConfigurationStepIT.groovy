@@ -6,10 +6,9 @@ import de.tracetronic.cxs.generated.et.client.model.v2.ModelConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.SimpleMessage
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import de.tracetronic.jenkins.plugins.ecutestexecution.IntegrationTestBase
-import de.tracetronic.jenkins.plugins.ecutestexecution.client.MockRestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
-import de.tracetronic.jenkins.plugins.ecutestexecution.configs.LoadConfigOptions
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.StopToolOptions
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import hudson.Functions
 import hudson.model.Result
@@ -129,10 +128,10 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
             LoadConfigurationStep step = new LoadConfigurationStep()
-            LoadConfigOptions options = new LoadConfigOptions()
+            StopToolOptions options = new StopToolOptions()
             options.setStopOnError(false)
             options.setStopUndefinedTools(false)
-            step.setOptions(options)
+            step.setStopOptions(options)
         then:
             st.assertRoundTrip(step, "ttLoadConfig(options: [stopOnError: false, stopUndefinedTools: false])")
     }

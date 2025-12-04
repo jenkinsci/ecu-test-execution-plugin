@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.configs
 
 import hudson.Extension
@@ -6,19 +11,19 @@ import hudson.model.Descriptor
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
-class LoadConfigOptions extends AbstractDescribableImpl<LoadConfigOptions> implements Serializable {
+class StopToolOptions extends AbstractDescribableImpl<StopToolOptions> implements Serializable {
     private static final long serialVersionUID = 1L
 
     private boolean stopOnError
     private boolean stopUndefinedTools
 
     @DataBoundConstructor
-    LoadConfigOptions() {
+    StopToolOptions() {
         this.stopOnError = true
         this.stopUndefinedTools = true
     }
 
-    LoadConfigOptions(LoadConfigOptions options) {
+    StopToolOptions(StopToolOptions options) {
         this.stopOnError = options.isStopOnError()
         this.stopUndefinedTools = options.isStopUndefinedTools()
     }
@@ -42,11 +47,11 @@ class LoadConfigOptions extends AbstractDescribableImpl<LoadConfigOptions> imple
     }
 
     @Extension
-    static class DescriptorImpl extends Descriptor<LoadConfigOptions> {
+    static class DescriptorImpl extends Descriptor<StopToolOptions> {
 
         @Override
         String getDisplayName() {
-            'Options'
+            'Options on how to handle running tools when a step fails'
         }
     }
 

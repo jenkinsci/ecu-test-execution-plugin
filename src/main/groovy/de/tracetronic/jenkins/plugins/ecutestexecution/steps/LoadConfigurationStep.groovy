@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import com.google.common.collect.ImmutableSet
@@ -5,7 +10,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
-import de.tracetronic.jenkins.plugins.ecutestexecution.configs.LoadConfigOptions
+import de.tracetronic.jenkins.plugins.ecutestexecution.configs.StopToolOptions
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.ToolInstallations
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
@@ -27,6 +32,9 @@ import org.kohsuke.stapler.QueryParameter
 import javax.annotation.Nonnull
 import java.time.Duration
 
+/**
+ * Step providing the loading of ecu.test configurations.
+ */
 class LoadConfigurationStep extends Step {
 
     private String tbcPath
@@ -34,7 +42,7 @@ class LoadConfigurationStep extends Step {
     private boolean startConfig
     private List<Constant> constants
     @Nonnull
-    private LoadConfigOptions options
+    private StopToolOptions stopOptions
 
     @DataBoundConstructor
     LoadConfigurationStep() {
@@ -42,7 +50,7 @@ class LoadConfigurationStep extends Step {
         this.tbcPath = ""
         this.startConfig = true
         this.constants = []
-        this.options = new LoadConfigOptions()
+        this.stopOptions = new StopToolOptions()
     }
 
     String getTbcPath() {
@@ -82,13 +90,13 @@ class LoadConfigurationStep extends Step {
     }
 
     @Nonnull
-    LoadConfigOptions getOptions() {
-        return new LoadConfigOptions(options)
+    StopToolOptions getStopOptions() {
+        return new StopToolOptions(stopOptions)
     }
 
     @DataBoundSetter
-    void setOptions(LoadConfigOptions options) {
-        this.options = options ?: new LoadConfigOptions()
+    void setStopOptions(StopToolOptions stopOptions) {
+        this.stopOptions = stopOptions ?: new StopToolOptions()
     }
 
     private static List<Constant> removeEmptyConstants(List<Constant> constants) {
@@ -124,7 +132,7 @@ class LoadConfigurationStep extends Step {
 
                 LoadConfigurationResult result
                 try {
-                    result = context.get(Launcher.class).getChannel().call(new LoadConfigurationCallable(expTbcPath, expTcfPath, expConstants, step.startConfig, step.options, toolInstallations, envVars, listener))
+                    result = context.get(Launcher.class).getChannel().call(new LoadConfigurationCallable(expTbcPath, expTcfPath, expConstants, step.startConfig, step.stopOptions, toolInstallations, envVars, listener))
                 } catch (Exception e) {
                     listener.logger.println(StringUtils.capitalize(e.getClass().getSimpleName()) +
                             " occurred during loading configuration with tbcPath '${expTbcPath}' and tcfPath '${expTcfPath}': ${e.getMessage()}")
@@ -153,13 +161,13 @@ class LoadConfigurationStep extends Step {
         private final String tcfPath
         private final List<Constant> constants
         private final boolean startConfig
-        private final LoadConfigOptions options
+        private final StopToolOptions options
         private final ToolInstallations toolInstallations
         private final EnvVars envVars
         private final TaskListener listener
 
         LoadConfigurationCallable(String tbcPath, String tcfPath, List<Constant> constants,
-                                  boolean startConfig, LoadConfigOptions options, ToolInstallations toolInstallations, EnvVars envVars, TaskListener taskListener) {
+                                  boolean startConfig, StopToolOptions options, ToolInstallations toolInstallations, EnvVars envVars, TaskListener taskListener) {
             this.tbcPath = tbcPath
             this.tcfPath = tcfPath
             this.constants = constants
@@ -204,7 +212,7 @@ class LoadConfigurationStep extends Step {
 
         @Override
         String getDisplayName() {
-            return 'Loads ecu.test configurations'
+            return '[TT] Load ecu.test configurations'
         }
 
         @Override
