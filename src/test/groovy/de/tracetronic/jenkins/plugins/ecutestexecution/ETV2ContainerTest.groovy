@@ -511,7 +511,7 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "the configuration is set and the build is successful"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("\"action\": \"Start\"", run)
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
             jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
@@ -541,7 +541,7 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "the configuration is loaded but not started and the build is successful"
-        jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+        jenkins.assertLogContains("Response Code: 200", run)
         jenkins.assertLogContains("\"action\": \"Load\"", run)
         jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
         jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
@@ -575,7 +575,7 @@ class ETV2ContainerTest extends ETContainerTest {
 
         then: "the first configuration is loaded then cleared on second load"
             // final API response contains empty paths
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("\"action\": \"Start\"", run)
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"\"}", run)
             jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"\"}", run)
@@ -605,7 +605,7 @@ class ETV2ContainerTest extends ETContainerTest {
             WorkflowRun run = jenkins.buildAndAssertStatus(Result.SUCCESS, job)
 
         then: "the configuration is started and constants are passed"
-            jenkins.assertLogContains("Response Code: HTTP/1.1 200 OK", run)
+            jenkins.assertLogContains("Response Code: 200", run)
             jenkins.assertLogContains("\"action\": \"Start\"", run)
             jenkins.assertLogContains("\"tbc\": {\"tbcPath\": \"test.tbc\"}", run)
             jenkins.assertLogContains("\"tcf\": {\"tcfPath\": \"test.tcf\"}", run)
