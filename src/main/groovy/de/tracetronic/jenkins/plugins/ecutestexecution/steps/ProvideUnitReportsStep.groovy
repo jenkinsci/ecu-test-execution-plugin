@@ -9,6 +9,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 import com.google.common.collect.ImmutableSet
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ZipUtil
+import groovy.transform.CompileStatic
 import hudson.EnvVars
 import hudson.Extension
 import hudson.Launcher
@@ -176,11 +177,7 @@ class ProvideUnitReportsStep extends AbstractDownloadReportStep {
                     listener.logger.println("Build result set to ${newResult} due to ${reason}.")
                 }
             } catch (Exception e) {
-                if (e instanceof UnsupportedOperationException) {
-                    run.setResult(Result.UNSTABLE)
-                } else {
-                    run.setResult(Result.FAILURE)
-                }
+                run.setResult(Result.FAILURE)
                 listener.logger.println("Providing ${step.outDirName} failed!")
                 listener.error(e.message)
             }

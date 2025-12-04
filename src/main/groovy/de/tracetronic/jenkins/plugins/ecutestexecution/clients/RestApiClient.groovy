@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -92,5 +92,12 @@ interface RestApiClient {
      * @return List of strings with report IDs
      */
     abstract List<String> getAllReportIds()
+
+    /**
+     * Downloads the report folder of a specific test report.
+     * @param reportId ID of the test report
+     * @return File object pointing to the downloaded report folder
+     */
+    abstract File downloadReportFolder(String reportId)
     
 }

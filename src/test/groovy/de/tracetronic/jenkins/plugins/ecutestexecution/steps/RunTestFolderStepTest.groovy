@@ -54,8 +54,7 @@ class RunTestFolderStepTest extends Specification {
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> true
 
-            GroovyMock(FilePath, global: true)
-            def filePath = GroovyMock(FilePath)
+            def filePath = GroovyMock(FilePath, global: true)
             new FilePath(_, _) >> filePath
             filePath.exists() >> true
             filePath.getRemote() >> "Folder"
@@ -67,7 +66,8 @@ class RunTestFolderStepTest extends Specification {
             result == "Folder"
 
     }
-    def "checkFolder validates folder existence and path"() {
+
+    def "checkFolder validates relative folder existence and path"() {
         given:
 
             def step = new RunTestFolderStep(baseFolder)
@@ -76,8 +76,7 @@ class RunTestFolderStepTest extends Specification {
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> isAbsolute
 
-            GroovyMock(FilePath, global: true)
-            def filePath = GroovyMock(FilePath)
+            def filePath = GroovyMock(FilePath, global: true)
             new FilePath(_, _) >> filePath
             filePath.exists() >> exists
             filePath.getRemote() >> "Folder"

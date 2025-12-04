@@ -32,20 +32,6 @@ class ProvideUnitReportsStepExecutionTest extends Specification {
         listener.getLogger() >> logger
     }
 
-    def "Test handling of UnsupportedOperationException"() {
-        given:
-            ProvideUnitReportsStep.Execution exec = Spy(constructorArgs:[step, context], {
-                getUnitReportFilePaths() >> { throw new UnsupportedOperationException("Unsupported") }
-            })
-        when:
-            exec.run()
-        then:
-        1 * run.setResult(Result.UNSTABLE)
-        1 * logger.println("Providing ${step.outDirName} failed!")
-        1 * listener.error("Unsupported")
-        0 * exec.parseReportFiles(_)
-    }
-
     def "Test fail on empty TestResult"() {
         given:
             TestResult result = GroovyStub {

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
 /**
@@ -16,19 +22,6 @@ class TGUploadOrder {
         this.projectId = projectId
         this.useSettingsFromServer = useSettingsFromServer
         this.additionalSettings = additionalSettings
-    }
-
-    /**
-     * Convert the abstract TGUploadOrder object to a ecu.test REST api object of the api version V1
-     * @return TGUploadOrder for ecu-test REST api in version V1
-     */
-    de.tracetronic.cxs.generated.et.client.model.v1.TGUploadOrder toTGUploadOrderV1() {
-        return new de.tracetronic.cxs.generated.et.client.model.v1.TGUploadOrder()
-                .testGuideUrl(this.testGuideUrl)
-                .authKey(this.authKey)
-                .projectId(this.projectId)
-                .useSettingsFromServer(this.useSettingsFromServer)
-                .additionalSettings(this.additionalSettings)
     }
 
     /**

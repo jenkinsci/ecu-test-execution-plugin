@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution
 
 import com.cloudbees.plugins.credentials.CredentialsProvider
@@ -10,8 +11,6 @@ import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import hudson.model.Result
-import hudson.model.TaskListener
-import hudson.util.Secret
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
@@ -39,7 +38,7 @@ class TGContainerTest extends ContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(TGContainerTest.class)
 
     private static final int TG_PORT = 8085
-    private static final String TG_IMAGE_NAME =  System.getenv('REGISTRY_GITLAB') + "/hausintern/productdemos/docker/docker-base-images/test-guide:"+ System.getenv('TG_VERSION')
+    private static final String TG_IMAGE_NAME =  System.getenv('REGISTRY_ARTIFACTORY') + "/tracetronic/testguide-ubi9:"+ System.getenv('TG_VERSION')
     private static final String TG_AUTH_KEY = System.getenv('TG_AUTH_KEY')
     private static final String TG_ALIAS = 'tgTestContainer'
 

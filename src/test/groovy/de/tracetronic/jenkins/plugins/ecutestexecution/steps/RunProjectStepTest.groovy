@@ -59,8 +59,7 @@ class RunProjectStepTest extends Specification {
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> isAbsolute
 
-            GroovyMock(FilePath, global: true)
-            def projectPath = GroovyMock(FilePath)
+            def projectPath = GroovyMock(FilePath, global: true)
             new FilePath(channel, projectFile) >> projectPath
             projectPath.exists() >> absPathExists
             projectPath.getRemote() >> projectFile
@@ -87,8 +86,7 @@ class RunProjectStepTest extends Specification {
             GroovyMock(IOUtils, global: true)
             IOUtils.isAbsolute(_) >> true
 
-            GroovyMock(FilePath, global: true)
-            def projectPath = GroovyMock(FilePath)
+            def projectPath = GroovyMock(FilePath, global: true)
             new FilePath(channel, projectFile) >> projectPath
             projectPath.exists() >> false
             projectPath.getRemote() >> projectFile

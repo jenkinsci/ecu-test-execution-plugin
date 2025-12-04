@@ -8,8 +8,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.steps
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientFactory
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV1
-import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClientV2
+
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.configs.PublishConfig
 import de.tracetronic.jenkins.plugins.ecutestexecution.security.ControllerToAgentCallableWithTimeout
@@ -87,18 +86,13 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
 
         @Override
         ArrayList<String> execute() throws IOException {
-            String unsupportedVersionMsg = "Downloading ${step.outDirName} is not supported for " +
-                    "this ecu.test version. Please use ecu.test >= ${step.supportVersion} instead."
             listener.logger.println("Providing ${step.outDirName} to jenkins.")
 
             try {
                 RestApiClient apiClient = RestApiClientFactory.getRestApiClient(envVars.get('ET_API_HOSTNAME'),
                         envVars.get('ET_API_PORT'))
-                if (apiClient instanceof RestApiClientV1) {
-                    throw new UnsupportedOperationException(unsupportedVersionMsg)
-                }
 
-                apiClient = (RestApiClientV2) apiClient
+                apiClient = apiClient
                 List<ReportInfo> reports = step.reportIds ? fetchReportsByIds(apiClient) : fetchAllReports(apiClient)
 
                 ArrayList<String> reportPaths = new ArrayList<>()
@@ -109,7 +103,7 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
                 listener.logger.flush()
                 return reportPaths
             } catch (Exception e) {
-                if (e instanceof TimeoutException || e instanceof UnsupportedOperationException) {
+                if (e instanceof TimeoutException) {
                     throw e
                 }
 
@@ -118,7 +112,7 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
         }
 
 
-        private List<ReportInfo> fetchReportsByIds(RestApiClientV2 apiClient) throws AbortException {
+        private List<ReportInfo> fetchReportsByIds(RestApiClient apiClient) throws AbortException {
             List<ReportInfo> reports = []
             for (String id : step.reportIds) {
                 ReportInfo report = apiClient.getReport(id)
@@ -131,12 +125,12 @@ abstract class AbstractDownloadReportStep extends Step implements Serializable {
             return reports
         }
 
-        private List<ReportInfo> fetchAllReports(RestApiClientV2 apiClient) {
+        private List<ReportInfo> fetchAllReports(RestApiClient apiClient) {
             listener.logger.println("Providing all ${step.outDirName}...")
             return apiClient.getAllReports()
         }
 
-        private void processSingleReport(RestApiClientV2 apiClient, ReportInfo report, ArrayList<String> reportPaths)
+        private void processSingleReport(RestApiClient apiClient, ReportInfo report, ArrayList<String> reportPaths)
                 throws AbortException {
             String reportDirName = report.reportDir.split('/').last()
             listener.logger.println("Providing ${step.outDirName} for report ${reportDirName}...")

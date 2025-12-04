@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
@@ -19,7 +20,7 @@ class RestApiClientFactory {
      * @param hostName (optional) set if ecu.test is hosted on a custom host
      * @param port (optional) set if ecu.test is hosted on a custom port
      * @param timeout (optional) set if a the default timeout of 10 seconds should be override
-     * @return RestApiClient object for the highed REST api version
+     * @return RestApiClient object for the highest REST api version
      * @throws ApiException if no REST api client could be determined
      */
     static RestApiClient getRestApiClient(String hostName = DEFAULT_HOSTNAME, String port = DEFAULT_PORT, int timeout = DEFAULT_TIMEOUT) throws ApiException {
@@ -27,11 +28,6 @@ class RestApiClientFactory {
         port = StringUtils.isBlank(port) ? DEFAULT_PORT : StringUtils.trim(port)
 
         apiClient = new RestApiClientV2(hostName, port)
-        if (apiClient.waitForAlive(timeout)) {
-            return apiClient
-        }
-
-        apiClient = new RestApiClientV1(hostName, port)
         if (apiClient.waitForAlive(timeout)) {
             return apiClient
         }

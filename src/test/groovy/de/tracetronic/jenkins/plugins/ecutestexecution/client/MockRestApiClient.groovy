@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -59,6 +59,11 @@ class MockRestApiClient implements RestApiClient {
 
     @Override
     List<String> getAllReportIds() {
+        return null
+    }
+
+    @Override
+    File downloadReportFolder(String reportId) {
         return null
     }
 

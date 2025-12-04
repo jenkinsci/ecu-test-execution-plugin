@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024-2025 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
 
 /**
@@ -10,16 +16,6 @@ class ReportGenerationOrder {
     ReportGenerationOrder(String generatorName, Map<String, String> additionalSettings) {
         this.generatorName = generatorName
         this.additionalSettings = additionalSettings
-    }
-
-    /**
-     * Convert the abstract ReportGenerationOrder object to a ecu.test REST api object of the api version V1
-     * @return ReportGenerationOrder for ecu-test REST api in version V1
-     */
-    de.tracetronic.cxs.generated.et.client.model.v1.ReportGenerationOrder toReportGenerationOrderV1(){
-        return new de.tracetronic.cxs.generated.et.client.model.v1.ReportGenerationOrder()
-                .generatorName(this.generatorName)
-                .additionalSettings(this.additionalSettings)
     }
 
     /**

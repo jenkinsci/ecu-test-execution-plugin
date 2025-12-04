@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 tracetronic GmbH
+ * Copyright (c) 2024-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -37,25 +37,6 @@ class ExecutionOrder implements Serializable {
         this.constants = testConfig.constants
         this.loadConfig = testConfig.loadConfig
         this.forceReload = testConfig.forceConfigurationReload
-    }
-
-    /**
-     * Convert the abstract ExecutionOrder object to a ecu.test REST API object of the API version V1
-     * @return ExecutionOrder for ecu-test REST API in version V1
-     */
-    de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder toExecutionOrderV1() {
-        List<de.tracetronic.cxs.generated.et.client.model.v1.LabeledValue> constantsV1 = []
-        this.constants.each {constant ->
-            constantsV1.add(new de.tracetronic.cxs.generated.et.client.model.v1.LabeledValue()
-                    .label(constant.label)
-                    .value(constant.value))}
-
-        return new de.tracetronic.cxs.generated.et.client.model.v1.ExecutionOrder()
-                .testCasePath(this.testCasePath)
-                .tbcPath(this.tbcPath)
-                .tcfPath(this.tcfPath)
-                .constants(constantsV1)
-                .additionalSettings(this.additionalSetting.toAdditionalSettingsV1())
     }
 
     /**

@@ -118,16 +118,13 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
                     new File('src/test/resources/report3.zip')
             ]
         and:
-            GroovyMock(ZipFile, global: true)
             def zipEntries = [
                     new ZipEntry('ATX/reportId.xml'),
                     new ZipEntry('JSON/reportId3.json')
             ]
-            new ZipFile(_) >> {
-                def mock = GroovyMock(ZipFile)
-                mock.entries() >> Collections.enumeration(zipEntries)
-                mock
-            }
+            def zipFileStub1 = GroovyStub(ZipFile) { entries() >> Collections.enumeration(zipEntries) }
+            GroovyMock(ZipFile, global: true)
+            new ZipFile(_) >>> [zipFileStub1]
         and:
             GroovyMock(ZipUtil, global: true)
             ZipUtil.extractFilesByExtension(*_) >>> [
@@ -166,15 +163,12 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
                     new File('src/test/resources/report3.zip')
             ]
         and:
-            GroovyMock(ZipFile, global: true)
             def zipEntries = [
                     new ZipEntry('INVALID/reportId.xml')
             ]
-            new ZipFile(_) >> {
-                def mock = GroovyMock(ZipFile)
-                mock.entries() >> Collections.enumeration(zipEntries)
-                mock
-            }
+            def zipFileStub1 = GroovyStub(ZipFile) { entries() >> Collections.enumeration(zipEntries) }
+            GroovyMock(ZipFile, global: true)
+            new ZipFile(_) >> zipFileStub1
         and:
             GroovyMock(ZipUtil, global: true)
             ZipUtil.extractFilesByExtension(*_) >>> [
@@ -229,16 +223,15 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
                     new File('src/test/resources/report3.zip')
             ]
         and:
-            GroovyMock(ZipFile, global: true)
             def zipEntries = [
                     new ZipEntry('ATX/reportId.xml'),
                     new ZipEntry('JSON/reportId3.json')
             ]
-            new ZipFile(_) >> {
-                def mock = GroovyMock(ZipFile)
-                mock.entries() >> Collections.enumeration(zipEntries)
-                mock
+            def zipFileStub = GroovyStub(ZipFile) {
+                entries() >> Collections.enumeration(zipEntries)
             }
+            GroovyMock(ZipFile, global: true)
+            new ZipFile(_) >> zipFileStub
         and:
             GroovyMock(ZipUtil, global: true)
             ZipUtil.extractFilesByExtension(*_) >>> [
@@ -296,26 +289,21 @@ class ProvideGeneratedReportsStepIT extends IntegrationTestBase {
                     null
             ]
         and:
-            GroovyMock(ZipFile, global: true)
             def zipEntries = [
                     new ZipEntry('ATX/reportId.xml'),
                     new ZipEntry('JSON/reportId.json')
             ]
-            new ZipFile(_) >> {
-                def mock = GroovyMock(ZipFile)
-                mock.entries() >> Collections.enumeration(zipEntries)
-                mock
-        }
+            def zipFileStub = GroovyStub(ZipFile) {
+                entries() >> Collections.enumeration(zipEntries)
+            }
+            GroovyMock(ZipFile, global: true)
+            new ZipFile(_) >> zipFileStub
         and:
             GroovyMock(ZipUtil, global: true)
             ZipUtil.extractFilesByExtension(*_) >>> [
-                    ['reportId/ecu.test.json', 'reportId/ecu.test.xml']
-            ]
-        and:
-            GroovyMock(ZipUtil, global: true)
-            ZipUtil.extractFilesByExtension(*_) >>> [
-                    ['reportId/ecu.test_out.log', 'reportId/ecu.test_err.log'],
-                    ['ignore']
+                ['reportId/ecu.test.json', 'reportId/ecu.test.xml'],
+                ['reportId/ecu.test_out.log', 'reportId/ecu.test_err.log'],
+                ['ignore']
             ]
         and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
     // provides to correct versions of typical needed plugins
-    implementation platform('io.jenkins.tools.bom:bom-2.426.x:3041.ve87ce2cdf223')
+    implementation platform('io.jenkins.tools.bom:bom-2.528.x:5701.va_b_018a_a_6b_0d3')
 
     implementation 'org.jenkins-ci.plugins:credentials'
     implementation 'org.jenkins-ci.plugins:junit'
@@ -62,17 +62,17 @@ dependencies {
     codenarc('org.codehaus.groovy:groovy-all:3.0.23')
 
     // ecu.test-java-rest-client
-    api 'io.swagger:swagger-annotations:1.6.14'
+    api 'io.swagger:swagger-annotations:1.6.15'
     api 'com.google.code.gson:gson:2.11.0'
     api 'io.gsonfire:gson-fire:1.9.0'
     api 'com.squareup.okhttp3:logging-interceptor:4.12.0'
-    api 'org.apache.commons:commons-lang3:3.17.0'
+    api 'org.apache.commons:commons-lang3:3.19.0'
     api 'javax.annotation:javax.annotation-api:1.3.2'
     api 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    api 'org.slf4j:slf4j-api:2.0.16'
+    api 'org.slf4j:slf4j-api:2.0.17'
 
     // test
-    testImplementation 'io.swagger:swagger-parser:1.0.72'
+    testImplementation 'io.swagger:swagger-parser:1.0.73'
 
     // sandbox 1.34 seems to be incompatible with jenkins 2.426.3
     testImplementation('org.kohsuke:groovy-sandbox') { version { strictly '1.33'}}
@@ -88,24 +88,19 @@ dependencies {
     testImplementation 'org.jenkins-ci.plugins:credentials-binding'
     testImplementation 'org.jenkins-ci.plugins:http_request'
     testImplementation "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
-    testImplementation('org.testcontainers:spock:1.20.4') {
+    testImplementation('org.testcontainers:spock:1.21.3') {
         exclude group: 'org.spockframework', module: 'spock-core'
     }
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
-    testImplementation 'cglib:cglib-nodep:3.3.0'
-    testImplementation 'org.objenesis:objenesis:3.4'
-}
+    testImplementation 'org.spockframework:spock-core:2.4-M7-groovy-3.0'
+    testImplementation 'org.spockframework:spock-junit4:2.4-M7-groovy-3.0'
 
-configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
-            /* org.jenkins-ci.main:jenkins-core:2.426.3 use com.google.guava:guava:32.1.1-jre
-             * which has dependency issues https://github.com/google/guava/issues/6657
-             */
-            details.useVersion '33.2.0-jre'
-        }
-    }
+    // use byte-buddy for spock mocking instead of cglib (legacy mode)
+    testImplementation 'org.objenesis:objenesis:3.4'
+    testImplementation 'net.bytebuddy:byte-buddy:1.14.12'
+    testImplementation 'net.bytebuddy:byte-buddy-agent:1.14.12'
+
+    // Jenkins 2.528.2 needs bouncycastle-api for instance-identity; missing plugin causes     NoClassDefFoundError during tests and forces Jenkins idle ~30s
+    testImplementation 'org.jenkins-ci.plugins:bouncycastle-api'
 }
 
 // jenkins-bom is added by the jpi plugin since version 0.46, but creates issues with the spockframework
@@ -248,6 +243,8 @@ tasks.register('integrationTest', Test) {
         excludeTestsMatching '*Test'
     }
     useJUnitPlatform()
+    maxHeapSize = "2g"
+    minHeapSize = "512m"
 
     // skip some process tests for ci
     systemProperties('spock.skip.sandbox': System.getProperty('spock.skip.sandbox', 'true'))
@@ -273,8 +270,15 @@ tasks.register('containerTest', Test) {
     useJUnitPlatform()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    // suppress annotation processing warnings for generated FormValidations for stapler
+    options.compilerArgs += ['-Xlint:-processing']
+}
+
 tasks.withType(GroovyCompile).configureEach {
     groovyOptions.optimizationOptions.indy = true
+    // suppress annotation processing warnings for generated FormValidations for stapler
+    options.compilerArgs += ['-Xlint:-processing']
 }
 
 jacocoTestReport {
@@ -312,27 +316,6 @@ codenarcTest {
     ignoreFailures = true
 }
 
-tasks.register('openApiGenerateV1', GenerateTask) {
-    inputSpec = "$rootDir/specs/openapi_v1.yml".toString()
-    generatorName = "java"
-    id = 'ecu-test-rest-java-client_v1'
-    version = project.version
-    groupId = 'de.tracetronic.cxs'
-    outputDir = "$rootDir/generated/v1".toString()
-    packageName = "de.tracetronic.cxs.generated.et.client.v1"
-    apiPackage = 'de.tracetronic.cxs.generated.et.client.api.v1'
-    invokerPackage = 'de.tracetronic.cxs.generated.et.client.v1'
-    modelPackage = 'de.tracetronic.cxs.generated.et.client.model.v1'
-    library = 'okhttp-gson'
-    generateModelTests = false
-    generateApiTests = false
-    configOptions = [
-            licenseName: "MIT License",
-            licenseUrl: "https://spdx.org/licenses/MIT.html",
-            dateLibrary: "java${project.properties['javaVersion']}"
-    ]
-}
-
 tasks.register('openApiGenerateV2', GenerateTask) {
     inputSpec = "$rootDir/specs/openapi_v2.yml".toString()
     generatorName = "java"
@@ -368,7 +351,7 @@ licenseReport {
 }
 
 cyclonedxBom {
-    outputFormat = "json"
+    xmlOutput.unsetConvention()
 }
 
 dependencyCheck {
@@ -390,13 +373,12 @@ tasks.register('dependencyCheckEval') {
 sourceSets {
     main {
         java {
-            srcDir(files("${openApiGenerateV1.outputDir.get()}/src/main/java"))
             srcDir(files("${openApiGenerateV2.outputDir.get()}/src/main/java"))
         }
     }
 }
 
-tasks.register('generateApi') { dependsOn openApiGenerateV1, openApiGenerateV2 }
+tasks.register('generateApi') { dependsOn openApiGenerateV2 }
 tasks.compileJava.dependsOn generateApi
 
 idea {

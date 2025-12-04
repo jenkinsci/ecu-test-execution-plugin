@@ -15,10 +15,6 @@ Files: test/groovy/testSupport/*
 Copyright: 2017 Bill Dennis (macg33zr)
 License: Apache-2.0
 
-Files: specs/openapi_v1.yml
-Copyright: 2020-2025 tracetronic GmbH
-License: MIT
-
 Files: specs/openapi_v2.yml
 Copyright: 2020-2025 tracetronic GmbH
 License: MIT
