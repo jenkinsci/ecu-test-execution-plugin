@@ -1,9 +1,16 @@
+/*
+ * Copyright (c) 2021-2024 tracetronic GmbH
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients.model
-
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.model.Constant
 import jline.internal.Nullable
 
+/**
+ * Abstraction of the ecu.test REST API object ConfigurationOrder in all API versions.
+ */
 class ConfigurationOrder implements Serializable {
     private static final long serialVersionUID = 1L
 

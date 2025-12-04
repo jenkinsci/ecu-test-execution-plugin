@@ -11,6 +11,9 @@ import hudson.model.Descriptor
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
+/**
+ * Options on how to handle running tools when a step fails.
+ */
 class StopToolOptions extends AbstractDescribableImpl<StopToolOptions> implements Serializable {
     private static final long serialVersionUID = 1L
 
