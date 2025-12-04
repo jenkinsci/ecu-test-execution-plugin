@@ -8,7 +8,6 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.util
 import com.cloudbees.plugins.credentials.CredentialsMatchers
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.common.StandardCredentials
-import groovy.transform.CompileStatic
 import hudson.model.Item
 import hudson.model.Messages
 import hudson.security.ACL

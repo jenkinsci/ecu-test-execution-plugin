@@ -44,7 +44,6 @@ pipeline {
 
     parameters {
         string(name: 'CONTAINER_TEST_DATA_BRANCH', defaultValue: 'main', description: 'The specified branch name to use for testing.')
-        string(name: 'ET_VERSION', defaultValue: '2025.3.2', description: 'The specified ecu.test version to use for testing.')
         string(name: 'ET_V2_VERSION', defaultValue: '2025.3.2', description: 'The specified ecu.test v2 version to use for testing.')
         string(name: 'TG_VERSION', defaultValue: '1.207.0', description: 'The specified test.guide version to use for testing.')
     }
@@ -103,7 +102,6 @@ pipeline {
                                         copyArtifacts fingerprintArtifacts: true, projectName: "../containerTestData/${params.CONTAINER_TEST_DATA_BRANCH}", selector: lastSuccessful()
                                     }
                                     def properties = readFile('src/test/resources/containerTest.properties')
-                                        .replaceAll(/ET_VERSION=.*/, "ET_VERSION=${params.ET_VERSION}")
                                         .replaceAll(/ET_V2_VERSION=.*/, "ET_V2_VERSION=${params.ET_V2_VERSION}")
                                         .replaceAll(/TG_VERSION=.*/, "TG_VERSION=${params.TG_VERSION}")
                                     writeFile(file: 'src/test/resources/containerTest.properties', text: properties)
