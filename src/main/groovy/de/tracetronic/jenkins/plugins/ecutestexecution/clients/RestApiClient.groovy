@@ -5,7 +5,9 @@
  */
 package de.tracetronic.jenkins.plugins.ecutestexecution.clients
 
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
@@ -31,6 +33,18 @@ interface RestApiClient {
      * @throws TimeoutException if the execution time exceeded the timeout
      */
     abstract boolean waitForAlive(int timeout) throws TimeoutException
+
+    /**
+     * Loads the configuration via REST api according to the given ConfigurationOrder.
+     * The method will abort upon a thread interruption signal used by the TimeoutControllerToAgentCallable to handle the
+     * timeout from outside this class.
+     * {@see de.tracetronic.jenkins.plugins.ecutestexecution.security.TimeoutControllerToAgentCallable}
+     * @param configurationOrder the ConfigurationOrder defining the configurations to be loaded
+     * @return LoadConfigurationResult with information about the loaded configurations
+     * @throws ApiException on error status codes (except 409 (busy) where it will wait until success or timeout)
+     * @throws TimeoutException if the execution time exceeded the timeout
+     */
+    abstract LoadConfigurationResult loadConfiguration(ConfigurationOrder configurationOrder) throws ApiException, TimeoutException
 
     /**
      * This method performs the package check for the given test package or project via REST api.
@@ -92,12 +106,11 @@ interface RestApiClient {
      * @return List of strings with report IDs
      */
     abstract List<String> getAllReportIds()
-
-    /**
+/**
      * Downloads the report folder of a specific test report.
      * @param reportId ID of the test report
      * @return File object pointing to the downloaded report folder
      */
     abstract File downloadReportFolder(String reportId)
-    
+
 }

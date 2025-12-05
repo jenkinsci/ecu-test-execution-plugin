@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -42,7 +42,7 @@ class ETInstallation extends ToolInstallation implements
     private static final List<String> UNIX_EXECUTABLES = ['ecu-test', 'trace-check', 'ecu.test', 'trace.check',
                                                           'ecu.test_runner', 'trace.check_runner']
     private static final List<String> WINDOWS_EXECUTABLES = ['ECU-TEST.exe', 'TRACE-CHECK.exe', 'ecu.test.exe',
-                                                             'trace.check.exe', 'ecu.test_runner', 'trace.check_runner']
+                                                             'trace.check.exe', 'ecu.test_runner.exe', 'trace.check_runner.exe']
 
     @DataBoundConstructor
     /**

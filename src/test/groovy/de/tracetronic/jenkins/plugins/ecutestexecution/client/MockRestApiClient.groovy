@@ -7,7 +7,9 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.client
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.RestApiClient
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ExecutionOrder
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
@@ -25,6 +27,11 @@ class MockRestApiClient implements RestApiClient {
     @Override
     boolean waitForAlive(int timeout) {
         return true
+    }
+
+    @Override
+    LoadConfigurationResult loadConfiguration(ConfigurationOrder configurationOrder) throws ApiException, TimeoutException {
+        return null
     }
 
     @Override

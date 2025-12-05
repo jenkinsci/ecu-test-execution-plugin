@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2025 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -27,6 +27,7 @@ import de.tracetronic.cxs.generated.et.client.model.v2.TGUploadStatus
 import de.tracetronic.cxs.generated.et.client.model.v2.TestConfiguration
 import de.tracetronic.cxs.generated.et.client.model.v2.TestbenchConfiguration
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ApiException
+import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.LoadConfigurationResult
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportGenerationOrder
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ReportInfo
 import de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.TGUploadOrder
@@ -133,32 +134,14 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
             constants.add(new LabeledValue().label(constant.label).value(constant.value))
         }
 
-        ConfigurationOrder configOrder = new ConfigurationOrder()
-                .tbc(new TestbenchConfiguration().tbcPath(executionOrder.tbcPath))
-                .tcf(new TestConfiguration().tcfPath(executionOrder.tcfPath))
-                .constants(constants)
-                .action(ConfigurationOrder.ActionEnum.START)
         try {
             if(executionOrder.loadConfig) {
-                ConfigurationApi configApi = new ConfigurationApi(apiClient)
-
-                Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
-                    configuration?.status?.key in [null, ConfigurationStatus.KeyEnum.WAITING, ConfigurationStatus.KeyEnum.RUNNING]
-                }
-
-                if(executionOrder.forceReload) {
-                    ConfigurationOrder loadConfigOrder = new ConfigurationOrder().action(ConfigurationOrder.ActionEnum.STOP)
-                    configApi.manageConfiguration(loadConfigOrder)
-
-                    while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
-                        sleep(1000)
-                    }
-                }
-
-                configApi.manageConfiguration(configOrder)
-                while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
-                    sleep(1000)
-                }
+                ConfigurationOrder configOrder = new ConfigurationOrder()
+                        .tbc(new TestbenchConfiguration().tbcPath(executionOrder.tbcPath))
+                        .tcf(new TestConfiguration().tcfPath(executionOrder.tcfPath))
+                        .constants(constants)
+                        .action(ConfigurationOrder.ActionEnum.START)
+                doLoadConfiguration(configOrder, executionOrder.forceReload)
             }
 
             executionApi.createExecution(executionOrderV2)
@@ -289,5 +272,41 @@ class RestApiClientV2 extends RestApiClientV2WithIdleHandle implements RestApiCl
         } catch (de.tracetronic.cxs.generated.et.client.v2.ApiException ignore) {
             return null
         }
+    }
+
+    @Override
+    LoadConfigurationResult loadConfiguration(de.tracetronic.jenkins.plugins.ecutestexecution.clients.model.ConfigurationOrder configurationOrder) throws ApiException, TimeoutException {
+        ConfigurationOrder apiConfigurationOrder = new ConfigurationOrder()
+            .tbc(new TestbenchConfiguration().tbcPath(configurationOrder.tbcPath))
+            .tcf(new TestConfiguration().tcfPath(configurationOrder.tcfPath))
+            .constants(configurationOrder.constants.collect {it -> new LabeledValue().label(it.label).value(it.value)})
+            .action(configurationOrder.startConfig ? ConfigurationOrder.ActionEnum.START : ConfigurationOrder.ActionEnum.LOAD)
+        return doLoadConfiguration(apiConfigurationOrder, true)
+    }
+
+    private LoadConfigurationResult doLoadConfiguration(ConfigurationOrder configurationOrder, boolean forceReload) throws ApiException, TimeoutException {
+        ConfigurationApi configApi = new ConfigurationApi(apiClient)
+
+        Closure<Boolean> checkConfigStatus = { ModelConfiguration configuration ->
+            configuration?.status?.key in [null, ConfigurationStatus.KeyEnum.WAITING, ConfigurationStatus.KeyEnum.RUNNING]
+        }
+
+        if(forceReload) {
+            ConfigurationOrder loadConfigOrder = new ConfigurationOrder().action(ConfigurationOrder.ActionEnum.STOP)
+            configApi.manageConfiguration(loadConfigOrder)
+
+            while (checkConfigStatus(configApi.getLastConfigurationOrder())) {
+                sleep(1000)
+            }
+        }
+
+        configApi.manageConfiguration(configurationOrder)
+
+        ModelConfiguration order
+        while (checkConfigStatus(order = configApi.getLastConfigurationOrder())) {
+            sleep(1000)
+        }
+
+        return LoadConfigurationResult.fromConfigurationStatus(order.status)
     }
 }

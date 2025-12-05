@@ -70,12 +70,15 @@ node('windows') {
     stage('Start Tools') {
         ttStartTool toolName: 'ecu.test', workspaceDir: './workspace', settingsDir: './settings'
     }
+    stage('Load configurations') {
+        ttLoadConfig tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]
+    }
     stage('Package Checks') {
         ttCheckPackage testCasePath: 'sample.pkg'
         ttCheckPackage testCasePath: 'sample.prj'
     }
     stage('Test Execution') {
-        ttRunProject testCasePath: 'sample.prj', testConfig: [tbcPath: 'sample.tbc', tcfPath: 'sample.tcf', constants: [[label: 'sample', value: '123']]]
+        ttRunProject testCasePath: 'sample.prj'
         ttRunPackage testCasePath: 'sample.pkg', testConfig: [tbcPath: '', tcfPath: '', forceConfigurationReload: true, constants: [[label: 'sample', value: '\'sampleValue\'']]]
     }
     stage('Provide ecu.test logs in jenkins') {
@@ -90,6 +93,9 @@ node('windows') {
     stage('Upload Reports') {
         ttUploadReports credentialsId: 'tgAuthKey', projectId: 1, testGuideUrl: 'http://HOST:Port'
         ttUploadReports tgConfiguration: 'jenkinsTGConfigurationName'
+    }
+    stage('Unload configurations') {
+        ttLoadConfig tbcPath: '', tcfPath: ''
     }
     stage('Stop Tools') {
         ttStopTool 'ecu.test' // Please see Known Issues below
@@ -134,13 +140,10 @@ create an [issue](#contribution).
 
 > The plugin currently has no config handling for the ToolServer.
 > This means that all tools that are in the config and started via the ToolServer remain open and are not terminated.
-> Workaround: See code example below
+> Solution: Unload all configurations before stopping the tools. This will close all tools including those started via the
+> ToolServer.
 ```groovy
-// Workaround closing all tools including from ToolServer
-catchError {
-    // this will load the default config and stopOnError (true by default) will exit all running tools
-    ttRunPackage testCasePath: '<non_existing_package>.pkg', testConfig: [tbcPath: '', tcfPath: '']
-}
+ttLoadConfig tbcPath: '', tcfPath: ''
 ```
 </details>
 
