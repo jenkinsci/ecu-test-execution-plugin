@@ -36,7 +36,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
     // Round trip tests
     def 'Default config round trip'() {
         given:
-            LoadConfigurationStep before = new LoadConfigurationStep()
+            LoadConfigurationStep before = new LoadConfigurationStep("", "")
         when:
             LoadConfigurationStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -45,9 +45,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
 
     def 'Config round trip with tbc/tcf only'() {
         given:
-            LoadConfigurationStep before = new LoadConfigurationStep()
-            before.setTbcPath('config.tbc')
-            before.setTcfPath('config.tcf')
+            LoadConfigurationStep before = new LoadConfigurationStep('config.tbc', 'config.tcf')
         when:
             LoadConfigurationStep after = new StepConfigTester(jenkins).configRoundTrip(before)
         then:
@@ -56,7 +54,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
 
     def 'Config round trip with constants only'() {
         given:
-            LoadConfigurationStep before = new LoadConfigurationStep()
+            LoadConfigurationStep before = new LoadConfigurationStep("", "")
             before.setConstants([new Constant('constLabel', 'constValue')])
         when:
             LoadConfigurationStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -66,7 +64,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
 
     def 'Config round trip with startConfig false only'() {
         given:
-            LoadConfigurationStep before = new LoadConfigurationStep()
+            LoadConfigurationStep before = new LoadConfigurationStep("", "")
             before.setStartConfig(false)
         when:
             LoadConfigurationStep after = new StepConfigTester(jenkins).configRoundTrip(before)
@@ -76,9 +74,7 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
 
     def 'Config round trip with values (all fields)'() {
         given:
-            LoadConfigurationStep before = new LoadConfigurationStep()
-            before.setTbcPath('config.tbc')
-            before.setTcfPath('config.tcf')
+            LoadConfigurationStep before = new LoadConfigurationStep('config.tbc', 'config.tcf')
             before.setStartConfig(false)
             before.setConstants([new Constant('constLabel', 'constValue')])
         when:
@@ -92,60 +88,58 @@ class LoadConfigurationStepIT extends IntegrationTestBase {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
         then:
-            st.assertRoundTrip(step, 'ttLoadConfig()')
+            st.assertRoundTrip(step, "ttLoadConfig tbcPath: '', tcfPath: ''")
     }
 
     def 'Snippet generator with empty TBC/TCF'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
-            step.setTbcPath('')
-            step.setTcfPath('')
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
         then:
-            st.assertRoundTrip(step, "ttLoadConfig()")
+            st.assertRoundTrip(step, "ttLoadConfig tbcPath: '', tcfPath: ''")
     }
 
     def 'Snippet generator with startConfig false only'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
             step.setStartConfig(false)
         then:
-            st.assertRoundTrip(step, 'ttLoadConfig startConfig: false')
+            st.assertRoundTrip(step, "ttLoadConfig startConfig: false, tbcPath: '', tcfPath: ''")
     }
 
     def 'Snippet generator with constants only'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
             step.setConstants([new Constant('constLabel', 'constValue')])
         then:
-            st.assertRoundTrip(step, "ttLoadConfig(constants: [[label: 'constLabel', value: 'constValue']])")
+            st.assertRoundTrip(step, "ttLoadConfig constants: [[label: 'constLabel', value: 'constValue']], tbcPath: '', tcfPath: ''")
     }
 
     def 'Snippet generator with options only'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
             StopToolOptions options = new StopToolOptions()
             options.setStopOnError(false)
             options.setStopUndefinedTools(false)
             step.setStopOptions(options)
         then:
-            st.assertRoundTrip(step, "ttLoadConfig(stopOptions: [stopOnError: false, stopUndefinedTools: false])")
+            st.assertRoundTrip(step, "ttLoadConfig stopOptions: [stopOnError: false, stopUndefinedTools: false], tbcPath: '', tcfPath: ''")
     }
 
     def 'Snippet generator with constants and startConfig false and paths'() {
         given:
             SnippetizerTester st = new SnippetizerTester(jenkins)
         when:
-            LoadConfigurationStep step = new LoadConfigurationStep()
+            LoadConfigurationStep step = new LoadConfigurationStep("", "")
             step.setTbcPath('config.tbc')
             step.setTcfPath('config.tcf')
             step.setStartConfig(false)

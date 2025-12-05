@@ -44,10 +44,16 @@ class LoadConfigurationStep extends Step {
     @Nonnull
     private StopToolOptions stopOptions
 
+    /**
+     * Instantiates a new [LoadConfigurationStep].
+     * @param tbcPath The tbc file to load
+     * @param tcfPath The tcf file to load
+     */
     @DataBoundConstructor
-    LoadConfigurationStep() {
-        this.tcfPath = ""
-        this.tbcPath = ""
+    LoadConfigurationStep(String tbcPath, String tcfPath) {
+        super()
+        this.tbcPath = tbcPath
+        this.tcfPath = tcfPath
         this.startConfig = true
         this.constants = []
         this.stopOptions = new StopToolOptions()

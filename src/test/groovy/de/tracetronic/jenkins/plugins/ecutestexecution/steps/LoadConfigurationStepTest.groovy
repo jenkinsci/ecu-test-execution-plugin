@@ -13,7 +13,7 @@ class LoadConfigurationStepTest extends Specification {
 
     def "default values are set by DataBoundConstructor"() {
         when:
-            def step = new LoadConfigurationStep()
+            def step = new LoadConfigurationStep("", "")
         then:
             step.getTbcPath() == ""
             step.getTcfPath() == ""
@@ -23,7 +23,7 @@ class LoadConfigurationStepTest extends Specification {
 
     def "setConstants filters out entries with blank labels"() {
         given:
-            def step = new LoadConfigurationStep()
+            def step = new LoadConfigurationStep("", "")
             def valid = new Constant("L1", "V1")
             def blank1 = new Constant("", "X")
             def blank2 = new Constant("   ", "Y")
@@ -38,7 +38,7 @@ class LoadConfigurationStepTest extends Specification {
 
     def "setConstants treats null input as empty list"() {
         when:
-            def step = new LoadConfigurationStep()
+            def step = new LoadConfigurationStep("", "")
             step.setConstants(null)
         then:
             step.getConstants().isEmpty()
@@ -46,7 +46,7 @@ class LoadConfigurationStepTest extends Specification {
 
     def "getConstants returns independent list instance"() {
         when:
-            def step = new LoadConfigurationStep()
+            def step = new LoadConfigurationStep("", "")
             step.setConstants([new Constant("A", "1")])
             def returned = step.getConstants()
             returned.add(new Constant("C", "3"))
