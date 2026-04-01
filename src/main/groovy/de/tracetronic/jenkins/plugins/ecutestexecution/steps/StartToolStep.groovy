@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2026 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,11 +15,7 @@ import de.tracetronic.jenkins.plugins.ecutestexecution.util.EnvVarUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.PathUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ProcessUtil
 import de.tracetronic.jenkins.plugins.ecutestexecution.util.ValidationUtil
-import hudson.AbortException
-import hudson.EnvVars
-import hudson.Extension
-import hudson.FilePath
-import hudson.Launcher
+import hudson.*
 import hudson.model.Result
 import hudson.model.Run
 import hudson.model.TaskListener
@@ -29,20 +25,19 @@ import hudson.util.FormValidation
 import hudson.util.ListBoxModel
 import jenkins.security.MasterToSlaveCallable
 import org.apache.commons.lang.StringUtils
-import org.jenkinsci.plugins.workflow.steps.Step
-import org.jenkinsci.plugins.workflow.steps.StepContext
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor
-import org.jenkinsci.plugins.workflow.steps.StepExecution
-import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution
+import org.apache.commons.lang3.SystemUtils
+import org.jenkinsci.plugins.workflow.steps.*
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 import org.kohsuke.stapler.QueryParameter
 
+import java.nio.file.Path
 import java.util.concurrent.TimeoutException
 
 class StartToolStep extends Step {
 
     private static final int DEFAULT_TIMEOUT = 60
+    static final int MAX_WINDOWS_FILE_PATH_LENGTH = 260
 
     private final String toolName
     private String workspaceDir
@@ -134,8 +129,10 @@ class StartToolStep extends Step {
                 FilePath workspace = context.get(FilePath.class)
                 TaskListener listener = context.get(TaskListener.class)
 
-                String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, workspace.getRemote())
-                String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, workspace.getRemote())
+                String agentWorkspace = workspace.getRemote()
+
+                String expWorkspaceDir = EnvVarUtil.expandVar(step.workspaceDir, envVars, agentWorkspace)
+                String expSettingsDir = EnvVarUtil.expandVar(step.settingsDir, envVars, agentWorkspace)
 
                 expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
                 expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
@@ -145,7 +142,7 @@ class StartToolStep extends Step {
                 StartToolResult result = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
                                 expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
-                                step.stopUndefinedTools, envVars, listener))
+                                step.stopUndefinedTools, agentWorkspace, envVars, listener))
                 listener.logger.println(result.toString())
                 listener.logger.flush()
                 return result
@@ -153,7 +150,9 @@ class StartToolStep extends Step {
             } catch (Exception e) {
                 context.get(Run.class).setResult(Result.FAILURE)
                 // there is no friendly option to stop the step execution without an exception
-                throw new AbortException(e.getMessage())
+                Exception exception = new AbortException(e.getMessage())
+                exception.addSuppressed(e)
+                throw exception
             }
         }
 
@@ -163,7 +162,7 @@ class StartToolStep extends Step {
             if (!workspacePath.exists()) {
                 throw new AbortException(
                         "ecu.test workspace directory at ${workspacePath.getRemote()} does not exist! " +
-                        "Please ensure that the path is correctly set and it refers to the desired directory.")
+                                "Please ensure that the path is correctly set and it refers to the desired directory.")
             }
 
             FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
@@ -180,23 +179,26 @@ class StartToolStep extends Step {
         private static final long serialVersionUID = 1L
 
         private final ETInstallation installation
-        private final String workspaceDir
+        private final String ecuTestWorkspaceDir
         private final String settingsDir
         private final int timeout
         private final boolean keepInstance
         private final boolean stopUndefinedTools
+        private final String agentWorkspace
         private final EnvVars envVars
         private final TaskListener listener
 
-        ExecutionCallable(ETInstallation installation, String workspaceDir, String settingsDir, int timeout,
-                          boolean keepInstance, boolean stopUndefinedTools, EnvVars envVars, TaskListener listener) {
+        ExecutionCallable(ETInstallation installation, String ecuTestWorkspaceDir, String settingsDir, int timeout,
+                          boolean keepInstance, boolean stopUndefinedTools, String agentWorkspace, EnvVars envVars,
+                          TaskListener listener) {
             super()
             this.installation = installation
-            this.workspaceDir = workspaceDir
+            this.ecuTestWorkspaceDir = ecuTestWorkspaceDir
             this.settingsDir = settingsDir
             this.timeout = timeout
             this.keepInstance = keepInstance
             this.stopUndefinedTools = stopUndefinedTools
+            this.agentWorkspace = agentWorkspace
             this.envVars = envVars
             this.listener = listener
         }
@@ -209,9 +211,9 @@ class StartToolStep extends Step {
                     listener.logger.println("Re-using running instance ${toolName}...")
                     if (!checkToolConnection()) {
                         throw new AbortException(
-                            "Timeout of ${this.timeout} seconds exceeded for re-using tracetronic tools! " +
-                                    "Please ensure that tracetronic tools are not already stopped or " +
-                                    "blocked by another process.")
+                                "Timeout of ${this.timeout} seconds exceeded for re-using tracetronic tools! " +
+                                        "Please ensure that tracetronic tools are not already stopped or " +
+                                        "blocked by another process.")
                     }
                 } else {
                     if (stopUndefinedTools) {
@@ -229,7 +231,7 @@ class StartToolStep extends Step {
                     startTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
                 }
-                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), workspaceDir, settingsDir)
+                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), ecuTestWorkspaceDir, settingsDir)
 
             } catch (Exception e) {
                 throw new AbortException(e.getMessage())
@@ -244,19 +246,31 @@ class StartToolStep extends Step {
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.exeFileOnNode.absolutePath)
-            args.add('--workspaceDir', workspaceDir)
+            args.add('--workspaceDir', ecuTestWorkspaceDir)
             args.add('-s', settingsDir)
             args.add('--startupAutomated=True')
             listener.logger.println(args.toString())
 
-            Process process = new ProcessBuilder().command(args.toCommandArray()).start()
+            ensureDirectoryExists(agentWorkspace)
 
-            boolean  isConnected = checkToolConnection()
+            File stdoutLogFile = createLogFile(this.agentWorkspace, toolName, '_tool_out.log')
+            File stderrLogFile = createLogFile(this.agentWorkspace, toolName, '_tool_err.log')
+
+            listener.logger.println("ecu.test stdout: ${stdoutLogFile.absolutePath}")
+            listener.logger.println("ecu.test stderr: ${stderrLogFile.absolutePath}")
+
+            Process process = new ProcessBuilder()
+                    .command(args.toCommandArray())
+                    .redirectError(stderrLogFile)
+                    .redirectOutput(stdoutLogFile)
+                    .start()
+
+            boolean isConnected = checkToolConnection()
             int exitCode = 0
             if (!isConnected) {
-                try  {
+                try {
                     exitCode = process.exitValue()
-                }  catch (IllegalThreadStateException ignore){
+                } catch (IllegalThreadStateException ignore) {
                     process.destroy()
                     throw new AbortException(
                             "Timeout of ${this.timeout} seconds exceeded for connecting to ${toolName}! " +
@@ -277,6 +291,25 @@ class StartToolStep extends Step {
         }
 
         /**
+         * Ensures that the target directory exists and can be used for log output.
+         */
+        private void ensureDirectoryExists(String directoryPath) {
+            File directory = new File(directoryPath)
+            if (directory.exists()) {
+                if (!directory.isDirectory()) {
+                    throw new AbortException("Path ${directory.absolutePath} exists but is not a directory.")
+                }
+                return
+            }
+
+            listener.logger.println("Agent workspace directory does not exist. Creating: ${directory.absolutePath}")
+            if (!directory.mkdirs() && !directory.exists()) {
+                throw new AbortException("Could not create agent workspace directory at ${directory.absolutePath}.")
+            }
+            listener.logger.println("Created agent workspace directory: ${directory.absolutePath}")
+        }
+
+        /**
          * Checks whether the REST API of the tool is available.
          * @return true if REST API is available, false if not
          */
@@ -288,6 +321,81 @@ class StartToolStep extends Step {
                 return false
             }
         }
+    }
+
+    /**
+     * Creates a File with a sanitized filename based on the toolName.
+     * @param directory The directory to create the file in
+     * @param rawToolName The toolName provided by the user
+     * @param suffix The suffix to add to the sanitized toolName
+     * @return {@link File} with sanitized filename
+     */
+    static File createLogFile(String directory, String rawToolName, String suffix) {
+        String safeToolName = sanitizeForFilename(rawToolName, 'tool')
+
+        File file = Path.of(directory).resolve("${safeToolName}${suffix}").toFile()
+
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String absolutePath = file.absolutePath
+            if (absolutePath.length() > MAX_WINDOWS_FILE_PATH_LENGTH) {
+                int charactersToShorten = absolutePath.length() - MAX_WINDOWS_FILE_PATH_LENGTH
+                String truncatedToolName = safeToolName.substring(0, Math.max(0, safeToolName.length() - charactersToShorten))
+                file = Path.of(directory).resolve("${truncatedToolName}${suffix}").toFile()
+            }
+        }
+
+        return file
+    }
+
+    /**
+     * Sanitizes a raw name to be used as a filename.
+     * @param rawName The raw name
+     * @return The name sanitized to be used as filename
+     */
+    static String sanitizeForFilename(String rawName, String fallback) {
+        String name = StringUtils.trimToEmpty(rawName)
+        // Replace characters that are invalid in Windows file names and can be interpreted as path syntax.
+        name = name.replaceAll($/[<>:"/\\|?*]/$, '_')
+        // Replace ASCII control characters (including DEL) to avoid invalid or non-printable file names.
+        name = name.replaceAll(/[\x00-\x1F\x7F]/, '_')
+        // Normalize whitespace to underscores to keep names readable and shell-friendly.
+        name = name.replaceAll(/\s+/, '_')
+        // Neutralize repeated dots so traversal-like inputs cannot survive as meaningful segments.
+        name = name.replaceAll(/\.\.+/, '_')
+        // Trim trailing dot/space because Windows does not allow them at the end of a file name.
+        name = name.replaceAll(/[. ]+$/, '')
+        // Collapse duplicate underscores introduced by previous replacements.
+        name = name.replaceAll(/_+/, '_')
+        name = StringUtils.trimToEmpty(name)
+
+        // If no letter (Unicode characters are allowed) or digit is left, use fallback
+        if (!containsLetterOrDigit(name)) {
+            name = fallback
+        }
+
+        // Sanitize unallowed windows filenames
+        if (name ==~ /(?i)^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/) {
+            name = "_${name}"
+        }
+
+        return name
+    }
+
+    private static boolean containsLetterOrDigit(String value) {
+        if (StringUtils.isEmpty(value)) {
+            return false
+        }
+
+        int index = 0
+        while (index < value.length()) {
+            int codePoint = value.codePointAt(index)
+            if (Character.isLetterOrDigit(codePoint)) {
+                return true
+            }
+            index += Character.charCount(codePoint)
+        }
+
+        return false
     }
 
     @Extension
