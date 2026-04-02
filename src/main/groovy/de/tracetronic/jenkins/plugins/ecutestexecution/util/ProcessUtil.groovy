@@ -35,11 +35,12 @@ final class ProcessUtil implements Serializable {
         } else {
             args.add('sh')
             args.add('-c')
-            args.add("kill")
-            args.add("\$(ps -eo pid,cmd | awk '/[${taskName}]/ {print \$1}')")
+//            args.add("kill")
+//            args.add("\$(ps -eo pid,cmd | awk '/[${taskName}]/ {print \$1}')")
+            args.add("kill \$(ps -eo pid,cmd | awk '/${taskName}/ {print \$1}')")
         }
 
-        Process process = new ProcessBuilder().command(args.toCommandArray()).start()
+        Process process = new ProcessBuilder().command(args.toCommandArray()).inheritIO().start()
         if (timeout <= 0) {
             return process.waitFor() == 0
         } else {

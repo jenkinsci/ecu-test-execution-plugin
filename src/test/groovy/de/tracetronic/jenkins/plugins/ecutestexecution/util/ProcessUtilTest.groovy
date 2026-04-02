@@ -7,6 +7,7 @@ package de.tracetronic.jenkins.plugins.ecutestexecution.util
 
 import de.tracetronic.jenkins.plugins.ecutestexecution.ETInstallation
 import hudson.Functions
+import org.apache.commons.collections.CollectionUtils
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ class ProcessUtilTest extends Specification {
             GroovyMock(ProcessBuilder, global: true)
             new ProcessBuilder() >> mockBuilder
             mockBuilder.command(_) >> mockBuilder
+            mockBuilder.inheritIO() >> mockBuilder
             mockBuilder.start() >> mockProcess
         and:
             def countWaitFor = 1 - countWaitForTimeout
@@ -57,18 +59,19 @@ class ProcessUtilTest extends Specification {
             def mockBuilder = GroovyMock(ProcessBuilder)
             GroovyMock(ProcessBuilder, global: true)
             new ProcessBuilder() >> mockBuilder
-            def withArgs
+            String[] withArgs = null
             mockBuilder.command(_) >> { args ->
                 withArgs = args[0]
                 mockBuilder
             }
+            mockBuilder.inheritIO() >> mockBuilder
             mockBuilder.start() >> mockProcess
             mockProcess.waitFor() >> 0
         when:
             def result = ProcessUtil.killProcess("doesReallyNotExistFoo", 0)
         then:
             result
-            withArgs.contains(processName)
+            Arrays.stream(withArgs).anyMatch {arg -> arg.contains(processName)}
         where:
             isWindows << [false, true]
             processName << ['kill', 'taskkill.exe']
