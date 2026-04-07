@@ -22,7 +22,7 @@ Please consider other open-source automation solutions by [tracetronic](https://
 especially [Jenkins Library](https://github.com/tracetronic/jenkins-library)
 and [CX Templates](https://github.com/tracetronic/cx-templates).
 
-## Table of Contents
+## Table of Content
 
 - [Features](#features)
 - [Configuration](#configuration)
