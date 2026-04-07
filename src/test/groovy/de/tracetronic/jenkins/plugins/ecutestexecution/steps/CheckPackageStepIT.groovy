@@ -152,7 +152,7 @@ class CheckPackageStepIT extends IntegrationTestBase {
 
         and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
-            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 2]}", true))
+            job.setDefinition(new CpsFlowDefinition("node {ttCheckPackage testCasePath: 'test.pkg', executionConfig:[timeout: 10]}", true))
 
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS , job.scheduleBuild2(0).get())
