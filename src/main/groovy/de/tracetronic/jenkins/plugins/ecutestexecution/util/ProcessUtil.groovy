@@ -35,8 +35,6 @@ final class ProcessUtil implements Serializable {
         } else {
             args.add('sh')
             args.add('-c')
-//            args.add("kill")
-//            args.add("\$(ps -eo pid,cmd | awk '/[${taskName}]/ {print \$1}')")
             args.add("kill \$(ps -eo pid,cmd | awk '/${taskName}/ {print \$1}')")
         }
 
@@ -49,8 +47,8 @@ final class ProcessUtil implements Serializable {
     }
 
     /**
-     * Kills all processes in the given list, and all their descendant processes, by calling {@link #killProcess
-     * killProcess} method multiple times.
+     * Kills all processes in the given list, and all their descendant processes, by calling {@link #killProcess}
+     * method multiple times.
      * @param taskName the task name of the process
      * @param timeout the maximum time to wait for process termination, 0 disabled timeout
      * @return {@code true} if all processes have exited in timeout, {@code false} otherwise
