@@ -336,7 +336,7 @@ class StartToolStep extends Step {
      * @return {@link File} with sanitized filename
      */
     static File createLogFile(String directory, String rawToolName, String suffix) {
-        String safeToolName = sanitizeForFilename(rawToolName, 'tool')
+        String safeToolName = sanitizeForFilename(rawToolName)
 
         File file = Path.of(directory).resolve("${safeToolName}${suffix}").toFile()
 
@@ -353,11 +353,11 @@ class StartToolStep extends Step {
     }
 
     /**
-     * Sanitizes a raw name to be used as a filename.
-     * @param rawName The raw name
+     * Sanitizes a raw tool name to be used as a filename.
+     * @param rawName The raw tool name
      * @return The name sanitized to be used as filename
      */
-    static String sanitizeForFilename(String rawName, String fallback) {
+    static String sanitizeForFilename(String rawName) {
         String name = StringUtils.trimToEmpty(rawName)
         // Replace characters that are invalid in Windows file names and can be interpreted as path syntax.
         name = name.replaceAll($/[<>:"/\\|?*]/$, '_')
@@ -375,7 +375,7 @@ class StartToolStep extends Step {
 
         // If no letter (Unicode characters are allowed) or digit is left, use fallback
         if (!containsLetterOrDigit(name)) {
-            name = fallback
+            return 'tool'
         }
 
         // Sanitize unallowed windows filenames
