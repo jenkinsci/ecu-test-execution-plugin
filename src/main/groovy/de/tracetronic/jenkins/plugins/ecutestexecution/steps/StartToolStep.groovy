@@ -139,10 +139,13 @@ class StartToolStep extends Step {
 
                 checkWorkspace(expWorkspaceDir, expSettingsDir)
 
+                ExecutionDirectories directories = new ExecutionDirectories(expWorkspaceDir, expSettingsDir,
+                        agentWorkspace)
+
                 StartToolResult result = context.get(Launcher.class).getChannel().call(
                         new ExecutionCallable(ETInstallation.getToolInstallationForMaster(context, step.toolName),
-                                expWorkspaceDir, expSettingsDir, step.timeout, step.keepInstance,
-                                step.stopUndefinedTools, agentWorkspace, envVars, listener))
+                                directories, step.timeout, step.keepInstance, step.stopUndefinedTools, envVars,
+                                listener))
                 listener.logger.println(result.toString())
                 listener.logger.flush()
                 return result
@@ -174,31 +177,42 @@ class StartToolStep extends Step {
         }
     }
 
+    private static final class ExecutionDirectories implements Serializable {
+
+        private static final long serialVersionUID = 1L
+
+        final String ecuTestWorkspaceDir
+        final String settingsDir
+        final String agentWorkspace
+
+        ExecutionDirectories(String ecuTestWorkspaceDir, String settingsDir, String agentWorkspace) {
+            this.ecuTestWorkspaceDir = ecuTestWorkspaceDir
+            this.settingsDir = settingsDir
+            this.agentWorkspace = agentWorkspace
+        }
+    }
+
     private static final class ExecutionCallable extends MasterToSlaveCallable<StartToolResult, TimeoutException> {
 
         private static final long serialVersionUID = 1L
 
         private final ETInstallation installation
-        private final String ecuTestWorkspaceDir
-        private final String settingsDir
+        private final ExecutionDirectories executionDirectories
         private final int timeout
         private final boolean keepInstance
         private final boolean stopUndefinedTools
-        private final String agentWorkspace
         private final EnvVars envVars
         private final TaskListener listener
 
-        ExecutionCallable(ETInstallation installation, String ecuTestWorkspaceDir, String settingsDir, int timeout,
-                          boolean keepInstance, boolean stopUndefinedTools, String agentWorkspace, EnvVars envVars,
+        ExecutionCallable(ETInstallation installation, ExecutionDirectories executionDirectories, int timeout,
+                          boolean keepInstance, boolean stopUndefinedTools, EnvVars envVars,
                           TaskListener listener) {
             super()
             this.installation = installation
-            this.ecuTestWorkspaceDir = ecuTestWorkspaceDir
-            this.settingsDir = settingsDir
+            this.executionDirectories = executionDirectories
             this.timeout = timeout
             this.keepInstance = keepInstance
             this.stopUndefinedTools = stopUndefinedTools
-            this.agentWorkspace = agentWorkspace
             this.envVars = envVars
             this.listener = listener
         }
@@ -231,7 +245,8 @@ class StartToolStep extends Step {
                     startTool(toolName)
                     listener.logger.println("${toolName} started successfully.")
                 }
-                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(), ecuTestWorkspaceDir, settingsDir)
+                return new StartToolResult(installation.getName(), installation.exeFileOnNode.absolutePath.toString(),
+                        executionDirectories.ecuTestWorkspaceDir, executionDirectories.settingsDir)
 
             } catch (Exception e) {
                 throw new AbortException(e.getMessage())
@@ -246,15 +261,15 @@ class StartToolStep extends Step {
         private void startTool(String toolName) throws IllegalStateException {
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.exeFileOnNode.absolutePath)
-            args.add('--workspaceDir', ecuTestWorkspaceDir)
-            args.add('-s', settingsDir)
+            args.add('--workspaceDir', executionDirectories.ecuTestWorkspaceDir)
+            args.add('-s', executionDirectories.settingsDir)
             args.add('--startupAutomated=True')
             listener.logger.println(args.toString())
 
-            ensureDirectoryExists(agentWorkspace)
+            ensureDirectoryExists(executionDirectories.agentWorkspace)
 
-            File stdoutLogFile = createLogFile(this.agentWorkspace, toolName, '_tool_out.log')
-            File stderrLogFile = createLogFile(this.agentWorkspace, toolName, '_tool_err.log')
+            File stdoutLogFile = createLogFile(this.executionDirectories.agentWorkspace, toolName, '_tool_out.log')
+            File stderrLogFile = createLogFile(this.executionDirectories.agentWorkspace, toolName, '_tool_err.log')
 
             listener.logger.println("ecu.test stdout: ${stdoutLogFile.absolutePath}")
             listener.logger.println("ecu.test stderr: ${stderrLogFile.absolutePath}")
