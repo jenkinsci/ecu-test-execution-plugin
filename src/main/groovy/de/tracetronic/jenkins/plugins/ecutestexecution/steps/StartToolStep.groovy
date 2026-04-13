@@ -137,8 +137,6 @@ class StartToolStep extends Step {
                 expWorkspaceDir = PathUtil.makeAbsoluteInPipelineHome(expWorkspaceDir, context)
                 expSettingsDir = PathUtil.makeAbsoluteInPipelineHome(expSettingsDir, context)
 
-                checkWorkspace(expWorkspaceDir, expSettingsDir)
-
                 ExecutionDirectories directories = new ExecutionDirectories(expWorkspaceDir, expSettingsDir,
                         agentWorkspace)
 
@@ -156,23 +154,6 @@ class StartToolStep extends Step {
                 Exception exception = new AbortException(e.getMessage())
                 exception.addSuppressed(e)
                 throw exception
-            }
-        }
-
-        private void checkWorkspace(String workspaceDir, String settingsDir)
-                throws IOException, InterruptedException, IllegalArgumentException {
-            FilePath workspacePath = new FilePath(context.get(Launcher.class).getChannel(), workspaceDir)
-            if (!workspacePath.exists()) {
-                throw new AbortException(
-                        "ecu.test workspace directory at ${workspacePath.getRemote()} does not exist! " +
-                                "Please ensure that the path is correctly set and it refers to the desired directory.")
-            }
-
-            FilePath settingsPath = new FilePath(context.get(Launcher.class).getChannel(), settingsDir)
-            if (!settingsPath.exists()) {
-                settingsPath.mkdirs()
-                def listener = context.get(TaskListener.class)
-                listener.logger.println("ecu.test settings directory created at ${settingsPath.getRemote()}.")
             }
         }
     }
@@ -259,14 +240,14 @@ class StartToolStep extends Step {
          * @throws AbortException
          */
         private void startTool(String toolName) throws IllegalStateException {
+            checkDirectories()
+
             ArgumentListBuilder args = new ArgumentListBuilder()
             args.add(installation.exeFileOnNode.absolutePath)
             args.add('--workspaceDir', executionDirectories.ecuTestWorkspaceDir)
             args.add('-s', executionDirectories.settingsDir)
             args.add('--startupAutomated=True')
             listener.logger.println(args.toString())
-
-            ensureDirectoryExists(executionDirectories.agentWorkspace)
 
             File stdoutLogFile = createLogFile(this.executionDirectories.agentWorkspace, toolName, '_tool_out.log')
             File stderrLogFile = createLogFile(this.executionDirectories.agentWorkspace, toolName, '_tool_err.log')
@@ -305,23 +286,32 @@ class StartToolStep extends Step {
                             "within the timeout of ${timeout} seconds.")
         }
 
-        /**
-         * Ensures that the target directory exists and can be used for log output.
-         */
-        private void ensureDirectoryExists(String directoryPath) {
-            File directory = new File(directoryPath)
-            if (directory.exists()) {
-                if (!directory.isDirectory()) {
-                    throw new AbortException("Path ${directory.absolutePath} exists but is not a directory.")
+        private void checkDirectories()
+                throws IOException, InterruptedException, IllegalArgumentException {
+            File directory = new File(executionDirectories.agentWorkspace)
+            if (!directory.exists()) {
+                if (!directory.mkdirs() && !directory.exists()) {
+                    throw new AbortException("Could not create agent workspace directory at ${directory.absolutePath}.")
                 }
-                return
+                listener.logger.println("Created agent workspace directory: ${directory.absolutePath}")
+            } else if (!directory.isDirectory()) {
+                throw new AbortException("Path ${directory.absolutePath} exists but is not a directory.")
             }
 
-            listener.logger.println("Agent workspace directory does not exist. Creating: ${directory.absolutePath}")
-            if (!directory.mkdirs() && !directory.exists()) {
-                throw new AbortException("Could not create agent workspace directory at ${directory.absolutePath}.")
+            File workspacePath = new File(executionDirectories.ecuTestWorkspaceDir)
+            if (!workspacePath.exists()) {
+                throw new AbortException(
+                        "ecu.test workspace directory at ${workspacePath.absolutePath} does not exist! " +
+                                "Please ensure that the path is correctly set and it refers to the desired directory.")
             }
-            listener.logger.println("Created agent workspace directory: ${directory.absolutePath}")
+
+            File settingsPath = new File(executionDirectories.settingsDir)
+            if (!settingsPath.exists()) {
+                if (!settingsPath.mkdirs() && !settingsPath.exists()) {
+                    throw new AbortException("Could not create ecu.test settings directory at ${settingsPath.absolutePath}.")
+                }
+                listener.logger.println("ecu.test settings directory created at ${settingsPath.absolutePath}.")
+            }
         }
 
         /**

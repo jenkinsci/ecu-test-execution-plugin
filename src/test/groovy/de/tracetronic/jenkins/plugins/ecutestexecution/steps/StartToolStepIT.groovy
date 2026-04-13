@@ -113,9 +113,10 @@ class StartToolStepIT extends IntegrationTestBase {
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test settings directory created at ${tempDirString}/foo", run)
+            File fooPath = tempDir.toPath().resolve("foo").toFile()
+            jenkins.assertLogContains("ecu.test settings directory created at ${fooPath.absolutePath}", run)
             jenkins.assertLogContains('Starting ecu.test...', run)
-            Files.exists(Paths.get("${tempDirString}/foo"))
+            assert fooPath.exists(): "Expected settings directory at ${fooPath.absolutePath} to be created."
     }
 
     def 'Run pipeline'() {
@@ -180,7 +181,8 @@ class StartToolStepIT extends IntegrationTestBase {
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test workspace directory at ${tempDirString}/foo does not exist! " +
+            File fooPath = tempDir.toPath().resolve("foo").toFile()
+            jenkins.assertLogContains("ecu.test workspace directory at ${fooPath.absolutePath} does not exist! " +
                     "Please ensure that the path is correctly set and it refers to the desired directory.", run)
     }
 
