@@ -222,6 +222,7 @@ tasks.withType(Test).configureEach {
         showExceptions true
         showCauses true
         showStackTraces true
+        showStandardStreams = true
     }
 
     // Print a short progress line for each test class/suite
