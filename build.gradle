@@ -215,6 +215,25 @@ test {
     dependsOn 'integrationTest'
 }
 
+tasks.withType(Test).configureEach {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+    }
+
+    // Print a short progress line for each test class/suite
+    afterSuite { desc, result ->
+        if (!desc.parent) {
+            logger.lifecycle("Test summary [${name}]: ${result.resultType} " +
+                    "(total: ${result.testCount}, passed: ${result.successfulTestCount}, " +
+                    "failed: ${result.failedTestCount}, skipped: ${result.skippedTestCount})")
+        }
+    }
+}
+
 tasks.register('unitTest', Test) {
     filter {
         excludeTestsMatching '*ContainerTest'
