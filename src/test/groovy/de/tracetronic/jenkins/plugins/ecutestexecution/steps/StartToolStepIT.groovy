@@ -308,6 +308,52 @@ class StartToolStepIT extends IntegrationTestBase {
                     "Please ensure the tool is correctly configured and consider restarting it.", run)
     }
 
+    def 'Run pipeline: stdout and stderr are written to log files'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("""
+                node {
+                    ttStartTool toolName: 'ecu.test', workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}'
+            
+                    def outFile = 'ecu.test_tool_out.log'
+                    def errFile = 'ecu.test_tool_err.log'
+            
+                    if (fileExists(outFile)) {
+                        echo "Content of \${outFile}: \${readFile(file: outFile)}"
+                    } else {
+                        echo "Missing file: \${outFile}"
+                    }
+            
+                    if (fileExists(errFile)) {
+                        echo "Content of \${errFile}: \${readFile(file: errFile)}"
+                    } else {
+                        echo "Missing file: \${errFile}"
+                    }
+                }
+            """, true))
+
+        and:
+            ProcessBuilder dummyProcessBuilder = Functions.isWindows() ? new ProcessBuilder("cmd", "/c", "echo \"Hello World\"") :
+                new ProcessBuilder("sh", "-c", "echo \"Hello World\"")
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            new ProcessBuilder(_) >> processBuilderMock
+            processBuilderMock.command(_) >> dummyProcessBuilder
+        and:
+            ProcessUtil.killTTProcesses(_) >> true
+        and:
+            RestApiClient restApiClientMock = GroovyMock(RestApiClient)
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> restApiClientMock
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
+            jenkins.assertLogNotContains("Missing file", run)
+            jenkins.assertLogContains("Content of ecu.test_tool_out.log: \"Hello World\"", run)
+            jenkins.assertLogContains("Content of ecu.test_tool_err.log:", run)
+    }
 
     def 'Run pipeline: return and print result'() {
         given:
