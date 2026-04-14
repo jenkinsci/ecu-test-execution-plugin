@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2026 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,9 +20,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
-import java.nio.file.Files
-import java.nio.file.Paths
-
 class StartToolStepIT extends IntegrationTestBase {
     ETInstallation.DescriptorImpl etDescriptor
 
@@ -33,6 +30,8 @@ class StartToolStepIT extends IntegrationTestBase {
         String executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
         etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES),
                 new ETInstallation('ecu.test', executablePathV2, JenkinsRule.NO_PROPERTIES))
+
+        GroovyMock(ProcessUtil, global: true)
     }
 
     def 'Default config round trip'() {
@@ -108,7 +107,6 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${tempDirString}', settingsDir: '${tempDirString}/foo' }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -128,7 +126,6 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: '${toolName}', " +
                     "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -178,6 +175,8 @@ class StartToolStepIT extends IntegrationTestBase {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${tempDirString}/foo', settingsDir: '${tempDirString}' }", true))
+        and:
+            ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
@@ -221,7 +220,6 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 10 }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> false
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -247,7 +245,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> 99
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -275,7 +272,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> 8
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -303,7 +299,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> { throw new IllegalThreadStateException("")}
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -330,7 +325,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.isAlive() >> true
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         and:
             RestApiClient restApiClientMock = GroovyMock(RestApiClient)
