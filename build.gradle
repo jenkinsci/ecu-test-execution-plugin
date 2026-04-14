@@ -217,7 +217,7 @@ test {
 
 tasks.withType(Test).configureEach {
     testLogging {
-        events "passed", "skipped", "failed"
+        events "started", "passed", "skipped", "failed"
         exceptionFormat "full"
         showExceptions true
         showCauses true
