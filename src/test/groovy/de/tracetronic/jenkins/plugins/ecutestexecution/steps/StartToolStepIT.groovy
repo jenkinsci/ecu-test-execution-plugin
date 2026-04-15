@@ -317,21 +317,7 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("""
                 node {
                     ttStartTool toolName: 'ecu.test', workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}'
-            
-                    def outFile = 'ecu.test_tool_out.log'
-                    def errFile = 'ecu.test_tool_err.log'
-            
-                    if (fileExists(outFile)) {
-                        echo "Content of \${outFile}: \${readFile(outFile)}"
-                    } else {
-                        echo "Missing file: \${outFile}"
-                    }
-            
-                    if (fileExists(errFile)) {
-                        echo "Content of \${errFile}: \${readFile(errFile)}"
-                    } else {
-                        echo "Missing file: \${errFile}"
-                    }
+                    archiveArtifacts artifacts: "*.log"
                 }
             """, true))
 
@@ -350,9 +336,17 @@ class StartToolStepIT extends IntegrationTestBase {
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogNotContains("Missing file", run)
-            jenkins.assertLogContains("Content of ecu.test_tool_out.log: Hello stdout", run)
-            jenkins.assertLogContains("Content of ecu.test_tool_err.log: Hello stderr", run)
+            File outArchived = new File(run.getRootDir(), "archive/ecu.test_tool_out.log")
+            File errArchived = new File(run.getRootDir(), "archive/ecu.test_tool_err.log")
+
+            assert outArchived.exists() : "Expected archived stdout log at ${outArchived.absolutePath} to exist."
+            assert errArchived.exists() : "Expected archived stderr log at ${errArchived.absolutePath} to exist."
+
+            String outText = outArchived.getText("UTF-8").replace("\r\n", "\n")
+            String errText = errArchived.getText("UTF-8").replace("\r\n", "\n")
+
+            assert outText.contains("Hello stdout") : "Expected stdout log to contain 'Hello stdout', but was: '${outText}'"
+            assert errText.contains("Hello stderr") : "Expected stderr log to contain 'Hello stderr', but was: '${errText}'"
     }
 
     def 'Run pipeline: return and print result'() {
