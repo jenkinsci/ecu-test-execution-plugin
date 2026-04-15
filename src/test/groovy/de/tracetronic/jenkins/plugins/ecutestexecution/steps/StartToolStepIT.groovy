@@ -322,13 +322,13 @@ class StartToolStepIT extends IntegrationTestBase {
                     def errFile = 'ecu.test_tool_err.log'
             
                     if (fileExists(outFile)) {
-                        echo "\${outFile} exists.}"
+                        echo "Content of \${outFile}: \${readFile(outFile)}"
                     } else {
                         echo "Missing file: \${outFile}"
                     }
             
                     if (fileExists(errFile)) {
-                        echo "\${errFile} exists.}"
+                        echo "Content of \${errFile}: \${readFile(errFile)}"
                     } else {
                         echo "Missing file: \${errFile}"
                     }
@@ -336,8 +336,8 @@ class StartToolStepIT extends IntegrationTestBase {
             """, true))
 
         and:
-            ProcessBuilder dummyProcessBuilder = Functions.isWindows() ? new ProcessBuilder("cmd", "/c", "echo \"Hello World\"") :
-                new ProcessBuilder("sh", "-c", "echo \"Hello World\"")
+            ProcessBuilder dummyProcessBuilder = Functions.isWindows() ? new ProcessBuilder("cmd", "/c", "echo Hello stdout && echo Hello stderr 1>&2") :
+                new ProcessBuilder("sh", "-c", "echo Hello stdout; echo Hello stderr >&2")
             ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
             new ProcessBuilder(_) >> processBuilderMock
             processBuilderMock.command(_) >> dummyProcessBuilder
@@ -351,8 +351,8 @@ class StartToolStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
         then:
             jenkins.assertLogNotContains("Missing file", run)
-            jenkins.assertLogContains("ecu.test_tool_out.log exists.", run)
-            jenkins.assertLogContains("ecu.test_tool_err.log exists.", run)
+            jenkins.assertLogContains("Content of ecu.test_tool_out.log: Hello stdout", run)
+            jenkins.assertLogContains("Content of ecu.test_tool_err.log: Hello stderr", run)
     }
 
     def 'Run pipeline: return and print result'() {
