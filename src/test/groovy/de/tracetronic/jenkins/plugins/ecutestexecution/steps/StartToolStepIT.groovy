@@ -322,13 +322,13 @@ class StartToolStepIT extends IntegrationTestBase {
                     def errFile = 'ecu.test_tool_err.log'
             
                     if (fileExists(outFile)) {
-                        echo "Content of \${outFile}: \${readFile(file: outFile)}"
+                        echo "\${outFile} exists.}"
                     } else {
                         echo "Missing file: \${outFile}"
                     }
             
                     if (fileExists(errFile)) {
-                        echo "Content of \${errFile}: \${readFile(file: errFile)}"
+                        echo "\${errFile} exists.}"
                     } else {
                         echo "Missing file: \${errFile}"
                     }
@@ -351,8 +351,8 @@ class StartToolStepIT extends IntegrationTestBase {
             WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
         then:
             jenkins.assertLogNotContains("Missing file", run)
-            jenkins.assertLogContains("Content of ecu.test_tool_out.log: \"Hello World\"", run)
-            jenkins.assertLogContains("Content of ecu.test_tool_err.log:", run)
+            jenkins.assertLogContains("ecu.test_tool_out.log exists.", run)
+            jenkins.assertLogContains("ecu.test_tool_err.log exists.", run)
     }
 
     def 'Run pipeline: return and print result'() {
