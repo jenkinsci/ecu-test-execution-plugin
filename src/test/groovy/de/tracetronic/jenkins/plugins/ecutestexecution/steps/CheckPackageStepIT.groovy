@@ -149,6 +149,10 @@ class CheckPackageStepIT extends IntegrationTestBase {
                 getCheckExecutionStatus(_) >>>  [null, finishedStatus ]
                 getCheckResult(_) >> checkReport
             }
+        and:
+            GroovyMock(ProcessUtil, global: true)
+            ProcessUtil.killProcesses(_, _) >> true
+            ProcessUtil.killTTProcesses(_) >> true
 
         and:
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')

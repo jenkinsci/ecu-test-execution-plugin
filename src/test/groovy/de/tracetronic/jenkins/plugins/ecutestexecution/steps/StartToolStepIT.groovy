@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 tracetronic GmbH
+ * Copyright (c) 2021-2026 tracetronic GmbH
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,9 +20,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester
 import org.jvnet.hudson.test.JenkinsRule
 
-import java.nio.file.Files
-import java.nio.file.Paths
-
 class StartToolStepIT extends IntegrationTestBase {
     ETInstallation.DescriptorImpl etDescriptor
 
@@ -33,6 +30,8 @@ class StartToolStepIT extends IntegrationTestBase {
         String executablePathV2 = Functions.isWindows() ? 'C:\\ecutest\\ecu.test.exe' : 'bin/ecu.test'
         etDescriptor.setInstallations(new ETInstallation('ECU-TEST', executablePath, JenkinsRule.NO_PROPERTIES),
                 new ETInstallation('ecu.test', executablePathV2, JenkinsRule.NO_PROPERTIES))
+
+        GroovyMock(ProcessUtil, global: true)
     }
 
     def 'Default config round trip'() {
@@ -108,14 +107,14 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${tempDirString}', settingsDir: '${tempDirString}/foo' }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test settings directory created at ${tempDirString}/foo", run)
+            File fooPath = tempDir.toPath().resolve("foo").toFile()
+            jenkins.assertLogContains("ecu.test settings directory created at ${fooPath.absolutePath}", run)
             jenkins.assertLogContains('Starting ecu.test...', run)
-            Files.exists(Paths.get("${tempDirString}/foo"))
+            assert fooPath.exists(): "Expected settings directory at ${fooPath.absolutePath} to be created."
     }
 
     def 'Run pipeline'() {
@@ -127,7 +126,6 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: '${toolName}', " +
                     "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}' }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -177,10 +175,13 @@ class StartToolStepIT extends IntegrationTestBase {
             WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${tempDirString}/foo', settingsDir: '${tempDirString}' }", true))
+        and:
+            ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
         then:
-            jenkins.assertLogContains("ecu.test workspace directory at ${tempDirString}/foo does not exist! " +
+            File fooPath = tempDir.toPath().resolve("foo").toFile()
+            jenkins.assertLogContains("ecu.test workspace directory at ${fooPath.absolutePath} does not exist! " +
                     "Please ensure that the path is correctly set and it refers to the desired directory.", run)
     }
 
@@ -219,7 +220,6 @@ class StartToolStepIT extends IntegrationTestBase {
             job.setDefinition(new CpsFlowDefinition("node { ttStartTool toolName: 'ecu.test', " +
                     "workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}', timeout: 10 }", true))
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> false
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -245,7 +245,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> 99
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -273,7 +272,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> 8
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -301,7 +299,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.exitValue() >> { throw new IllegalThreadStateException("")}
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         when:
             WorkflowRun run = jenkins.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0).get())
@@ -311,6 +308,46 @@ class StartToolStepIT extends IntegrationTestBase {
                     "Please ensure the tool is correctly configured and consider restarting it.", run)
     }
 
+    def 'Run pipeline: stdout and stderr are written to log files'() {
+        given:
+            File tempDir = File.createTempDir()
+            tempDir.deleteOnExit()
+            String workspaceDir = tempDir.getPath().replace('\\', '/')
+            WorkflowJob job = jenkins.createProject(WorkflowJob.class, 'pipeline')
+            job.setDefinition(new CpsFlowDefinition("""
+                node {
+                    ttStartTool toolName: 'ecu.test', workspaceDir: '${workspaceDir}', settingsDir: '${workspaceDir}'
+                    archiveArtifacts artifacts: "*.log"
+                }
+            """, true))
+
+        and:
+            ProcessBuilder dummyProcessBuilder = Functions.isWindows() ? new ProcessBuilder("cmd", "/c", "echo Hello stdout && echo Hello stderr 1>&2") :
+                new ProcessBuilder("sh", "-c", "echo Hello stdout; echo Hello stderr >&2")
+            ProcessBuilder processBuilderMock = GroovySpy(ProcessBuilder, global: true)
+            new ProcessBuilder(_) >> processBuilderMock
+            processBuilderMock.command(_) >> dummyProcessBuilder
+        and:
+            ProcessUtil.killTTProcesses(_) >> true
+        and:
+            RestApiClient restApiClientMock = GroovyMock(RestApiClient)
+            GroovySpy(RestApiClientFactory, global: true)
+            RestApiClientFactory.getRestApiClient(_, _, _) >> restApiClientMock
+        when:
+            WorkflowRun run = jenkins.assertBuildStatus(Result.SUCCESS, job.scheduleBuild2(0).get())
+        then:
+            File outArchived = new File(run.getRootDir(), "archive/ecu.test_tool_out.log")
+            File errArchived = new File(run.getRootDir(), "archive/ecu.test_tool_err.log")
+
+            assert outArchived.exists() : "Expected archived stdout log at ${outArchived.absolutePath} to exist."
+            assert errArchived.exists() : "Expected archived stderr log at ${errArchived.absolutePath} to exist."
+
+            String outText = outArchived.getText("UTF-8").replace("\r\n", "\n")
+            String errText = errArchived.getText("UTF-8").replace("\r\n", "\n")
+
+            assert outText.contains("Hello stdout") : "Expected stdout log to contain 'Hello stdout', but was: '${outText}'"
+            assert errText.contains("Hello stderr") : "Expected stderr log to contain 'Hello stderr', but was: '${errText}'"
+    }
 
     def 'Run pipeline: return and print result'() {
         given:
@@ -328,7 +365,6 @@ class StartToolStepIT extends IntegrationTestBase {
             processBuilderMock.start() >> processMock
             processMock.isAlive() >> true
         and:
-            GroovyMock(ProcessUtil, global: true)
             ProcessUtil.killTTProcesses(_) >> true
         and:
             RestApiClient restApiClientMock = GroovyMock(RestApiClient)
