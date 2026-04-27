@@ -2,4 +2,4 @@ dependencies:
   - name: ecu.test
     minimum_version: 2024.3
   - name: test.guide
-    minimum_version: 1.180.0
+    minimum_version: 1.202.0

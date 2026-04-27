@@ -24,16 +24,18 @@ and [CX Templates](https://github.com/tracetronic/cx-templates).
 
 ## Table of Contents
 
-- [Features](#features)
-- [Configuration](#configuration)
+- [ecu.test execution plugin](#ecutest-execution-plugin)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Configuration](#configuration)
     - [Tool configuration](#tool-configuration)
     - [Pipeline job configuration](#pipeline-job-configuration)
-- [Migration](#migration)
-- [Contribution](#contribution)
-- [Known Issues](#known-issues)
-- [Compatibility](#compatibility)
-- [Support](#support)
-- [License](#license)
+  - [Migration](#migration)
+  - [Contribution](#contribution)
+  - [Known Issues](#known-issues)
+  - [Compatibility](#compatibility)
+  - [Support](#support)
+  - [License](#license)
 
 ## Features
 
@@ -156,10 +158,10 @@ ttLoadConfig tbcPath: '', tcfPath: ''
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2024.3) </summary>
 
-| Version         |    latest - 3.7    |     3.6 - 3.5      |     3.4 - 3.1      |        3.0         |
-|-----------------|:------------------:|:------------------:|:------------------:|:------------------:|
-| 2024.4 - 2025.3 | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |
-| 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |
+| Version         |    latest - 3.7    |     3.6 - 3.5      | 3.4 - 3.1 |  3.0  |
+| --------------- | :----------------: | :----------------: | :-------: | :---: |
+| 2024.4 - 2026.1 | :heavy_check_mark: |        :x:         |    :x:    |  :x:  |
+| 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: |    :x:    |  :x:  |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
@@ -168,8 +170,8 @@ ttLoadConfig tbcPath: '', tcfPath: ''
     <summary>optional: <a href="https://www.tracetronic.com/products/test-guide">test.guide</a> compat matrix (min 1.180.0)</summary>
 
 | Version           | latest - 3.0       |
-|-------------------|--------------------|
-| 1.180.0 - 1.207.0 | :heavy_check_mark: |
+| ----------------- | ------------------ |
+| 1.202.0 - 1.207.0 | :heavy_check_mark: |
 
  </details>
 
