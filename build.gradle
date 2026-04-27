@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
     // provides to correct versions of typical needed plugins
-    implementation platform('io.jenkins.tools.bom:bom-2.528.x:5701.va_b_018a_a_6b_0d3')
+    implementation platform('io.jenkins.tools.bom:bom-2.528.x:5750.vec44cb_c78352')
 
     implementation 'org.jenkins-ci.plugins:credentials'
     implementation 'org.jenkins-ci.plugins:junit'
@@ -99,7 +99,7 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy:1.14.12'
     testImplementation 'net.bytebuddy:byte-buddy-agent:1.14.12'
 
-    // Jenkins 2.528.2 needs bouncycastle-api for instance-identity; missing plugin causes     NoClassDefFoundError during tests and forces Jenkins idle ~30s
+    // Jenkins 2.528.3 needs bouncycastle-api for instance-identity; missing plugin causes     NoClassDefFoundError during tests and forces Jenkins idle ~30s
     testImplementation 'org.jenkins-ci.plugins:bouncycastle-api'
 }
 
