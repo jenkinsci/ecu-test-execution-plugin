@@ -90,7 +90,7 @@ pipeline {
                     // The needed artifact is only built for main and pull requests -> skip this job otherwise
                     when { branch pattern: "PR-\\d+|main", comparator: "REGEXP"}
                     steps {
-                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}")]
+                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}"), string(name: 'ecutestVersion', value: "${ET_V2_VERSION}"), string(name: 'jenkinsVersion', value: "${JENKINS_VERSION}")]
                     }
                 }
                 stage('Container Tests') {
