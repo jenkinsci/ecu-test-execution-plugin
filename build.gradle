@@ -96,8 +96,8 @@ dependencies {
 
     // use byte-buddy for spock mocking instead of cglib (legacy mode)
     testImplementation 'org.objenesis:objenesis:3.4'
-    testImplementation 'net.bytebuddy:byte-buddy:1.14.12'
-    testImplementation 'net.bytebuddy:byte-buddy-agent:1.14.12'
+    testImplementation 'net.bytebuddy:byte-buddy:1.18.8'
+    testImplementation 'net.bytebuddy:byte-buddy-agent:1.18.8'
 
     // Jenkins 2.528.2 needs bouncycastle-api for instance-identity; missing plugin causes     NoClassDefFoundError during tests and forces Jenkins idle ~30s
     testImplementation 'org.jenkins-ci.plugins:bouncycastle-api'
