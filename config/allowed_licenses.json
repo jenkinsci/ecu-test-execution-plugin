@@ -1290,17 +1290,17 @@
     },
     {
       "moduleLicense": "Eclipse Public License v. 2.0",
-      "moduleVersion": "4.0.5",
+      "moduleVersion": "4.0.6",
       "moduleName": "com.sun.xml.bind:jaxb-core",
-      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-ri/blob/4.0.5-RI/LICENSE.md",
+      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-ri/blob/4.0.6-RI/LICENSE.md",
       "moduleCopyright": null,
       "actualLicense": "$moduleLicense"
     },
     {
       "moduleLicense": "Eclipse Public License v. 2.0",
-      "moduleVersion": "4.0.5",
+      "moduleVersion": "4.0.6",
       "moduleName": "com.sun.xml.bind:jaxb-impl",
-      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-ri/blob/4.0.5-RI/LICENSE.md",
+      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-ri/blob/4.0.6-RI/LICENSE.md",
       "moduleCopyright": null,
       "actualLicense": "$moduleLicense"
     },
@@ -1322,17 +1322,17 @@
     },
     {
       "moduleLicense": "BSD-3-Clause",
-      "moduleVersion": "2.1.3-2",
+      "moduleVersion": "2.1.4-1",
       "moduleName": "io.jenkins.plugins:jakarta-activation-api",
-      "licenseUrl": "https://github.com/jakartaee/jaf-api/blob/2.1.3/LICENSE.md",
+      "licenseUrl": "https://github.com/jakartaee/jaf-api/blob/2.1.4/LICENSE.md",
       "moduleCopyright": "Copyright (c) 2018 Oracle and/or its affiliates",
       "actualLicense": "$moduleLicense"
     },
     {
       "moduleLicense": "The 3-Clause BSD License",
-      "moduleVersion": "4.0.5-3.v3d5b_a_73965b_9",
+      "moduleVersion": "4.0.6-10.v9b_7e1d1fc40b_",
       "moduleName": "io.jenkins.plugins:jakarta-xml-bind-api",
-      "licenseUrl": "https://github.com/jenkinsci/jakarta-xml-bind-api-plugin/blob/4.0.5-3.v3d5b_a_73965b_9/LICENSE",
+      "licenseUrl": "https://github.com/jenkinsci/jakarta-xml-bind-api-plugin/blob/4.0.6-10.v9b_7e1d1fc40b_/LICENSE",
       "moduleCopyright": "Copyright (c) 2018 Oracle and/or its affiliates",
       "actualLicense": "$moduleLicense"
     },
@@ -1346,25 +1346,25 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "5701.va_b_018a_a_6b_0d3",
+      "moduleVersion": "5750.vec44cb_c78352",
       "moduleName": "io.jenkins.tools.bom:bom-2.528.x",
-      "licenseUrl": "https://github.com/jenkinsci/bom/blob/ab018aa6b0d33cf288836194b9d94dd7541067c1/pom.xml#L16",
+      "licenseUrl": "https://github.com/jenkinsci/bom/blob/5750.vec44cb_c78352/pom.xml#L16",
       "moduleCopyright": null,
       "actualLicense": "$moduleLicense"
     },
     {
       "moduleLicense": "Eclipse Public License v. 2.0",
-      "moduleVersion": "2.1.3",
+      "moduleVersion": "2.1.4",
       "moduleName": "jakarta.activation:jakarta.activation-api",
-      "licenseUrl": "https://github.com/eclipse-ee4j/jaf/blob/2.1.3/LICENSE.md",
+      "licenseUrl": "https://github.com/eclipse-ee4j/jaf/blob/2.1.4/LICENSE.md",
       "moduleCopyright": "Copyright (c) 2018 Oracle and/or its affiliates",
       "actualLicense": "BSD 3-Clause"
     },
     {
       "moduleLicense": "Eclipse Public License v. 2.0",
-      "moduleVersion": "4.0.2",
+      "moduleVersion": "4.0.4",
       "moduleName": "jakarta.xml.bind:jakarta.xml.bind-api",
-      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-api/blob/4.0.2/LICENSE.md",
+      "licenseUrl": "https://github.com/eclipse-ee4j/jaxb-api/blob/4.0.4/LICENSE.md",
       "moduleCopyright": "Copyright (c) 2017, 2018 Oracle and/or its affiliates",
       "actualLicense": "BSD 3-Clause"
     },
@@ -1418,9 +1418,9 @@
     },
     {
       "moduleLicense": "EDL 1.0",
-      "moduleVersion": "2.0.2",
+      "moduleVersion": "2.0.3",
       "moduleName": "org.eclipse.angus:angus-activation",
-      "licenseUrl": "https://github.com/eclipse-ee4j/angus-activation/blob/2.0.2/LICENSE.md",
+      "licenseUrl": "https://github.com/eclipse-ee4j/angus-activation/blob/2.0.3/LICENSE.md",
       "moduleCopyright": "Copyright (c) 2018 Oracle and/or its affiliates",
       "actualLicense": "BSD 3-Clause"
     },
@@ -1458,9 +1458,9 @@
     },
     {
       "moduleLicense": "MIT License",
-      "moduleVersion": "1004.veee3a_d67cdb_9",
+      "moduleVersion": "1010.vb_b_39488a_9841",
       "moduleName": "org.jenkins-ci.plugins.workflow:workflow-support",
-      "licenseUrl": "https://github.com/jenkinsci/workflow-support-plugin/blob/eee3ad67cdb9fb87e29ad66e0080da83a6502c7c/pom.xml#L40",
+      "licenseUrl": "https://github.com/jenkinsci/workflow-support-plugin/blob/1010.vb_b_39488a_9841/pom.xml#L40",
       "moduleCopyright": "Copyright (c) 2013-2014, CloudBees, Inc.",
       "actualLicense": "$moduleLicense"
     },
@@ -1482,9 +1482,9 @@
     },
     {
       "moduleLicense": "The MIT license",
-      "moduleVersion": "1447.v4cb_b_539b_5321",
+      "moduleVersion": "1453.v9b_a_29777a_b_fd",
       "moduleName": "org.jenkins-ci.plugins:credentials",
-      "licenseUrl": "https://github.com/jenkinsci/credentials-plugin/blob/1447.v4cb_b_539b_5321/LICENSE.txt",
+      "licenseUrl": "https://github.com/jenkinsci/credentials-plugin/blob/1453.v9b_a_29777a_b_fd/LICENSE.txt",
       "moduleCopyright": "Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.",
       "actualLicense": "$moduleLicense"
     },
