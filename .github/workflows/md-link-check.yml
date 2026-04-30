@@ -12,6 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: gaurav-nelson/github-action-markdown-link-check@1.0.15
+      - uses: gaurav-nelson/github-action-markdown-link-check@1.0.17
         with:
           config-file: 'mlc_config.json'
