@@ -35,7 +35,7 @@ pipeline {
         pipeline_report_dir = "report2TG/build-$env.BUILD_NUMBER"
         PRODUCT_NAME = "ecu-test-execution-plugin"
         TEST_LEVEL = "pipeline"
-        JENKINS_VERSION = "2.528.2"
+        JENKINS_VERSION = "2.528.3"
     }
 
     tools {
@@ -44,7 +44,7 @@ pipeline {
 
     parameters {
         string(name: 'CONTAINER_TEST_DATA_BRANCH', defaultValue: 'main', description: 'The specified branch name to use for testing.')
-        string(name: 'ET_V2_VERSION', defaultValue: '2025.3.2', description: 'The specified ecu.test v2 version to use for testing.')
+        string(name: 'ET_V2_VERSION', defaultValue: '2026.1.2', description: 'The specified ecu.test v2 version to use for testing.')
         string(name: 'TG_VERSION', defaultValue: '1.207.0', description: 'The specified test.guide version to use for testing.')
     }
 
@@ -90,7 +90,7 @@ pipeline {
                     // The needed artifact is only built for main and pull requests -> skip this job otherwise
                     when { branch pattern: "PR-\\d+|main", comparator: "REGEXP"}
                     steps {
-                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}")]
+                        build job: '../systemTests', parameters: [string(name: 'artifactName', value: "${JOB_BASE_NAME}"), string(name: 'commitHash', value: "${GIT_COMMIT}"), string(name: 'ecutestVersion', value: "${ET_V2_VERSION}"), string(name: 'jenkinsVersion', value: "${JENKINS_VERSION}")]
                     }
                 }
                 stage('Container Tests') {
