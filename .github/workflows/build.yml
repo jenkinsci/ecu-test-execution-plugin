@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Read Plugin Version
         uses: madhead/read-java-properties@latest
         id: version
@@ -41,7 +41,7 @@ jobs:
         id: artifactCopy
         run: ./gradlew publishMavenPublicationToArtifactsRepository
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.artifactName.outputs.artifact_name }}
           path: |
