@@ -95,7 +95,7 @@ dependencies {
     testImplementation 'org.spockframework:spock-junit4:2.4-M7-groovy-3.0'
 
     // use byte-buddy for spock mocking instead of cglib (legacy mode)
-    testImplementation 'org.objenesis:objenesis:3.4'
+    testImplementation 'org.objenesis:objenesis:3.5'
     testImplementation 'net.bytebuddy:byte-buddy:1.18.8'
     testImplementation 'net.bytebuddy:byte-buddy-agent:1.18.8'
 
