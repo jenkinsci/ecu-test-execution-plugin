@@ -352,7 +352,8 @@ tasks.register('openApiGenerateV2', GenerateTask) {
     configOptions = [
             licenseName: "MIT License",
             licenseUrl: "https://spdx.org/licenses/MIT.html",
-            dateLibrary: "java${project.properties['javaVersion']}"
+            dateLibrary: "java${project.properties['javaVersion']}",
+            disallowAdditionalPropertiesIfNotPresent: "false"
     ]
 }
 
