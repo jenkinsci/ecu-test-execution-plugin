@@ -158,11 +158,11 @@ ttLoadConfig tbcPath: '', tcfPath: ''
     <summary><a href="https://www.tracetronic.com/products/ecu-test">ecu.test</a>/
     <a href="https://www.tracetronic.com/products/trace-check/">trace.check</a> compat matrix (min 2024.3) </summary>
 
-| Version         | latest - 3.14       |     3.13 - 3.7     |     3.6 - 3.5      | 3.4 - 3.1 | 3.0  |
-|-----------------|---------------------|:------------------:|:------------------:|:---------:|:----:|
-| 2026.2          | ( :grey_question: ) |        :x:         |        :x:         |    :x:    | :x:  |
-| 2024.4 - 2026.1 | :heavy_check_mark:  | :heavy_check_mark: |        :x:         |    :x:    | :x:  |
-| 2024.2 - 2024.3 | :heavy_check_mark:  | :heavy_check_mark: | :heavy_check_mark: |    :x:    | :x:  |
+| Version         | latest - 3.14      |     3.13 - 3.7     |     3.6 - 3.5      | 3.4 - 3.1 | 3.0  |
+|-----------------|--------------------|:------------------:|:------------------:|:---------:|:----:|
+| 2026.2          | :grey_question:    |        :x:         |        :x:         |    :x:    | :x:  |
+| 2024.4 - 2026.1 | :heavy_check_mark: | :heavy_check_mark: |        :x:         |    :x:    | :x:  |
+| 2024.2 - 2024.3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |    :x:    | :x:  |
 
 :warning: Please note that compatibility for trace.check is only warranted for __Windows__ OS.
 
