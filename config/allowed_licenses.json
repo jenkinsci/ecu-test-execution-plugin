@@ -81,27 +81,43 @@
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.12.0",
+      "moduleVersion": "5.5.0",
       "moduleName": "com.squareup.okhttp3:logging-interceptor",
-      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.12.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/lysine-dev/okhttp/blob/parent-5.5.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2015 Square, Inc.",
       "actualLicense": "$moduleLicense"
     },
     {
       "moduleLicense": "The Apache Software License, Version 2.0",
-      "moduleVersion": "4.12.0",
+      "moduleVersion": "5.5.0",
       "moduleName": "com.squareup.okhttp3:okhttp",
-      "licenseUrl": "https://github.com/square/okhttp/blob/parent-4.12.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/lysine-dev/okhttp/blob/parent-5.5.0/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2014 Square, Inc.",
       "actualLicense": "$moduleLicense"
     },
     {
-      "moduleLicense": null,
-      "moduleVersion": "3.6.0",
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "5.5.0",
+      "moduleName": "com.squareup.okhttp3:okhttp-jvm",
+      "licenseUrl": "https://github.com/lysine-dev/okhttp/blob/parent-5.5.0/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2014 Square, Inc.",
+      "actualLicense": "$moduleLicense"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "3.18.1",
       "moduleName": "com.squareup.okio:okio",
-      "licenseUrl": "https://github.com/square/okio/blob/parent-3.6.0/LICENSE.txt",
+      "licenseUrl": "https://github.com/lysine-dev/okio/blob/parent-3.18.1/LICENSE.txt",
       "moduleCopyright": "Copyright (C) 2020 Square, Inc.",
-      "actualLicense": "The Apache Software License, Version 2.0"
+      "actualLicense": "$moduleLicense"
+    },
+    {
+      "moduleLicense": "The Apache Software License, Version 2.0",
+      "moduleVersion": "3.18.1",
+      "moduleName": "com.squareup.okio:okio-jvm",
+      "licenseUrl": "https://github.com/lysine-dev/okio/blob/parent-3.18.1/LICENSE.txt",
+      "moduleCopyright": "Copyright (C) 2020 Square, Inc.",
+      "actualLicense": "$moduleLicense"
     },
     {
       "moduleLicense": "Apache-2.0",
@@ -320,11 +336,11 @@
       "actualLicense": "$moduleLicense"
     },
     {
-      "moduleLicense": "The Apache License, Version 2.0",
-      "moduleVersion": "1.9.10",
+      "moduleLicense": "Apache-2.0",
+      "moduleVersion": "2.2.21",
       "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
-      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v1.9.10/license/LICENSE.txt",
-      "moduleCopyright": "Copyright 2000-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "licenseUrl": "https://github.com/JetBrains/kotlin/blob/v2.2.21/license/LICENSE.txt",
+      "moduleCopyright": "Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.",
       "actualLicense": "$moduleLicense"
     },
     {
